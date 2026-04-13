@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriLoop AI | Accueil</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f5f7fa;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        .logo-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #003366;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .nav-menu a:hover, .nav-menu a.active {
+            color: #4CAF50;
+        }
+
+        .btn-dashboard {
+            background: #4CAF50;
+            color: white !important;
+            padding: 8px 20px;
+            border-radius: 25px;
+        }
+
+        .btn-dashboard:hover {
+            background: #003366;
+            color: white !important;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: #333;
+            margin: 3px 0;
+            transition: 0.3s;
+        }
+
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, #003366 0%, #4CAF50 100%);
+            color: white;
+            padding: 120px 5% 80px;
+            text-align: center;
+        }
+
+        .hero-content h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .highlight {
+            color: #ffd700;
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+            display: inline-block;
+        }
+
+        .btn-primary:hover {
+            background: #003366;
+            transform: translateY(-3px);
+        }
+
+        .btn-outline {
+            border: 2px solid white;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-outline:hover {
+            background: white;
+            color: #003366;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            margin-top: 4rem;
+        }
+
+        .stat h3 {
+            font-size: 2rem;
+        }
+
+        /* Features */
+        .features, .modules {
+            padding: 5rem 5%;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            color: #003366;
+            margin-bottom: 1rem;
+        }
+
+        .features-grid, .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card, .module-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .feature-card:hover, .module-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+        }
+
+        .feature-icon, .module-icon {
+            font-size: 3rem;
+            color: #4CAF50;
+            margin-bottom: 1rem;
+        }
+
+        .module-card h3 {
+            color: #003366;
+            margin-bottom: 0.5rem;
+        }
+
+        .module-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            margin-top: 1rem;
+        }
+
+        .click-hint {
+            display: block;
+            margin-top: 1rem;
+            font-size: 0.7rem;
+            color: #999;
+        }
+
+        /* Testimonials */
+        .testimonials {
+            padding: 5rem 5%;
+            background: #f0f4f8;
+        }
+
+        .testimonial {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .testimonial-content i {
+            font-size: 2rem;
+            color: #4CAF50;
+            margin-bottom: 1rem;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .testimonial-author img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Contact */
+        .contact {
+            padding: 5rem 5%;
+            background: white;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3rem;
+        }
+
+        .contact-info {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 20px;
+        }
+
+        .contact-info i {
+            font-size: 2rem;
+            color: #4CAF50;
+            margin-bottom: 1rem;
+        }
+
+        .contact-info h3 {
+            color: #003366;
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-form {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 20px;
+        }
+
+        .contact-form input, .contact-form textarea {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .contact-form button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        .contact-form button:hover {
+            background: #003366;
+        }
+
+        /* Newsletter */
+        .newsletter {
+            background: linear-gradient(135deg, #003366, #4CAF50);
+            color: white;
+            text-align: center;
+            padding: 5rem 5%;
+        }
+
+        .newsletter-form {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .newsletter-form input {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 30px;
+            width: 300px;
+        }
+
+        .newsletter-form button {
+            background: #ffd700;
+            color: #003366;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Footer */
+        .footer {
+            background: #001a33;
+            color: white;
+            padding: 3rem 5% 1rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-section h3, .footer-section h4 {
+            margin-bottom: 1rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section a {
+            color: #ccc;
+            text-decoration: none;
+        }
+
+        .footer-section a:hover {
+            color: #4CAF50;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-links a {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+            .hamburger {
+                display: flex;
+            }
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+            .hero-stats {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .newsletter-form {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <nav class="navbar">
+            <div class="logo">
+                <img src="image/logo.PNG" alt="Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/45x45?text=🌱'">
+                <span class="logo-text">NutriLoop</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="active">Accueil</a></li>
+                <li><a href="#features">Fonctionnalités</a></li>
+                <li><a href="#modules">Modules</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="../BackOffice/index.html" class="btn-dashboard">Dashboard</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Bienvenue sur <span class="highlight">NutriLoop AI</span></h1>
+            <p>L'intelligence artificielle au service de votre alimentation pour une santé optimale et un avenir durable.</p>
+            <div class="hero-buttons">
+                <a href="../BackOffice/index.html" class="btn-primary">Accéder au Dashboard</a>
+                <a href="#modules" class="btn-outline">Découvrir les modules</a>
+            </div>
+        </div>
+        <div class="hero-stats">
+            <div class="stat">
+                <h3>5000+</h3>
+                <p>Utilisateurs actifs</p>
+            </div>
+            <div class="stat">
+                <h3>1000+</h3>
+                <p>Recettes IA</p>
+            </div>
+            <div class="stat">
+                <h3>98%</h3>
+                <p>Satisfaction</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Pourquoi choisir NutriLoop AI ?</h2>
+                <p>Une solution complète pour une nutrition intelligente et personnalisée</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-robot"></i></div>
+                    <h3>IA Avancée</h3>
+                    <p>Recommandations personnalisées basées sur vos habitudes alimentaires.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-leaf"></i></div>
+                    <h3>Eco-Score</h3>
+                    <p>Évaluez l'impact environnemental de vos repas.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                    <h3>Suivi en temps réel</h3>
+                    <p>Suivez vos progrès et atteignez vos objectifs.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-utensils"></i></div>
+                    <h3>Anti-Gaspi</h3>
+                    <p>Recettes intelligentes pour réduire le gaspillage.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="modules" class="modules">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Nos 6 Modules</h2>
+                <p>Cliquez sur un module pour y accéder directement</p>
+            </div>
+            <div class="modules-grid">
+                <div class="module-card" data-url="index.php">
+                    <div class="module-icon"><i class="fas fa-users"></i></div>
+                    <h3>Gestion Utilisateurs</h3>
+                    <p>Consultez la liste des utilisateurs actifs.</p>
+                    <span class="module-badge">Module 1 ✓</span>
+                    <span class="click-hint"><i class="fas fa-arrow-right"></i> Cliquez</span>
+                </div>
+                
+                <div class="module-card" data-url="#">
+                    <div class="module-icon"><i class="fas fa-apple-alt"></i></div>
+                    <h3>Nutrition Smart</h3>
+                    <p>Analyse nutritionnelle et recommandations IA.</p>
+                    <span class="module-badge">Module 2</span>
+                    <span class="click-hint"><i class="fas fa-arrow-right"></i> Cliquez</span>
+                </div>
+                
+                <div class="module-card" data-url="#">
+                    <div class="module-icon"><i class="fas fa-boxes"></i></div>
+                    <h3>Gestion Produits</h3>
+                    <p>Base de données des aliments et catégories.</p>
+                    <span class="module-badge">Module 3</span>
+                    <span class="click-hint"><i class="fas fa-arrow-right"></i> Cliquez</span>
+                </div>
+                
+                <div class="module-card" data-url="afficherRecette.php">
+                    <div class="module-icon"><i class="fas fa-book-open"></i></div>
+                    <h3>Recettes Anti-Gaspi</h3>
+                    <p>Créez et gérez des recettes intelligentes.</p>
+                    <span class="module-badge">Module 4 ✓</span>
+                    <span class="click-hint"><i class="fas fa-arrow-right"></i> Cliquez</span>
+                </div>
+                
+                <div class="module-card" data-url="#">
+                    <div class="module-icon"><i class="fas fa-chart-simple"></i></div>
+                    <h3>Suivi & Objectifs</h3>
+                    <p>Tableau de bord personnalisé des progrès.</p>
+                    <span class="module-badge">Module 5</span>
+                    <span class="click-hint"><i class="fas fa-arrow-right"></i> Cliquez</span>
+                </div>
+                
+                <div class="module-card" data-url="#">
+                    <div class="module-icon"><i class="fas fa-calendar-alt"></i></div>
+                    <h3>Gestion Événements</h3>
+                    <p>Organisez des ateliers et challenges nutritionnels.</p>
+                    <span class="module-badge">Module 6</span>
+                    <span class="click-hint"><i class="fas fa-arrow-right"></i> Cliquez</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="testimonials">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Ce que disent nos utilisateurs</h2>
+            </div>
+            <div class="testimonial">
+                <div class="testimonial-content">
+                    <i class="fas fa-quote-left"></i>
+                    <p>NutriLoop AI a transformé ma façon de manger. Les recommandations sont précises et adaptées à mon mode de vie.</p>
+                </div>
+                <div class="testimonial-author">
+                    <img src="https://randomuser.me/api/portraits/women/1.jpg" alt="Sarah">
+                    <div>
+                        <h4>Sarah M.</h4>
+                        <p>Utilisatrice premium</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="contact">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Contactez-nous</h2>
+                <p>Nous sommes là pour répondre à vos questions</p>
+            </div>
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <h3>Notre adresse</h3>
+                    <p>123 Avenue Habib Bourguiba<br>Tunis, Tunisie</p>
+                    
+                    <i class="fas fa-phone" style="margin-top: 1.5rem;"></i>
+                    <h3>Téléphone</h3>
+                    <p>+216 70 000 000</p>
+                    
+                    <i class="fas fa-envelope" style="margin-top: 1.5rem;"></i>
+                    <h3>Email</h3>
+                    <p>contact@nutriloop.ai</p>
+                </div>
+                <div class="contact-form">
+                    <form id="contactForm">
+                        <input type="text" placeholder="Votre nom" required>
+                        <input type="email" placeholder="Votre email" required>
+                        <input type="text" placeholder="Sujet">
+                        <textarea placeholder="Votre message" rows="5" required></textarea>
+                        <button type="submit">Envoyer le message</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="newsletter">
+        <div class="newsletter-content">
+            <h3>Restez informé</h3>
+            <p>Recevez nos dernières actualités et conseils nutritionnels</p>
+            <form class="newsletter-form">
+                <input type="email" placeholder="Votre email">
+                <button type="submit">S'abonner</button>
+            </form>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>NutriLoop AI</h3>
+                <p>L'intelligence artificielle au service de votre assiette.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h4>Liens rapides</h4>
+                <ul>
+                    <li><a href="index.html">Accueil</a></li>
+                    <li><a href="#features">Fonctionnalités</a></li>
+                    <li><a href="#modules">Modules</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Modules</h4>
+                <ul>
+                    <li><a href="index.php">Utilisateurs</a></li>
+                    <li><a href="afficherRecette.php">Recettes</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contact</h4>
+                <ul>
+                    <li><i class="fas fa-envelope"></i> contact@nutriloop.ai</li>
+                    <li><i class="fas fa-phone"></i> +216 70 000 000</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 NutriLoop AI - Tous droits réservés | Projet étudiant</p>
+        </div>
+    </footer>
+
+    <script>
+        // Cartes cliquables
+        document.querySelectorAll('.module-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const url = this.getAttribute('data-url');
+                if(url && url !== '#') {
+                    window.location.href = url;
+                } else {
+                    alert('Ce module sera bientôt disponible !');
+                }
+            });
+        });
+
+        // Formulaire contact
+        document.getElementById('contactForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Merci pour votre message ! Nous vous contacterons bientôt.');
+            this.reset();
+        });
+
+        // Formulaire newsletter
+        document.querySelector('.newsletter-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Merci pour votre abonnement !');
+            this.reset();
+        });
+
+        // Menu mobile
+        const hamburger = document.querySelector('.hamburger');
+        const navMenu = document.querySelector('.nav-menu');
+        if(hamburger) {
+            hamburger.addEventListener('click', () => {
+                navMenu.classList.toggle('active');
+                if(navMenu.style.display === 'flex') {
+                    navMenu.style.display = 'none';
+                } else {
+                    navMenu.style.display = 'flex';
+                    navMenu.style.flexDirection = 'column';
+                    navMenu.style.position = 'absolute';
+                    navMenu.style.top = '70px';
+                    navMenu.style.left = '0';
+                    navMenu.style.right = '0';
+                    navMenu.style.backgroundColor = 'white';
+                    navMenu.style.padding = '1rem';
+                    navMenu.style.gap = '1rem';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

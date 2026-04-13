@@ -1,23 +1,26 @@
 <?php
-if (!class_exists('Config')) {
-    class Config {
-        private static $conn = null;
-        
-        public static function getConnexion() {
-            if (self::$conn === null) {
-                try {
-                    self::$conn = new PDO(
-                        "mysql:host=localhost;dbname=moemen",
-                        "root",
-                        "",
-                        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-                    );
-                } catch (PDOException $e) {
-                    die("Erreur de connexion: " . $e->getMessage());
-                }
+// config/config.php
+
+class config {
+    private static $conn = null;
+    
+    public static function getConnexion() {
+        if (self::$conn === null) {
+            try {
+                self::$conn = new PDO(
+                    "mysql:host=localhost;dbname=nutriloop;charset=utf8",
+                    "root",
+                    "",
+                    [
+                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                        PDO::ATTR_EMULATE_PREPARES => false
+                    ]
+                );
+            } catch (PDOException $e) {
+                die("Erreur de connexion à la base de données: " . $e->getMessage());
             }
-            return self::$conn;
         }
+        return self::$conn;
     }
 }
-?>

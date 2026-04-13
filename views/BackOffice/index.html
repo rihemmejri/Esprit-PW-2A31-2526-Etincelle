@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriLoop AI | Dashboard Admin</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .logo-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #4CAF50, #003366);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .stat-icon {
+            font-size: 2rem;
+            color: #4CAF50;
+            float: right;
+            opacity: 0.7;
+        }
+        
+        .search-bar {
+            position: relative;
+        }
+        
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .search-suggestions.show {
+            display: block;
+        }
+        
+        .suggestion-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .suggestion-item:hover {
+            background: #f5f7fa;
+        }
+        
+        .suggestion-item i {
+            color: #4CAF50;
+            width: 20px;
+        }
+        
+        .user-profile img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #4CAF50;
+        }
+        
+        .nutrition-tips {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .tip-card {
+            background: linear-gradient(135deg, #f5f7fa, #fff);
+            border-radius: 16px;
+            padding: 1rem;
+            text-align: center;
+            transition: 0.3s;
+        }
+        
+        .tip-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .tip-card img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tip-card h4 {
+            font-size: 0.9rem;
+            color: #003366;
+        }
+        
+        .tip-card p {
+            font-size: 0.7rem;
+            color: #666;
+        }
+        
+        .recent-recipes {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+        
+        .recipe-card {
+            min-width: 150px;
+            background: white;
+            border-radius: 16px;
+            padding: 0.8rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .recipe-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .recipe-card img {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+        
+        .recipe-card h4 {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            color: #003366;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #003366 0%, #001a33 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .logo-text small {
+            font-size: 0.7rem;
+            opacity: 0.7;
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+            padding: 1rem 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .nav-item.active {
+            background: rgba(76, 175, 80, 0.2);
+            border-left: 3px solid #4CAF50;
+        }
+
+        .nav-item i {
+            width: 20px;
+            font-size: 1.1rem;
+        }
+
+        .badge {
+            margin-left: auto;
+            background: #4CAF50;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .user-info img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .user-info h4 {
+            font-size: 0.9rem;
+        }
+
+        .user-info p {
+            font-size: 0.7rem;
+            opacity: 0.7;
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            background: #f5f7fa;
+        }
+
+        .top-bar {
+            background: white;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .menu-toggle {
+            display: none;
+            cursor: pointer;
+            font-size: 1.3rem;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            border: 1px solid #e0e0e0;
+            border-radius: 25px;
+            font-family: 'Poppins', sans-serif;
+            outline: none;
+        }
+
+        .search-bar input:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .notification {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notification .badge {
+            position: absolute;
+            top: -8px;
+            right: -12px;
+            background: #ff4444;
+            font-size: 0.6rem;
+            padding: 2px 6px;
+        }
+
+        .page-content {
+            padding: 2rem;
+        }
+
+        .data-table {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .data-table h3 {
+            margin-bottom: 1rem;
+            color: #003366;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .iframe-container {
+            width: 100%;
+            height: calc(100vh - 140px);
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #f5f7fa;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: 0.3s;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .menu-toggle {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <!-- ========== SIDEBAR ========== -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="../FrontOffice/image/logo.PNG" alt="Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/45x45?text=🌱'">
+                <span class="logo-text">NutriLoop<br><small>Admin</small></span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul>
+                <li class="nav-item active" data-module="dashboard">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </li>
+                <li class="nav-item" data-module="users" data-page="list.php">
+                    <i class="fas fa-users"></i>
+                    <span>Utilisateurs</span>
+                    <span class="badge">Module 1</span>
+                </li>
+                <li class="nav-item" data-module="nutrition">
+                    <i class="fas fa-apple-alt"></i>
+                    <span>Nutrition Smart</span>
+                    <span class="badge">Module 2</span>
+                </li>
+                <li class="nav-item" data-module="products">
+                    <i class="fas fa-boxes"></i>
+                    <span>Gestion Produits</span>
+                    <span class="badge">Module 3</span>
+                </li>
+                <li class="nav-item" data-module="recette" data-page="recetteList.php">
+                    <i class="fas fa-utensils"></i>
+                    <span>Recettes Anti-Gaspi</span>
+                    <span class="badge">Module 4</span>
+                </li>
+                <li class="nav-item" data-module="tracking">
+                    <i class="fas fa-chart-simple"></i>
+                    <span>Suivi & Objectifs</span>
+                    <span class="badge">Module 5</span>
+                </li>
+                <li class="nav-item" data-module="events">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Gestion Événements</span>
+                    <span class="badge">Module 6</span>
+                </li>
+            </ul>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <img src="../FrontOffice/image/ryhem.PNG" alt="Ryhem Mejri" onerror="this.src='https://randomuser.me/api/portraits/women/68.jpg'">
+                <div>
+                    <h4>Ryhem Mejri</h4>
+                    <p>Administrateur Principal</p>
+                </div>
+            </div>
+            <a href="../frontoffice/index.html" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Front Office</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Rechercher une recette, un utilisateur...">
+                <div class="search-suggestions" id="searchSuggestions"></div>
+            </div>
+            <div class="top-actions">
+                <div class="notification">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+                <div class="user-profile">
+                    <img src="../FrontOffice/image/ryhem.PNG" alt="Profile" onerror="this.src='https://randomuser.me/api/portraits/women/68.jpg'">
+                </div>
+            </div>
+        </header>
+
+        <div class="page-content" id="pageContent">
+            <!-- Dashboard par défaut -->
+            <div id="defaultContent">
+                <div class="stats-grid" id="dashboardStats"></div>
+                
+                <div class="data-table" style="margin-bottom: 1.5rem;">
+                    <h3><i class="fas fa-leaf"></i> Conseils Nutrition du jour</h3>
+                    <div class="nutrition-tips">
+                        <div class="tip-card">
+                            <img src="https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=100&h=100&fit=crop" alt="Fruits">
+                            <h4>🥗 Mangez coloré</h4>
+                            <p>Variez les fruits et légumes pour tous les nutriments</p>
+                        </div>
+                        <div class="tip-card">
+                            <img src="https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=100&h=100&fit=crop" alt="Eau">
+                            <h4>💧 Hydratez-vous</h4>
+                            <p>Buvez 1.5L à 2L d'eau par jour</p>
+                        </div>
+                        <div class="tip-card">
+                            <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&h=100&fit=crop" alt="Équilibre">
+                            <h4>⚖️ Équilibre</h4>
+                            <p>50% légumes, 25% protéines, 25% féculents</p>
+                        </div>
+                        <div class="tip-card">
+                            <img src="https://images.unsplash.com/photo-1599058917765-a3b875d67c78?w=100&h=100&fit=crop" alt="Anti-gaspi">
+                            <h4>♻️ Anti-gaspi</h4>
+                            <p>Utilisez vos restes pour de nouvelles recettes</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="data-table">
+                    <h3><i class="fas fa-chart-line"></i> Activité récente</h3>
+                    <canvas id="activityChart" height="100"></canvas>
+                </div>
+                
+                <div class="data-table" style="margin-top: 1.5rem;">
+                    <h3><i class="fas fa-star"></i> Recettes populaires cette semaine</h3>
+                    <div class="recent-recipes">
+                        <div class="recipe-card" onclick="loadModulePage('recetteList.php')">
+                            <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=150&h=150&fit=crop" alt="Salade">
+                            <h4>Salade Quinoa</h4>
+                            <small>⭐ 4.8</small>
+                        </div>
+                        <div class="recipe-card" onclick="loadModulePage('recetteList.php')">
+                            <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=150&h=150&fit=crop" alt="Bowl">
+                            <h4>Buddha Bowl</h4>
+                            <small>⭐ 4.9</small>
+                        </div>
+                        <div class="recipe-card" onclick="loadModulePage('recetteList.php')">
+                            <img src="https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=150&h=150&fit=crop" alt="Smoothie">
+                            <h4>Smoothie Bowl</h4>
+                            <small>⭐ 4.7</small>
+                        </div>
+                        <div class="recipe-card" onclick="loadModulePage('recetteList.php')">
+                            <img src="https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=150&h=150&fit=crop" alt="Pâtes">
+                            <h4>Pâtes complètes</h4>
+                            <small>⭐ 4.6</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    // ========== RENDER DASHBOARD ==========
+    function renderDashboard() {
+        const statsHtml = document.getElementById('dashboardStats');
+        if (statsHtml) {
+            statsHtml.innerHTML = `
+                <div class="stat-card">
+                    <i class="fas fa-users stat-icon"></i>
+                    <div class="stat-title">Utilisateurs</div>
+                    <div class="stat-number">1,234</div>
+                    <small>+12% ce mois</small>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-utensils stat-icon"></i>
+                    <div class="stat-title">Recettes</div>
+                    <div class="stat-number">156</div>
+                    <small>+8 nouvelles</small>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-boxes stat-icon"></i>
+                    <div class="stat-title">Produits</div>
+                    <div class="stat-number">342</div>
+                    <small>+23 catégories</small>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-calendar stat-icon"></i>
+                    <div class="stat-title">Événements</div>
+                    <div class="stat-number">12</div>
+                    <small>3 à venir</small>
+                </div>
+            `;
+        }
+        
+        const ctx = document.getElementById('activityChart')?.getContext('2d');
+        if (ctx) {
+            if (window.myChart) window.myChart.destroy();
+            window.myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+                    datasets: [{
+                        label: 'Connexions',
+                        data: [45, 52, 48, 61, 55, 42, 38],
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Nouvelles recettes',
+                        data: [3, 5, 2, 4, 6, 3, 1],
+                        borderColor: '#003366',
+                        backgroundColor: 'rgba(0, 51, 102, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+    }
+
+    // ========== CHARGER UNE PAGE PHP DANS IFRAME ==========
+    let currentIframe = null;
+
+    function loadModulePage(pageUrl) {
+        const defaultContent = document.getElementById('defaultContent');
+        const pageContent = document.getElementById('pageContent');
+        
+        // Cacher le dashboard
+        defaultContent.style.display = 'none';
+        
+        // Vérifier si l'iframe existe déjà
+        let iframeContainer = document.getElementById('dynamicIframeContainer');
+        if (!iframeContainer) {
+            iframeContainer = document.createElement('div');
+            iframeContainer.id = 'dynamicIframeContainer';
+            iframeContainer.className = 'iframe-container';
+            iframeContainer.innerHTML = '<iframe id="dynamicFrame" src=""></iframe>';
+            pageContent.appendChild(iframeContainer);
+        }
+        
+        // Afficher le conteneur et charger la page
+        iframeContainer.style.display = 'block';
+        const iframe = document.getElementById('dynamicFrame');
+        iframe.src = pageUrl;
+        
+        // Stocker pour référence
+        currentIframe = iframeContainer;
+    }
+
+    function showDashboard() {
+        const defaultContent = document.getElementById('defaultContent');
+        const iframeContainer = document.getElementById('dynamicIframeContainer');
+        
+        defaultContent.style.display = 'block';
+        
+        if (iframeContainer) {
+            iframeContainer.style.display = 'none';
+            const iframe = document.getElementById('dynamicFrame');
+            if (iframe) iframe.src = '';
+        }
+        
+        renderDashboard();
+    }
+
+    // ========== RECHERCHE AVEC SUGGESTIONS ==========
+    const searchInput = document.getElementById('searchInput');
+    const suggestionsDiv = document.getElementById('searchSuggestions');
+    
+    const searchItems = [
+        { name: 'Gestion Utilisateurs', icon: 'fa-users', page: 'dashboard.php' },
+        { name: 'Recettes Anti-Gaspi', icon: 'fa-utensils', page: 'recetteList.php' },
+        { name: 'Nutrition Smart', icon: 'fa-apple-alt', page: null },
+        { name: 'Gestion Produits', icon: 'fa-boxes', page: null },
+        { name: 'Dashboard', icon: 'fa-chart-line', page: 'dashboard' }
+    ];
+    
+    searchInput?.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        if (query.length < 2) {
+            suggestionsDiv.classList.remove('show');
+            return;
+        }
+        
+        const filtered = searchItems.filter(item => 
+            item.name.toLowerCase().includes(query)
+        );
+        
+        if (filtered.length > 0) {
+            suggestionsDiv.innerHTML = filtered.map(item => `
+                <div class="suggestion-item" data-page="${item.page}">
+                    <i class="fas ${item.icon}"></i>
+                    <span>${item.name}</span>
+                </div>
+            `).join('');
+            suggestionsDiv.classList.add('show');
+            
+            document.querySelectorAll('.suggestion-item').forEach(sugg => {
+                sugg.addEventListener('click', () => {
+                    const page = sugg.getAttribute('data-page');
+                    if (page === 'dashboard') {
+                        showDashboard();
+                        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                        document.querySelector('.nav-item[data-module="dashboard"]').classList.add('active');
+                    } else if (page) {
+                        loadModulePage(page);
+                        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                        if (page === 'recetteList.php') {
+                            document.querySelector('.nav-item[data-module="recette"]').classList.add('active');
+                        } else if (page === 'dashboard.php') {
+                            document.querySelector('.nav-item[data-module="users"]').classList.add('active');
+                        }
+                    } else {
+                        alert('Ce module sera bientôt disponible');
+                    }
+                    suggestionsDiv.classList.remove('show');
+                    searchInput.value = '';
+                });
+            });
+        } else {
+            suggestionsDiv.classList.remove('show');
+        }
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (!searchInput?.contains(e.target) && !suggestionsDiv?.contains(e.target)) {
+            suggestionsDiv.classList.remove('show');
+        }
+    });
+
+    // ========== NAVIGATION PAR SIDEBAR ==========
+    const navItems = document.querySelectorAll('.nav-item');
+
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            navItems.forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+            
+            const module = item.getAttribute('data-module');
+            const page = item.getAttribute('data-page');
+            
+            if (module === 'dashboard') {
+                showDashboard();
+            }
+            else if (page) {
+                loadModulePage(page);
+            }
+            else {
+                showDashboard();
+                const defaultContent = document.getElementById('defaultContent');
+                defaultContent.innerHTML = `
+                    <div class="data-table" style="text-align: center; padding: 60px;">
+                        <i class="fas fa-cogs" style="font-size: 4rem; color: #4CAF50; margin-bottom: 20px;"></i>
+                        <h2>Module ${item.querySelector('span')?.innerText || module}</h2>
+                        <p>Ce module sera bientôt disponible...</p>
+                        <div class="stats-grid" style="margin-top: 30px;">
+                            <div class="stat-card"><div class="stat-title">En développement</div><div class="stat-number">🚀</div></div>
+                            <div class="stat-card"><div class="stat-title">Prochainement</div><div class="stat-number">⚡</div></div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+    });
+
+    // Menu toggle pour mobile
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    if (menuToggle) {
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+    }
+
+    // Démarrer avec le dashboard
+    showDashboard();
+</script>
+</body>
+</html>

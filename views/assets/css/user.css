@@ -1,0 +1,463 @@
+/* views/assets/css/user.css - Style complet pour toutes les pages */
+
+/* Reset et styles de base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Container principal */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+    padding: 30px;
+}
+
+/* Container pour login et register */
+.login-container, .register-container {
+    max-width: 500px;
+    margin: 50px auto;
+}
+
+/* Titres */
+h1 {
+    color: #333;
+    margin-bottom: 30px;
+    text-align: center;
+    font-size: 2.5em;
+    border-bottom: 3px solid #667eea;
+    display: inline-block;
+    padding-bottom: 10px;
+}
+
+.login-header h1 {
+    border-bottom: none;
+    margin-bottom: 10px;
+}
+
+.login-header p {
+    color: #666;
+    margin-bottom: 30px;
+}
+
+h2 {
+    color: #555;
+    margin-bottom: 20px;
+    font-size: 1.8em;
+}
+
+/* Formulaire */
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: #555;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+input:focus, select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+}
+
+input[type="checkbox"] {
+    width: auto;
+    margin-right: 10px;
+}
+
+/* Exigences du mot de passe */
+.password-requirements {
+    font-size: 12px;
+    color: #666;
+    margin-top: 8px;
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+
+.password-requirements ul {
+    margin-left: 20px;
+    margin-top: 5px;
+    list-style: none;
+}
+
+.password-requirements li {
+    margin: 3px 0;
+    font-size: 11px;
+}
+
+.password-requirements li.valid {
+    color: #4CAF50;
+}
+
+.password-requirements li.invalid {
+    color: #f44336;
+}
+
+/* Boutons */
+.btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    margin: 5px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-danger {
+    background: #f44336;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #da190b;
+    transform: translateY(-2px);
+}
+
+.btn-warning {
+    background: #ff9800;
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #e68900;
+    transform: translateY(-2px);
+}
+
+.btn-info {
+    background: #2196F3;
+    color: white;
+}
+
+.btn-info:hover {
+    background: #0b7dda;
+    transform: translateY(-2px);
+}
+
+.btn-success {
+    background: #4CAF50;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+}
+
+/* Tableau */
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.user-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.user-table th {
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+}
+
+.user-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.user-table tbody tr:hover {
+    background: #f9f9f9;
+    transform: scale(1.01);
+    transition: all 0.3s ease;
+}
+
+/* Cartes pour l'affichage frontoffice */
+.user-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+.user-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.user-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+}
+
+.user-card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+.user-card-header h3 {
+    font-size: 1.5em;
+    margin-bottom: 5px;
+}
+
+.user-card-body {
+    padding: 20px;
+}
+
+.user-info {
+    margin-bottom: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.user-info strong {
+    color: #667eea;
+    display: inline-block;
+    width: 100px;
+}
+
+.user-card-footer {
+    padding: 15px 20px;
+    background: #f9f9f9;
+    text-align: center;
+}
+
+/* Badge pour les rôles */
+.role-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.role-admin {
+    background: #f44336;
+    color: white;
+}
+
+.role-user {
+    background: #4CAF50;
+    color: white;
+}
+
+.statut-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.statut-actif {
+    background: #4CAF50;
+    color: white;
+}
+
+.statut-inactif {
+    background: #ff9800;
+    color: white;
+}
+
+/* Messages d'erreur et succès */
+.alert {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    animation: slideIn 0.5s ease;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-danger {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.error-message {
+    color: #f44336;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Actions dans le tableau */
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+.actions .btn {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+/* Pagination */
+.pagination {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.pagination a {
+    display: inline-block;
+    padding: 8px 16px;
+    margin: 0 5px;
+    background: #f0f0f0;
+    color: #333;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.pagination a:hover, .pagination a.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+/* Header avec flexbox */
+.header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.welcome-text {
+    color: #667eea;
+    margin-right: 15px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    
+    h1 {
+        font-size: 1.8em;
+    }
+    
+    .user-table {
+        font-size: 12px;
+        display: block;
+        overflow-x: auto;
+    }
+    
+    .user-table th, .user-table td {
+        padding: 8px;
+    }
+    
+    .actions {
+        flex-direction: column;
+    }
+    
+    .user-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .header-flex {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .header-buttons {
+        justify-content: center;
+    }
+}
+
+/* Animation de chargement */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px;
+    color: white;
+}
