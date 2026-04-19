@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Styles supplémentaires pour les images et améliorations */
         .logo-img {
             width: 45px;
             height: 45px;
@@ -56,7 +55,6 @@
             opacity: 0.7;
         }
         
-        /* Style pour la recherche */
         .search-bar {
             position: relative;
         }
@@ -97,7 +95,6 @@
             width: 20px;
         }
         
-        /* User profile image */
         .user-profile img {
             width: 45px;
             height: 45px;
@@ -106,7 +103,6 @@
             border: 2px solid #4CAF50;
         }
         
-        /* Nutrition tips section */
         .nutrition-tips {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -144,7 +140,6 @@
             color: #666;
         }
         
-        /* Recent recipes */
         .recent-recipes {
             display: flex;
             gap: 1rem;
@@ -179,11 +174,9 @@
 <body>
 
 <div class="dashboard-container">
-    <!-- ========== SIDEBAR ========== -->
     <aside class="sidebar">
         <div class="sidebar-header">
             <div class="logo">
-                <!-- Logo avec image personnalisée -->
                 <img src="../FrontOffice/image/logo.PNG" alt="Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/45x45?text=🌱'">
                 <span class="logo-text">NutriLoop<br><small>Admin</small></span>
             </div>
@@ -214,7 +207,6 @@
                     <i class="fas fa-utensils"></i>
                     <span>Recettes Anti-Gaspi</span>
                     <span class="badge module-badge">Module 4</span>
-                    <div class="module-hover-effect"></div>
                 </li>
                 <li class="nav-item" data-module="tracking">
                     <i class="fas fa-chart-simple"></i>
@@ -231,7 +223,6 @@
         
         <div class="sidebar-footer">
             <div class="user-info">
-                <!-- Photo Ryhem -->
                 <img src="../FrontOffice/image/ryhem.PNG" alt="Ryhem Mejri" onerror="this.src='https://randomuser.me/api/portraits/women/68.jpg'">
                 <div>
                     <h4>Ryhem Mejri</h4>
@@ -245,7 +236,6 @@
         </div>
     </aside>
 
-    <!-- ========== MAIN CONTENT ========== -->
     <main class="main-content">
         <header class="top-bar">
             <div class="menu-toggle">
@@ -270,10 +260,8 @@
         <div class="page-content" id="pageContent">
             <iframe id="contentFrame" src="" style="width: 100%; height: calc(100vh - 120px); border: none; background: #f5f7fa; display: none; border-radius: 16px;"></iframe>
             <div id="defaultContent">
-                <!-- Dashboard content -->
                 <div class="stats-grid" id="dashboardStats"></div>
                 
-                <!-- Section Nutrition Tips avec images -->
                 <div class="data-table" style="margin-bottom: 1.5rem;">
                     <h3><i class="fas fa-leaf"></i> Conseils Nutrition du jour</h3>
                     <div class="nutrition-tips">
@@ -300,13 +288,11 @@
                     </div>
                 </div>
                 
-                <!-- Activité récente -->
                 <div class="data-table">
                     <h3><i class="fas fa-chart-line"></i> Activité récente</h3>
                     <canvas id="activityChart" height="100"></canvas>
                 </div>
                 
-                <!-- Recettes populaires -->
                 <div class="data-table" style="margin-top: 1.5rem;">
                     <h3><i class="fas fa-star"></i> Recettes populaires cette semaine</h3>
                     <div class="recent-recipes">
@@ -338,7 +324,6 @@
 </div>
 
 <script>
-    // ========== FONCTION RENDER DASHBOARD ==========
     function renderDashboard() {
         const statsHtml = document.getElementById('dashboardStats');
         if (statsHtml) {
@@ -372,7 +357,6 @@
         
         const ctx = document.getElementById('activityChart')?.getContext('2d');
         if (ctx) {
-            // Détruire l'ancien graphique s'il existe
             if (window.myChart) window.myChart.destroy();
             window.myChart = new Chart(ctx, {
                 type: 'line',
@@ -405,7 +389,6 @@
         }
     }
 
-    // ========== RECHERCHE AVEC SUGGESTIONS ==========
     const searchInput = document.getElementById('searchInput');
     const suggestionsDiv = document.getElementById('searchSuggestions');
     
@@ -414,10 +397,9 @@
         { name: 'Gestion Utilisateurs', icon: 'fa-users', link: '#' },
         { name: 'Nutrition Smart', icon: 'fa-apple-alt', link: 'repasList.php' },
         { name: 'Gestion Repas', icon: 'fa-utensil-spoon', link: 'repasList.php' },
+        { name: 'Gestion Programmes', icon: 'fa-calendar-alt', link: 'programmeList.php' },
         { name: 'Gestion Produits', icon: 'fa-boxes', link: '#' },
-        { name: 'Salade Quinoa', icon: 'fa-leaf', link: 'recetteList.php' },
-        { name: 'Buddha Bowl', icon: 'fa-leaf', link: 'recetteList.php' },
-        { name: 'Smoothie Bowl', icon: 'fa-apple-alt', link: 'recetteList.php' }
+        { name: 'Salade Quinoa', icon: 'fa-leaf', link: 'recetteList.php' }
     ];
     
     searchInput?.addEventListener('input', (e) => {
@@ -440,7 +422,6 @@
             `).join('');
             suggestionsDiv.classList.add('show');
             
-            // Ajouter événement clic
             document.querySelectorAll('.suggestion-item').forEach(sugg => {
                 sugg.addEventListener('click', () => {
                     const link = sugg.getAttribute('data-link');
@@ -456,14 +437,12 @@
         }
     });
     
-    // Cacher suggestions en cliquant ailleurs
     document.addEventListener('click', (e) => {
         if (!searchInput?.contains(e.target) && !suggestionsDiv?.contains(e.target)) {
             suggestionsDiv.classList.remove('show');
         }
     });
 
-    // ========== NAVIGATION ==========
     const navItems = document.querySelectorAll('.nav-item');
     const contentFrame = document.getElementById('contentFrame');
     const defaultContent = document.getElementById('defaultContent');
@@ -494,7 +473,6 @@
                 loadModule('recetteList.php');
             }
             else if (module === 'nutrition') {
-                // Charger repasList.php pour le module Nutrition Smart
                 loadModule('repasList.php');
             }
             else {

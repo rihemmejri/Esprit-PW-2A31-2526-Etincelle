@@ -85,7 +85,6 @@
 <header class="header">
         <nav class="navbar">
             <div class="logo">
-                <!-- Logo personnalisé logo.PNG -->
                 <img src="image/logo.PNG" alt="NutriLoop Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/45x45?text=🌱'">
                 <span class="logo-text">NutriLoop </span>
             </div>
@@ -180,11 +179,11 @@
                     <span class="click-hint"><i class="fas fa-arrow-right"></i> Cliquez</span>
                 </div>
                 
-                <!-- Module 2 - Nutrition Smart (REDIRIGE VERS afficherRepas.php) -->
-                <div class="module-card" data-url="afficherRepas.php" data-module="nutrition">
+                <!-- Module 2 - Nutrition Smart (REDIRIGE VERS afficherProgramme.php) -->
+                <div class="module-card" data-url="afficherProgramme.php" data-module="nutrition">
                     <div class="module-icon"><i class="fas fa-apple-alt"></i></div>
                     <h3>Nutrition Smart</h3>
-                    <p>Analyse nutritionnelle et recommandations IA pour vos repas.</p>
+                    <p>Programmes personnalisés et repas équilibrés pour vos objectifs.</p>
                     <span class="module-badge">Module 2</span>
                     <span class="click-hint"><i class="fas fa-arrow-right"></i> Cliquez</span>
                 </div>
@@ -198,7 +197,7 @@
                     <span class="click-hint"><i class="fas fa-arrow-right"></i> Cliquez</span>
                 </div>
                 
-                <!-- Module 4 - Recettes Anti-Gaspi (LIEN VERS afficherRecette.php) -->
+                <!-- Module 4 - Recettes Anti-Gaspi -->
                 <div class="module-card" data-url="afficherRecette.php" data-module="recipes">
                     <div class="module-icon"><i class="fas fa-book-open"></i></div>
                     <h3>Recettes Anti-Gaspi</h3>
@@ -290,7 +289,7 @@
                 <h4>Modules</h4>
                 <ul>
                     <li><a href="#">Utilisateurs</a></li>
-                    <li><a href="afficherRepas.php">Nutrition Smart</a></li>
+                    <li><a href="afficherProgramme.php">Nutrition Smart</a></li>
                     <li><a href="#">Produits</a></li>
                     <li><a href="afficherRecette.php">Recettes Anti-Gaspi</a></li>
                     <li><a href="#">Suivi</a></li>
@@ -319,22 +318,18 @@
             
             moduleCards.forEach(card => {
                 card.addEventListener('click', function(e) {
-                    // Empêcher le clic de remonter si on clique sur un lien à l'intérieur
                     if (e.target.closest('a')) return;
                     
                     const url = this.getAttribute('data-url');
                     const moduleName = this.querySelector('h3')?.innerText || 'Module';
                     
                     if (url && url !== '#') {
-                        // Redirection vers la page
                         window.location.href = url;
                     } else {
-                        // Message pour modules non disponibles
                         alert(`🔧 Le module "${moduleName}" sera bientôt disponible !\n\nCe module est en cours de développement.`);
                     }
                 });
                 
-                // Ajouter style cursor pointer
                 card.style.cursor = 'pointer';
             });
         });

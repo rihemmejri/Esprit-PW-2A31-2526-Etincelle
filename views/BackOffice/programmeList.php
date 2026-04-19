@@ -1,20 +1,25 @@
 <?php
+include_once '../../controleurs/ProgrammeController.php';
 include_once '../../controleurs/RepasController.php';
+require_once __DIR__ . '/../../models/programme.php';
 require_once __DIR__ . '/../../models/repas.php';
 
-$RepasController = new RepasController();
-$repas = $RepasController->listRepas();
+$programmeController = new ProgrammeController();
+$repasController = new RepasController();
 
-// Calculer les totaux
-$totalCalories = 0;
-$totalProteines = 0;
-$totalGlucides = 0;
-$totalLipides = 0;
-foreach ($repas as $r) {
-    $totalCalories += $r->getCalories();
-    $totalProteines += $r->getProteines();
-    $totalGlucides += $r->getGlucides();
-    $totalLipides += $r->getLipides();
+$programmes = $programmeController->listProgrammes();
+
+// Calculer les statistiques
+$totalProgrammes = count($programmes);
+$totalRepasProgrammes = 0;
+$totalCaloriesProgrammes = 0;
+
+foreach ($programmes as $p) {
+    $repasDuProgramme = $p->getRepas();
+    $totalRepasProgrammes += count($repasDuProgramme);
+    foreach ($repasDuProgramme as $r) {
+        $totalCaloriesProgrammes += $r['calories'] ?? 0;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -22,7 +27,7 @@ foreach ($repas as $r) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des Repas - NutriLoop</title>
+    <title>Gestion des Programmes - NutriLoop</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -62,39 +67,21 @@ foreach ($repas as $r) {
             margin-right: 10px;
         }
 
-        .btn-group {
-            display: flex;
-            gap: 12px;
-        }
-
-        .btn {
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
             padding: 10px 20px;
             border-radius: 8px;
             text-decoration: none;
             font-weight: 600;
-            transition: 0.3s;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-        }
-
-        .btn-primary {
-            background: #4CAF50;
-            color: white;
+            transition: 0.3s;
         }
 
         .btn-primary:hover {
             background: #45a049;
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-            background: #003366;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #002244;
             transform: translateY(-2px);
         }
 
@@ -161,7 +148,7 @@ foreach ($repas as $r) {
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 900px;
+            min-width: 1000px;
         }
 
         th {
@@ -179,6 +166,7 @@ foreach ($repas as $r) {
         td {
             padding: 12px;
             border-bottom: 1px solid #eee;
+            vertical-align: top;
         }
 
         tr:hover {
@@ -186,7 +174,7 @@ foreach ($repas as $r) {
         }
 
         /* Badges */
-        .badge-type {
+        .badge-objectif {
             display: inline-block;
             padding: 5px 12px;
             border-radius: 20px;
@@ -194,24 +182,53 @@ foreach ($repas as $r) {
             font-weight: 600;
         }
 
-        .type-PETIT_DEJEUNER {
-            background: #e3f2fd;
-            color: #1565c0;
+        .objectif-PERDRE_POIDS {
+            background: #ffebee;
+            color: #c62828;
         }
 
-        .type-DEJEUNER {
+        .objectif-PRENDRE_MUSCLE {
             background: #e8f5e9;
             color: #2e7d32;
         }
 
-        .type-DINER {
-            background: #f3e5f5;
-            color: #7b1fa2;
+        .objectif-MAINTENIR {
+            background: #e3f2fd;
+            color: #1565c0;
         }
 
-        .type-COLLATION {
+        .objectif-EQUILIBRE {
             background: #fff3e0;
             color: #e65100;
+        }
+
+        .badge-duree {
+            background: #f0f0f0;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+        }
+
+        .repas-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            max-width: 250px;
+        }
+
+        .repas-mini {
+            background: #f8f9fa;
+            padding: 2px 8px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .repas-mini i {
+            font-size: 0.6rem;
+            color: #4CAF50;
         }
 
         .badge-calories {
@@ -254,6 +271,15 @@ foreach ($repas as $r) {
 
         .delete-btn:hover {
             background: #c82333;
+        }
+
+        .view-btn {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .view-btn:hover {
+            background: #45a049;
         }
 
         /* Footer */
@@ -308,6 +334,10 @@ foreach ($repas as $r) {
             padding: 15px 12px;
             border-top: 2px solid #ddd;
         }
+
+        .text-center {
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -315,33 +345,28 @@ foreach ($repas as $r) {
         <!-- Header -->
         <div class="header">
             <h1>
-                <i class="fas fa-utensils"></i>
-                Gestion des Repas
+                <i class="fas fa-calendar-alt"></i>
+                Gestion des Programmes
             </h1>
-            <div class="btn-group">
-                <a href="addRepas.php" class="btn btn-primary">
-                    <i class="fas fa-plus-circle"></i> Ajouter un repas
-                </a>
-                <a href="programmeList.php" class="btn btn-secondary">
-                    <i class="fas fa-calendar-alt"></i> Gérer les programmes
-                </a>
-            </div>
+            <a href="addProgramme.php" class="btn-primary">
+                <i class="fas fa-plus-circle"></i> Nouveau programme
+            </a>
         </div>
 
         <!-- Stats -->
         <div class="stats-bar">
             <div class="stats">
                 <div class="stat">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span><strong><?= $totalProgrammes ?></strong> programmes</span>
+                </div>
+                <div class="stat">
                     <i class="fas fa-utensils"></i>
-                    <span><strong><?= count($repas) ?></strong> repas</span>
+                    <span><strong><?= $totalRepasProgrammes ?></strong> repas programmés</span>
                 </div>
                 <div class="stat">
                     <i class="fas fa-fire"></i>
-                    <span><strong><?= $totalCalories ?></strong> kcal</span>
-                </div>
-                <div class="stat">
-                    <i class="fas fa-dumbbell"></i>
-                    <span><strong><?= round($totalProteines, 1) ?></strong> g protéines</span>
+                    <span><strong><?= $totalCaloriesProgrammes ?></strong> kcal total</span>
                 </div>
             </div>
             <div class="search-box">
@@ -352,70 +377,136 @@ foreach ($repas as $r) {
 
         <!-- Tableau -->
         <div class="table-container">
-            <table id="repasTable">
+            <table id="programmeTable">
                 <thead>
                     <tr>
                         <th><i class="fas fa-hashtag"></i> ID</th>
-                        <th><i class="fas fa-utensils"></i> Nom</th>
-                        <th><i class="fas fa-mug-hot"></i> Type</th>
+                        <th><i class="fas fa-user"></i> Utilisateur</th>
+                        <th><i class="fas fa-bullseye"></i> Objectif</th>
+                        <th><i class="fas fa-calendar-alt"></i> Date début</th>
+                        <th><i class="fas fa-calendar-check"></i> Date fin</th>
+                        <th><i class="fas fa-clock"></i> Durée</th>
+                        <th><i class="fas fa-utensils"></i> Repas</th>
                         <th><i class="fas fa-fire"></i> Calories</th>
-                        <th><i class="fas fa-dumbbell"></i> Protéines</th>
-                        <th><i class="fas fa-bread-slice"></i> Glucides</th>
-                        <th><i class="fas fa-oil-can"></i> Lipides</th>
                         <th><i class="fas fa-cog"></i> Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (count($repas) > 0): ?>
-                        <?php foreach ($repas as $item): ?>
+                    <?php if ($totalProgrammes > 0): ?>
+                        <?php foreach ($programmes as $programme): 
+                            $repasListe = $programme->getRepas();
+                            $nbRepas = count($repasListe);
+                            $caloriesTotal = 0;
+                            foreach ($repasListe as $r) {
+                                $caloriesTotal += $r['calories'] ?? 0;
+                            }
+                            
+                            // Calculer la durée
+                            $dateDebut = new DateTime($programme->getDateDebut());
+                            $dateFin = new DateTime($programme->getDateFin());
+                            $duree = $dateDebut->diff($dateFin)->days + 1;
+                            
+                            // Classe CSS pour l'objectif
+                            $objectifClass = '';
+                            $objectifIcon = '';
+                            switch($programme->getObjectif()) {
+                                case 'PERDRE_POIDS':
+                                    $objectifClass = 'objectif-PERDRE_POIDS';
+                                    $objectifIcon = '🔥';
+                                    break;
+                                case 'PRENDRE_MUSCLE':
+                                    $objectifClass = 'objectif-PRENDRE_MUSCLE';
+                                    $objectifIcon = '💪';
+                                    break;
+                                case 'MAINTENIR':
+                                    $objectifClass = 'objectif-MAINTENIR';
+                                    $objectifIcon = '⚖️';
+                                    break;
+                                case 'EQUILIBRE':
+                                    $objectifClass = 'objectif-EQUILIBRE';
+                                    $objectifIcon = '🥗';
+                                    break;
+                                default:
+                                    $objectifClass = '';
+                                    $objectifIcon = '🎯';
+                            }
+                        ?>
                             <tr>
-                                <td>#<?= $item->getIdRepas() ?></td>
-                                <td><strong><?= htmlspecialchars($item->getNom()) ?></strong></td>
+                                <td class="text-center"><strong>#<?= $programme->getIdProgramme() ?></strong></td>
+                                <td class="text-center">ID: <?= $programme->getIdUser() ?></td>
                                 <td>
-                                    <span class="badge-type type-<?= $item->getType() ?>">
-                                        <?php
-                                        switch($item->getType()) {
-                                            case 'PETIT_DEJEUNER': echo '☕ Petit déjeuner'; break;
-                                            case 'DEJEUNER': echo '🍽️ Déjeuner'; break;
-                                            case 'DINER': echo '🌙 Dîner'; break;
-                                            case 'COLLATION': echo '🍎 Collation'; break;
-                                            default: echo $item->getType();
+                                    <span class="badge-objectif <?= $objectifClass ?>">
+                                        <?= $objectifIcon ?> 
+                                        <?php 
+                                        switch($programme->getObjectif()) {
+                                            case 'PERDRE_POIDS': echo 'Perdre du poids'; break;
+                                            case 'PRENDRE_MUSCLE': echo 'Prendre du muscle'; break;
+                                            case 'MAINTENIR': echo 'Maintenir'; break;
+                                            case 'EQUILIBRE': echo 'Équilibre'; break;
+                                            default: echo $programme->getObjectif();
                                         }
                                         ?>
                                     </span>
                                 </td>
-                                <td><span class="badge-calories"><?= $item->getCalories() ?> kcal</span></td>
-                                <td><?= $item->getProteines() ?> g</td>
-                                <td><?= $item->getGlucides() ?> g</td>
-                                <td><?= $item->getLipides() ?> g</td>
+                                <td><?= $programme->getDateDebut() ?></td>
+                                <td><?= $programme->getDateFin() ?></td>
+                                <td>
+                                    <span class="badge-duree">
+                                        <i class="fas fa-calendar-week"></i> <?= $duree ?> jours
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="repas-preview">
+                                        <span class="badge-duree" style="background:#4CAF50; color:white;">
+                                            <i class="fas fa-utensils"></i> <?= $nbRepas ?> repas
+                                        </span>
+                                        <?php 
+                                        $premiersRepas = array_slice($repasListe, 0, 3);
+                                        foreach ($premiersRepas as $item): 
+                                        ?>
+                                            <span class="repas-mini">
+                                                <i class="fas fa-utensils"></i>
+                                                <?= htmlspecialchars(substr($item['nom'] ?? 'Repas', 0, 12)) ?>
+                                            </span>
+                                        <?php endforeach; ?>
+                                        <?php if ($nbRepas > 3): ?>
+                                            <span class="repas-mini">
+                                                <i class="fas fa-ellipsis-h"></i> +<?= $nbRepas - 3 ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge-calories">
+                                        <i class="fas fa-fire"></i> <?= $caloriesTotal ?> kcal
+                                    </span>
+                                </td>
                                 <td class="actions">
-                                    <a href="editRepas.php?id=<?= $item->getIdRepas() ?>" class="action-btn edit-btn">
+                                    <a href="editProgramme.php?id=<?= $programme->getIdProgramme() ?>" class="action-btn edit-btn">
                                         <i class="fas fa-edit"></i> Modifier
                                     </a>
-                                    <a href="#" class="action-btn delete-btn" onclick="confirmDelete(<?= $item->getIdRepas() ?>); return false;">
-                                        <i class="fas fa-trash"></i> Supprimer
+                                    <a href="#" class="action-btn delete-btn" onclick="confirmDelete(<?= $programme->getIdProgramme() ?>); return false;">
+                                        <i class="fas fa-trash"></i> Suppr
                                     </a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="8" class="empty-message">
+                            <td colspan="9" class="empty-message">
                                 <i class="fas fa-empty-folder" style="font-size: 3rem;"></i>
-                                <p>Aucun repas trouvé</p>
-                                <a href="addRepas.php" class="btn btn-primary" style="margin-top: 10px;">Ajouter un repas</a>
+                                <p>Aucun programme trouvé</p>
+                                <a href="addProgramme.php" class="btn-primary" style="margin-top: 10px;">Créer un programme</a>
                             </td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
-                <?php if (count($repas) > 0): ?>
+                <?php if ($totalProgrammes > 0): ?>
                     <tfoot class="tfoot">
                         <tr>
-                            <td colspan="3"><strong>Totaux :</strong></td>
-                            <td><strong><?= $totalCalories ?> kcal</strong></td>
-                            <td><strong><?= round($totalProteines, 1) ?> g</strong></td>
-                            <td><strong><?= round($totalGlucides, 1) ?> g</strong></td>
-                            <td><strong><?= round($totalLipides, 1) ?> g</strong></td>
+                            <td colspan="6"><strong>Totaux :</strong></td>
+                            <td><strong><?= $totalRepasProgrammes ?> repas</strong></td>
+                            <td><strong><?= $totalCaloriesProgrammes ?> kcal</strong></td>
                             <td></td>
                         </tr>
                     </tfoot>
@@ -440,15 +531,15 @@ foreach ($repas as $r) {
 
     <script>
         function confirmDelete(id) {
-            if (confirm('Supprimer ce repas ?')) {
-                window.location.href = 'deleteRepas.php?id=' + id;
+            if (confirm('Supprimer ce programme ? Cette action est irréversible.')) {
+                window.location.href = 'deleteProgramme.php?id=' + id;
             }
         }
 
         function searchTable() {
             const input = document.getElementById('searchInput');
             const filter = input.value.toLowerCase();
-            const rows = document.querySelectorAll('#repasTable tbody tr');
+            const rows = document.querySelectorAll('#programmeTable tbody tr');
             
             rows.forEach(row => {
                 const text = row.textContent.toLowerCase();
@@ -460,7 +551,7 @@ foreach ($repas as $r) {
         const rowsPerPage = 10;
 
         function showPage(page) {
-            const rows = document.querySelectorAll('#repasTable tbody tr');
+            const rows = document.querySelectorAll('#programmeTable tbody tr');
             const totalRows = rows.length;
             const totalPages = Math.ceil(totalRows / rowsPerPage);
             
@@ -480,22 +571,29 @@ foreach ($repas as $r) {
         function nextPage() { showPage(currentPage + 1); }
 
         function exportTable() {
-            let csv = "ID,Nom,Type,Calories,Proteines,Glucides,Lipides\n";
-            <?php foreach ($repas as $item): ?>
-                csv += `<?= $item->getIdRepas() ?>,<?= addslashes($item->getNom()) ?>,<?= $item->getType() ?>,<?= $item->getCalories() ?>,<?= $item->getProteines() ?>,<?= $item->getGlucides() ?>,<?= $item->getLipides() ?>\n`;
+            let csv = "ID,Utilisateur,Objectif,Date debut,Date fin,Duree,Nb repas,Calories\n";
+            <?php foreach ($programmes as $p): 
+                $repasListe = $p->getRepas();
+                $caloriesTotal = 0;
+                foreach ($repasListe as $r) $caloriesTotal += $r['calories'] ?? 0;
+                $dateDebut = new DateTime($p->getDateDebut());
+                $dateFin = new DateTime($p->getDateFin());
+                $duree = $dateDebut->diff($dateFin)->days + 1;
+            ?>
+                csv += `<?= $p->getIdProgramme() ?>,<?= $p->getIdUser() ?>,<?= $p->getObjectif() ?>,<?= $p->getDateDebut() ?>,<?= $p->getDateFin() ?>,<?= $duree ?> jours,<?= count($repasListe) ?>,<?= $caloriesTotal ?>\n`;
             <?php endforeach; ?>
             
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'repas_export.csv';
+            a.download = 'programmes_export.csv';
             a.click();
             URL.revokeObjectURL(url);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const rows = document.querySelectorAll('#repasTable tbody tr');
+            const rows = document.querySelectorAll('#programmeTable tbody tr');
             if (rows.length > 0) {
                 const totalPages = Math.ceil(rows.length / rowsPerPage);
                 for (let i = 1; i <= Math.min(totalPages, 3); i++) {
