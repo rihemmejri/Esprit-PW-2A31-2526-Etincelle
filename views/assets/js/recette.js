@@ -10,10 +10,8 @@ class RecetteFormValidator {
     init() {
         if (!this.form) return;
         
-        // Ajouter les écouteurs d'événements
         this.form.addEventListener('submit', (e) => this.validateForm(e));
         
-        // Validation en temps réel
         const inputs = this.form.querySelectorAll('input, textarea, select');
         inputs.forEach(input => {
             input.addEventListener('blur', () => this.validateField(input));
@@ -29,48 +27,51 @@ class RecetteFormValidator {
         switch(name) {
             case 'nom':
                 if (!value) {
-                    error = 'Le nom de la recette est obligatoire';
+                    error = '❌ Le nom de la recette est obligatoire';
                 } else if (value.length < 3) {
-                    error = 'Le nom doit contenir au moins 3 caractères';
-                } else if (value.length > 10) {
-                    error = 'Le nom ne doit pas dépasser 100 caractères';
+                    error = '❌ Le nom doit contenir au moins 3 caractères';
+                } else if (value.length > 100) {
+                    error = '❌ Le nom ne doit pas dépasser 100 caractères';
                 } else if (!/^[a-zA-ZÀ-ÿ\s\-']+$/.test(value)) {
-                    error = 'Le nom ne doit contenir que des lettres, espaces, tirets et apostrophes';
+                    error = '❌ Le nom ne doit contenir que des lettres, espaces, tirets et apostrophes';
                 }
                 break;
 
             case 'description':
                 if (!value) {
-                    error = 'La description est obligatoire';
+                    error = '❌ La description est obligatoire';
                 } else if (value.length < 20) {
-                    error = 'La description doit contenir au moins 20 caractères';
-                } else if (value.length > 50) {
-                    error = 'La description ne doit pas dépasser 1000 caractères';
+                    error = '❌ La description doit contenir au moins 20 caractères';
+                } else if (value.length > 1000) {
+                    error = '❌ La description ne doit pas dépasser 1000 caractères';
                 }
                 break;
 
             case 'temps_preparation':
                 const temps = parseInt(value);
                 if (isNaN(temps) || temps < 1) {
-                    error = 'Le temps doit être un nombre superieur a 0';
-                    
+                    error = '⏱️ Le temps doit être un nombre supérieur à 0';
                 } else if (temps > 1440) {
-                    error = 'Le temps ne doit pas dépasser 1440 minutes (24 heures)';
+                    error = '⏱️ Le temps ne doit pas dépasser 1440 minutes (24 heures)';
                 }
                 break;
 
             case 'nb_personne':
                 const personnes = parseInt(value);
-                if (isNaN(personnes) || personnes < 2) {
-                    error = 'Le nombre de personnes doit être au moins 1';
-                } else if (personnes > 10) {
-                    error = 'Le nombre de personnes ne doit pas dépasser 100';
+                if (isNaN(personnes) || personnes < 1) {
+                    error = '👥 Le nombre de personnes doit être au moins 1';
+                } else if (personnes > 100) {
+                    error = '👥 Le nombre de personnes ne doit pas dépasser 100';
                 }
                 break;
 
             case 'origine':
-                if (value && !/^[a-zA-ZÀ-ÿ\s\-']+$/.test(value)) {
-                    error = "L'origine ne doit contenir que des lettres, espaces, tirets et apostrophes";
+                if (!value) {
+                    error = "❌ L'origine est obligatoire";
+                } else if (value.length > 50) {
+                    error = "❌ L'origine ne doit pas dépasser 50 caractères";
+                } else if (!/^[a-zA-ZÀ-ÿ\s\-']+$/.test(value)) {
+                    error = "❌ L'origine ne doit contenir que des lettres, espaces, tirets et apostrophes";
                 }
                 break;
         }
@@ -87,45 +88,28 @@ class RecetteFormValidator {
             if (radio.checked) isChecked = true;
         });
         
-        if (!isChecked) {
-            const error = `Veuillez sélectionner une option pour ${this.getFieldLabel(name)}`;
-            const firstRadio = radios[0];
-            if (firstRadio) {
-                this.showError(firstRadio.parentElement, error);
-            }
-            return false;
-        }
-                // Message d'erreur personnalisé selon le type
-        let fieldLabel = '';
         let errorMessage = '';
-        
         if (name === 'type_repas') {
-            fieldLabel = 'le type de repas';
-            alert('❌ champs non valider ');
             errorMessage = '❌ Veuillez sélectionner un type de repas (Petit déjeuner, Déjeuner, Dîner ou Dessert)';
-            
         } else if (name === 'difficulte') {
-            fieldLabel = 'la difficulté';
             errorMessage = '❌ Veuillez sélectionner un niveau de difficulté (Facile, Moyen ou Difficile)';
         }
         
         if (!isChecked) {
-            // Afficher l'erreur sous le premier radio du groupe
             const firstRadio = radios[0];
             if (firstRadio) {
-                // Chercher le conteneur parent
                 let parent = firstRadio.closest('.difficulte-group') || firstRadio.closest('.type-repas-group');
                 if (!parent) parent = firstRadio.parentElement.parentElement;
-                
-                this.showRadioError(parent, errorMessage, name);
+                this.showError(parent, errorMessage);
             }
             return false;
         }
         
-        // Supprimer l'erreur si tout va bien
         const firstRadio = radios[0];
         if (firstRadio) {
-            this.showError(firstRadio.parentElement, '');
+            let parent = firstRadio.closest('.difficulte-group') || firstRadio.closest('.type-repas-group');
+            if (!parent) parent = firstRadio.parentElement.parentElement;
+            this.showError(parent, '');
         }
         return true;
     }
@@ -139,7 +123,6 @@ class RecetteFormValidator {
     }
 
     showError(field, message) {
-        // Supprimer l'ancien message d'erreur
         const parent = field.parentElement;
         let errorDiv = parent.querySelector('.field-error');
         
@@ -147,7 +130,6 @@ class RecetteFormValidator {
             errorDiv.remove();
         }
         
-        // Ajouter/supprimer les classes CSS
         if (message) {
             field.classList.add('error');
             field.classList.remove('valid');
@@ -166,7 +148,6 @@ class RecetteFormValidator {
         
         let isValid = true;
         
-        // Valider les champs texte
         const textFields = ['nom', 'description', 'temps_preparation', 'nb_personne', 'origine'];
         textFields.forEach(fieldName => {
             const field = this.form.querySelector(`[name="${fieldName}"]`);
@@ -175,7 +156,6 @@ class RecetteFormValidator {
             }
         });
         
-        // Valider les groupes radio
         if (!this.validateRadioGroup('difficulte')) isValid = false;
         if (!this.validateRadioGroup('type_repas')) isValid = false;
         
@@ -183,8 +163,7 @@ class RecetteFormValidator {
             this.showSuccessMessage();
             this.form.submit();
         } else {
-            this.showErrorMessage('Veuillez corriger les erreurs dans le formulaire');
-            // Faire défiler jusqu'au premier champ en erreur
+            this.showErrorMessage('⚠️ Veuillez corriger les erreurs dans le formulaire');
             const firstError = this.form.querySelector('.error');
             if (firstError) {
                 firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -194,7 +173,6 @@ class RecetteFormValidator {
     }
 
     showSuccessMessage() {
-        // Supprimer les anciens messages
         this.removeMessages();
         
         const successDiv = document.createElement('div');
@@ -202,12 +180,11 @@ class RecetteFormValidator {
         successDiv.id = 'tempMessage';
         successDiv.innerHTML = `
             <i class="fas fa-check-circle"></i>
-            <span>Formulaire valide ! Redirection en cours...</span>
+            <span>✅ Formulaire valide ! Redirection en cours...</span>
         `;
         
-        const formCard = document.querySelector('.form-card');
         const header = document.querySelector('.header');
-        header.insertAdjacentElement('afterend', successDiv);
+        if (header) header.insertAdjacentElement('afterend', successDiv);
         
         setTimeout(() => {
             const msg = document.getElementById('tempMessage');
@@ -216,7 +193,6 @@ class RecetteFormValidator {
     }
 
     showErrorMessage(message) {
-        // Supprimer les anciens messages
         this.removeMessages();
         
         const errorDiv = document.createElement('div');
@@ -227,9 +203,8 @@ class RecetteFormValidator {
             <span>${message}</span>
         `;
         
-        const formCard = document.querySelector('.form-card');
         const header = document.querySelector('.header');
-        header.insertAdjacentElement('afterend', errorDiv);
+        if (header) header.insertAdjacentElement('afterend', errorDiv);
         
         setTimeout(() => {
             const msg = document.getElementById('tempMessage');
@@ -243,7 +218,8 @@ class RecetteFormValidator {
     }
 }
 
-// Fonctions utilitaires globales
+// ========== FONCTIONS UTILITAIRES GLOBALES ==========
+
 function updateTemps(delta) {
     const input = document.getElementById('temps_preparation');
     if (input) {
@@ -251,7 +227,6 @@ function updateTemps(delta) {
         if (value < 0) value = 0;
         if (value > 1440) value = 1440;
         input.value = value;
-        // Déclencher la validation
         const event = new Event('blur');
         input.dispatchEvent(event);
     }
@@ -264,17 +239,15 @@ function updatePersonnes(delta) {
         if (value < 1) value = 1;
         if (value > 100) value = 100;
         input.value = value;
-        // Déclencher la validation
         const event = new Event('blur');
         input.dispatchEvent(event);
     }
 }
 
-// Initialisation au chargement de la page
+// ========== INITIALISATION PAGE AJOUT ==========
 document.addEventListener('DOMContentLoaded', function() {
     new RecetteFormValidator('addRecetteForm');
     
-    // Animation des champs
     document.querySelectorAll('input, select, textarea').forEach(field => {
         field.addEventListener('focus', function() {
             this.parentElement.classList.add('focused');
@@ -284,7 +257,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-// Fonctions pour la liste des recettes (ajouter à la fin du fichier)
+
+// ========== FONCTIONS POUR LA LISTE DES RECETTES ==========
 
 let currentPage = 1;
 const rowsPerPage = 10;
@@ -321,6 +295,9 @@ function searchTable() {
             row.style.display = 'none';
         }
     }
+    
+    currentPage = 1;
+    updatePagination();
 }
 
 function exportTable() {
@@ -360,7 +337,6 @@ function updatePagination() {
         }
     });
     
-    // Update active page button
     const pageBtns = document.querySelectorAll('.page-btn');
     pageBtns.forEach(btn => {
         btn.classList.remove('active');
@@ -370,7 +346,6 @@ function updatePagination() {
     });
 }
 
-// Animation des lignes pour la liste
 function animateTableRows() {
     const rows = document.querySelectorAll('tbody tr');
     rows.forEach((row, index) => {
@@ -378,13 +353,12 @@ function animateTableRows() {
     });
 }
 
-// Initialisation pour la page de liste
 document.addEventListener('DOMContentLoaded', function() {
     animateTableRows();
 });
+
 // ========== FONCTIONS POUR LA PAGE DE SUPPRESSION ==========
 document.addEventListener('DOMContentLoaded', function() {
-    // Animation pour le bouton de suppression
     const deleteBtn = document.querySelector('.btn-danger');
     if (deleteBtn) {
         deleteBtn.addEventListener('mouseenter', function() {
@@ -395,17 +369,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Animation pour la carte de confirmation
     const card = document.querySelector('.confirmation-card');
     if (card) {
         card.style.animation = 'slideIn 0.5s ease-out';
     }
     
-    // Confirmation supplémentaire avant suppression
-    const confirmDelete = document.querySelector('.btn-danger');
-    if (confirmDelete) {
-        confirmDelete.addEventListener('click', function(e) {
-            // Animation de clic
+    const confirmDeleteBtn = document.querySelector('.btn-danger');
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', function(e) {
             this.style.transform = 'scale(0.98)';
             setTimeout(() => {
                 this.style.transform = 'translateY(-2px) scale(1)';
@@ -413,11 +384,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
 function confirmDelete(id) {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette recette ? Cette action est irréversible.')) {
         window.location.href = 'deleteRecette.php?id=' + id + '&confirm=yes';
     }
 }
+
 // ========== FONCTIONS POUR LA PAGE D'AFFICHAGE CLIENT ==========
 
 let allRecettes = [];
@@ -454,6 +427,7 @@ function filterRecettes() {
         noResults.style.display = visibleCount === 0 ? 'block' : 'none';
     }
 }
+
 function openModal(id) {
     fetch(`afficherRecette.php?ajax=details&id=${id}`)
         .then(response => response.json())
@@ -487,18 +461,19 @@ function openModal(id) {
             alert('Erreur de chargement');
         });
 }
+
 function closeModal() {
     const modal = document.getElementById('recipeModal');
-    modal.classList.remove('active');
+    if (modal) modal.classList.remove('active');
 }
 
-// Fermer le modal en cliquant en dehors
 document.addEventListener('click', function(event) {
     const modal = document.getElementById('recipeModal');
     if (event.target === modal) {
         closeModal();
     }
 });
+
 function showDetails(recette) {
     let typeText = '';
     switch(recette.type_repas) {
@@ -520,62 +495,7 @@ function showDetails(recette) {
     
     alert(message);
 }
-// Fonctions pour editRecette.php
-function updateTemps(delta) {
-    const input = document.getElementById('temps_preparation');
-    if (input) {
-        let value = parseInt(input.value) + delta;
-        if (value < 0) value = 0;
-        input.value = value;
-    }
-}
 
-function updatePersonnes(delta) {
-    const input = document.getElementById('nb_personne');
-    if (input) {
-        let value = parseInt(input.value) + delta;
-        if (value < 1) value = 1;
-        input.value = value;
-    }
-}
-
-// Validation du formulaire d'édition
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('editRecetteForm');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            const nom = document.querySelector('input[name="nom"]').value.trim();
-            const description = document.querySelector('textarea[name="description"]').value.trim();
-            const typeRepas = document.querySelector('input[name="type_repas"]:checked');
-            
-            if (!nom || !description || !typeRepas) {
-                e.preventDefault();
-                alert('Veuillez remplir tous les champs obligatoires.');
-            }
-        });
-    }
-    
-    // Confirmation avant de quitter sans sauvegarder
-    let formChanged = false;
-    const inputs = document.querySelectorAll('#editRecetteForm input, #editRecetteForm textarea, #editRecetteForm select');
-    inputs.forEach(field => {
-        field.addEventListener('change', function() {
-            formChanged = true;
-        });
-    });
-    
-    window.addEventListener('beforeunload', function(e) {
-        if (formChanged) {
-            e.preventDefault();
-            e.returnValue = 'Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir quitter ?';
-        }
-    });
-});
-function confirmDelete(id) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette recette ? Cette action est irréversible.')) {
-        window.location.href = 'deleteRecette.php?id=' + id + '&confirm=yes';
-    }
-}
 // ========== VALIDATION POUR LA PAGE MODIFICATION (editRecette.php) ==========
 
 class EditRecetteValidator {
@@ -588,10 +508,8 @@ class EditRecetteValidator {
     init() {
         if (!this.form) return;
         
-        // Ajouter les écouteurs d'événements
         this.form.addEventListener('submit', (e) => this.validateForm(e));
         
-        // Validation en temps réel
         const inputs = this.form.querySelectorAll('input, textarea, select');
         inputs.forEach(input => {
             input.addEventListener('blur', () => this.validateField(input));
@@ -610,7 +528,7 @@ class EditRecetteValidator {
                     error = '❌ Le nom de la recette est obligatoire';
                 } else if (value.length < 3) {
                     error = '❌ Le nom doit contenir au moins 3 caractères';
-                } else if (value.length > 100) {
+                } else if (value.length > 10) {
                     error = '❌ Le nom ne doit pas dépasser 100 caractères';
                 } else if (!/^[a-zA-ZÀ-ÿ0-9\s\-']+$/.test(value)) {
                     error = '❌ Le nom ne doit contenir que des lettres, chiffres, espaces, tirets et apostrophes';
@@ -622,7 +540,7 @@ class EditRecetteValidator {
                     error = '❌ La description est obligatoire';
                 } else if (value.length < 20) {
                     error = `❌ La description doit contenir au moins 20 caractères (actuellement: ${value.length})`;
-                } else if (value.length > 2000) {
+                } else if (value.length > 200) {
                     error = '❌ La description ne doit pas dépasser 2000 caractères';
                 }
                 break;
@@ -632,7 +550,7 @@ class EditRecetteValidator {
                 if (isNaN(temps)) {
                     error = '❌ Le temps doit être un nombre valide';
                 } else if (temps < 1) {
-                    error = '❌ Le temps ne peut pas être négatif';
+                    error = '❌ Le temps doit être supérieur à 0';
                 } else if (temps > 1440) {
                     error = '❌ Le temps ne doit pas dépasser 1440 minutes (24 heures)';
                 }
@@ -645,16 +563,17 @@ class EditRecetteValidator {
                 } else if (personnes < 1) {
                     error = '❌ Le nombre de personnes doit être au moins 1';
                 } else if (personnes > 10) {
-                    error = '❌ Le nombre de personnes ne doit pas dépasser 10';
+                    error = '❌ Le nombre de personnes ne doit pas dépasser 100';
                 }
                 break;
 
             case 'origine':
-                if (value && !/^[a-zA-ZÀ-ÿ\s\-']+$/.test(value)) {
-                    error = "❌ L'origine ne doit contenir que des lettres, espaces, tirets et apostrophes";
-                }
-                if (value && value.length > 50) {
+                if (!value) {
+                    error = "❌ L'origine est obligatoire";
+                } else if (value.length > 50) {
                     error = "❌ L'origine ne doit pas dépasser 50 caractères";
+                } else if (!/^[a-zA-ZÀ-ÿ\s\-']+$/.test(value)) {
+                    error = "❌ L'origine ne doit contenir que des lettres, espaces, tirets et apostrophes";
                 }
                 break;
         }
@@ -671,42 +590,28 @@ class EditRecetteValidator {
             if (radio.checked) isChecked = true;
         });
         
-        if (!isChecked) {
-            const error = `❌ Veuillez sélectionner une option pour ${this.getFieldLabel(name)}`;
-            const firstRadio = radios[0];
-            if (firstRadio) {
-                this.showError(firstRadio.parentElement, error);
-            }
-            return false;
-        }
-                let fieldLabel = '';
         let errorMessage = '';
-        
         if (name === 'type_repas') {
-            fieldLabel = 'le type de repas';
             errorMessage = '❌ Veuillez sélectionner un type de repas (Petit déjeuner, Déjeuner, Dîner ou Dessert)';
         } else if (name === 'difficulte') {
-            fieldLabel = 'la difficulté';
             errorMessage = '❌ Veuillez sélectionner un niveau de difficulté (Facile, Moyen ou Difficile)';
         }
         
         if (!isChecked) {
-            // Afficher l'erreur sous le premier radio du groupe
             const firstRadio = radios[0];
             if (firstRadio) {
-                // Chercher le conteneur parent
                 let parent = firstRadio.closest('.difficulte-group') || firstRadio.closest('.type-repas-group');
                 if (!parent) parent = firstRadio.parentElement.parentElement;
-                
-                this.showRadioError(parent, errorMessage, name);
+                this.showError(parent, errorMessage);
             }
             return false;
         }
         
-        // Supprimer l'erreur si tout va bien
         const firstRadio = radios[0];
         if (firstRadio) {
-            this.showError(firstRadio.parentElement, '');
+            let parent = firstRadio.closest('.difficulte-group') || firstRadio.closest('.type-repas-group');
+            if (!parent) parent = firstRadio.parentElement.parentElement;
+            this.showError(parent, '');
         }
         return true;
     }
@@ -720,19 +625,16 @@ class EditRecetteValidator {
     }
 
     showError(element, message) {
-        // Trouver le conteneur parent approprié
         let parent = element.parentElement;
         if (parent.classList.contains('input-icon')) {
             parent = parent.parentElement;
         }
         
-        // Supprimer l'ancien message d'erreur
         let errorDiv = parent.querySelector('.field-error-edit');
         if (errorDiv) {
             errorDiv.remove();
         }
         
-        // Ajouter/supprimer les classes CSS
         if (message) {
             element.classList.add('error-edit');
             element.classList.remove('valid-edit');
@@ -752,7 +654,6 @@ class EditRecetteValidator {
         
         let isValid = true;
         
-        // Valider les champs texte
         const textFields = ['nom', 'description', 'temps_preparation', 'nb_personne', 'origine'];
         textFields.forEach(fieldName => {
             const field = this.form.querySelector(`[name="${fieldName}"]`);
@@ -761,7 +662,6 @@ class EditRecetteValidator {
             }
         });
         
-        // Valider les groupes radio
         if (!this.validateRadioGroup('difficulte')) isValid = false;
         if (!this.validateRadioGroup('type_repas')) isValid = false;
         
@@ -772,7 +672,6 @@ class EditRecetteValidator {
             }, 500);
         } else {
             this.showErrorMessage('⚠️ Veuillez corriger les erreurs dans le formulaire');
-            // Faire défiler jusqu'au premier champ en erreur
             const firstError = this.form.querySelector('.error-edit');
             if (firstError) {
                 firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -803,11 +702,8 @@ class EditRecetteValidator {
             animation: slideIn 0.3s ease;
         `;
         
-        const formCard = document.querySelector('.form-card');
         const header = document.querySelector('.header');
-        if (header && formCard) {
-            header.insertAdjacentElement('afterend', successDiv);
-        }
+        if (header) header.insertAdjacentElement('afterend', successDiv);
         
         setTimeout(() => {
             const msg = document.getElementById('tempMessageEdit');
@@ -837,11 +733,8 @@ class EditRecetteValidator {
             animation: slideIn 0.3s ease;
         `;
         
-        const formCard = document.querySelector('.form-card');
         const header = document.querySelector('.header');
-        if (header && formCard) {
-            header.insertAdjacentElement('afterend', errorDiv);
-        }
+        if (header) header.insertAdjacentElement('afterend', errorDiv);
         
         setTimeout(() => {
             const msg = document.getElementById('tempMessageEdit');
@@ -855,7 +748,8 @@ class EditRecetteValidator {
     }
 }
 
-// ========== FONCTIONS POUR LES BOUTONS + ET - ==========
+// ========== FONCTIONS POUR LES BOUTONS + ET - (PAGE EDIT) ==========
+
 function updateTempsEdit(delta) {
     const input = document.getElementById('temps_preparation');
     if (input) {
@@ -865,7 +759,6 @@ function updateTempsEdit(delta) {
         if (value > 1440) value = 1440;
         input.value = value;
         
-        // Déclencher la validation
         const blurEvent = new Event('blur');
         input.dispatchEvent(blurEvent);
     }
@@ -880,13 +773,13 @@ function updatePersonnesEdit(delta) {
         if (value > 100) value = 100;
         input.value = value;
         
-        // Déclencher la validation
         const blurEvent = new Event('blur');
         input.dispatchEvent(blurEvent);
     }
 }
 
 // ========== CONFIRMATION DE SORTIE SANS SAUVEGARDE ==========
+
 function setupBeforeUnload() {
     let formChanged = false;
     const form = document.getElementById('editRecetteForm');
@@ -910,26 +803,23 @@ function setupBeforeUnload() {
         }
     });
     
-    // Réinitialiser après soumission réussie
     form.addEventListener('submit', () => {
         formChanged = false;
     });
 }
 
 // ========== INITIALISATION POUR LA PAGE EDIT ==========
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialiser la validation pour editRecetteForm
     const editForm = document.getElementById('editRecetteForm');
     if (editForm) {
         new EditRecetteValidator('editRecetteForm');
         setupBeforeUnload();
         
-        // Override les fonctions updateTemps et updatePersonnes pour la page edit
         window.updateTemps = updateTempsEdit;
         window.updatePersonnes = updatePersonnesEdit;
     }
     
-    // Animation des champs
     document.querySelectorAll('input, select, textarea').forEach(field => {
         field.addEventListener('focus', function() {
             this.parentElement.classList.add('focused');
