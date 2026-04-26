@@ -136,11 +136,10 @@ class ObjectifFormValidator {
         if (isValid) {
             this.submitForm();
         } else {
-            this.showErrorMessage('Veuillez corriger les erreurs dans le formulaire');
+            this.showMessage('Veuillez corriger les erreurs dans le formulaire', true);
             const firstError = this.form.querySelector('.error');
             if (firstError) {
                 firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                firstError.focus();
             }
         }
     }
@@ -163,69 +162,41 @@ class ObjectifFormValidator {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                this.showSuccessMessage(data.message || 'Opération effectuée avec succès !');
+                this.showMessage(data.message || 'Opération effectuée avec succès !');
                 this.form.reset();
-                // Recharger la page après 2 secondes
                 setTimeout(() => {
                     location.reload();
-                }, 2000);
+                }, 1500);
             } else {
-                this.showErrorMessage(data.message || 'Une erreur est survenue');
+                this.showMessage(data.message || 'Une erreur est survenue', true);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            this.showErrorMessage('Erreur de connexion');
+            this.showMessage('Erreur de connexion', true);
         });
     }
 
-    showSuccessMessage(message) {
-        this.removeMessages();
-        
-        const successDiv = document.createElement('div');
-        successDiv.className = 'success-message';
-        successDiv.id = 'tempMessage';
-        successDiv.innerHTML = `
-            <i class="fas fa-check-circle"></i>
-            <span>${message}</span>
-        `;
-        
-        const formCard = document.querySelector('.form-card');
-        if (formCard) {
-            formCard.insertAdjacentElement('beforebegin', successDiv);
-        }
-        
-        setTimeout(() => {
-            const msg = document.getElementById('tempMessage');
-            if (msg) msg.remove();
-        }, 3000);
-    }
-
-    showErrorMessage(message) {
-        this.removeMessages();
-        
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message';
-        errorDiv.id = 'tempMessage';
-        errorDiv.innerHTML = `
-            <i class="fas fa-exclamation-circle"></i>
-            <span>${message}</span>
-        `;
-        
-        const formCard = document.querySelector('.form-card');
-        if (formCard) {
-            formCard.insertAdjacentElement('beforebegin', errorDiv);
+    showMessage(message, isError = false) {
+        const container = document.getElementById('messageContainer');
+        const text = document.getElementById('messageText');
+        if (!container || !text) {
+            alert(message);
+            return;
         }
 
-        setTimeout(() => {
-            const msg = document.getElementById('tempMessage');
-            if (msg) msg.remove();
-        }, 3000);
-    }
+        text.textContent = message;
+        container.style.display = 'flex';
+        container.style.background = isError ? '#ffebee' : '#e8f5e9';
+        container.style.color = isError ? '#c62828' : '#2e7d32';
+        container.style.borderColor = isError ? '#f44336' : '#4CAF50';
+        container.querySelector('i').className = isError ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
 
-    removeMessages() {
-        const tempMsg = document.getElementById('tempMessage');
-        if (tempMsg) tempMsg.remove();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        setTimeout(() => {
+            container.style.display = 'none';
+        }, 5000);
     }
 }
 
@@ -266,12 +237,12 @@ class ObjectifManager {
                 this.populateForm(data);
                 this.scrollToForm();
             } else {
-                alert('Erreur: ' + data.message);
+                this.showMessage('Erreur: ' + data.message, true);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Erreur de chargement');
+            this.showMessage('Erreur de chargement', true);
         });
     }
 
@@ -345,15 +316,17 @@ class ObjectifManager {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Objectif supprimé avec succès !');
-                    location.reload();
+                    this.validator.showMessage('Objectif supprimé avec succès !');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
                 } else {
-                    alert('Erreur: ' + data.message);
+                    this.validator.showMessage('Erreur: ' + data.message, true);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Erreur de suppression');
+                this.validator.showMessage('Erreur de suppression', true);
             });
         }
     }

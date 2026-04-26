@@ -238,7 +238,7 @@
                     <p>Administrateur Principal</p>
                 </div>
             </div>
-            <a href="../frontoffice/index.html" class="logout-btn">
+            <a href="../FrontOffice/index.html" class="logout-btn">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Front Office</span>
             </a>
@@ -414,7 +414,7 @@
         { name: 'Suivi & Objectifs', icon: 'fa-chart-simple', link: 'objectifList.php' },
         { name: 'Gestion Utilisateurs', icon: 'fa-users', link: '#' },
         { name: 'Nutrition Smart', icon: 'fa-apple-alt', link: '#' },
-        { name: 'Gestion Produits', icon: 'fa-boxes', link: '#' },
+        { name: 'Gestion Produits', icon: 'fa-boxes', link: 'produitList.php' },
         { name: 'Salade Quinoa', icon: 'fa-leaf', link: 'recetteList.php' },
         { name: 'Buddha Bowl', icon: 'fa-leaf', link: 'recetteList.php' },
         { name: 'Smoothie Bowl', icon: 'fa-apple-alt', link: 'recetteList.php' }
@@ -495,6 +495,9 @@
             }
             else if (module === 'tracking') {
                 loadModule('objectifList.php');
+            }
+            else if (module === 'products') {
+                loadModule('produitList.php');
             }
             else {
                 defaultContent.style.display = 'block';

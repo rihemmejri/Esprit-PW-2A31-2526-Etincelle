@@ -22,12 +22,18 @@
     box-sizing: border-box;
 }
 
+html, body {
+    height: 100%;
+}
+
 body {
     font-family: 'Poppins', sans-serif;
     background: var(--gray-light);
     color: #1a2a3a;
     line-height: 1.6;
     overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 /* ========== TYPOGRAPHY ========== */
@@ -71,6 +77,7 @@ h1, h2, h3, h4, h5, h6 {
     position: sticky;
     top: 0;
     z-index: 1000;
+    flex-shrink: 0;
 }
 
 .navbar {
@@ -80,6 +87,7 @@ h1, h2, h3, h4, h5, h6 {
     padding: 1rem 5%;
     max-width: 1400px;
     margin: 0 auto;
+    width: 100%;
 }
 
 .logo {
@@ -127,6 +135,7 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 500;
     transition: 0.3s;
     position: relative;
+    cursor: pointer;
 }
 
 .nav-menu a:hover, .nav-menu a.active {
@@ -167,6 +176,21 @@ h1, h2, h3, h4, h5, h6 {
     background: var(--dark-blue);
     margin: 3px 0;
     transition: 0.3s;
+}
+
+/* ========== IFRAME CONTAINER ========== */
+.iframe-container {
+    flex: 1;
+    overflow: hidden;
+    background: var(--white);
+    width: 100%;
+}
+
+.content-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: var(--white);
 }
 
 /* ========== HERO SECTION ========== */
@@ -338,8 +362,15 @@ h1, h2, h3, h4, h5, h6 {
 
 .modules-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+@media (min-width: 1024px) {
+    .modules-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 .module-card {
@@ -377,7 +408,7 @@ h1, h2, h3, h4, h5, h6 {
 .module-icon {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, rgba(76,175,80,0.1), rgba(0,51,102,0.1));
+    background: rgba(76, 175, 80, 0.1);
     border-radius: 50%;
     display: flex;
     align-items: center;
