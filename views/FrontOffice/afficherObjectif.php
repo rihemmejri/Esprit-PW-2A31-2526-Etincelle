@@ -1,8 +1,10 @@
 <?php
 include '../../controleurs/ObjectifController.php';
+include '../../controleurs/SuiviController.php';
 require_once __DIR__ . '/../../models/objectif.php';
 
 $objectifController = new ObjectifController();
+$suiviController = new SuiviController();
 
 // Handle AJAX requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
@@ -224,7 +226,7 @@ $objectifs = $objectifController->listObjectifs();
         }
 
         .form-header {
-            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--success-green) 100%);
+            background: linear-gradient(90deg, #2E7D32 0%, #003366 100%);
             color: var(--white);
             padding: 30px;
         }
@@ -381,7 +383,7 @@ $objectifs = $objectifController->listObjectifs();
         }
 
         .hero-section {
-            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--success-green) 100%);
+            background: linear-gradient(90deg, #2E7D32 0%, #003366 100%);
             color: var(--white);
             padding: 50px 30px;
             border-radius: 20px;
@@ -452,12 +454,49 @@ $objectifs = $objectifController->listObjectifs();
                 flex-direction: column;
             }
         }
+        
+        body {
+            background: #f0f4f8;
+            margin: 0;
+            padding-bottom: 60px; /* Space for footer */
+        }
+        
+        .simple-footer {
+            background: #2E7D32;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            font-size: 0.9em;
+            font-weight: 500;
+            z-index: 100;
+        }
     </style>
 </head>
 <body>
-    <div class="container-form">
+    <div class="container-form" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+        <div id="messageContainer" style="display: none; margin-bottom: 20px; padding: 15px 20px; border-radius: 12px; border-left: 5px solid #4CAF50; background: #e8f5e9; color: #2e7d32; font-weight: 500; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); animation: slideDown 0.4s ease-out;">
+            <i class="fas fa-check-circle"></i>
+            <span id="messageText"></span>
+        </div>
+
+        <style>
+            @keyframes slideDown {
+                from { transform: translateY(-20px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+        </style>
+
         <!-- Hero Section -->
         <div class="hero-section">
+            <div style="position: absolute; top: 20px; right: 20px;">
+                <a href="afficherSuivi.php" style="background: rgba(255,255,255,0.2); color: white; padding: 10px 20px; border-radius: 30px; text-decoration: none; font-weight: 600; backdrop-filter: blur(5px); transition: 0.3s; border: 1px solid rgba(255,255,255,0.3);">
+                    <i class="fas fa-chart-line"></i> Gestion des Suivi
+                </a>
+            </div>
             <h1>
                 <i class="fas fa-bullseye"></i>
                 Mes Objectifs Nutritionnels
@@ -467,11 +506,14 @@ $objectifs = $objectifController->listObjectifs();
 
         <!-- Formulaire Ajouter/Modifier Objectif -->
         <div class="form-card">
-            <div class="form-header">
+            <div class="form-header" style="display: flex; justify-content: space-between; align-items: center; padding-right: 30px;">
                 <h2 class="form-title">
                     <i class="fas fa-plus-circle"></i>
                     Ajouter un nouvel objectif
                 </h2>
+                <a href="afficherSuivi.php" style="background: var(--primary-blue); color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 0.9em; font-weight: 600; transition: 0.3s; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                    <i class="fas fa-chart-line"></i> Gestion des Suivis
+                </a>
             </div>
             <div class="form-content">
                 <form id="addObjectifForm">
@@ -595,6 +637,35 @@ $objectifs = $objectifController->listObjectifs();
                                 </div>
                             </div>
                         </div>
+
+                        <?php 
+                            $latestPoids = $suiviController->getLatestPoidsForObjectif($objectif->getId());
+                            $progress = 0;
+                            $statusText = "Aucun suivi enregistré";
+                            if ($latestPoids) {
+                                $target = $objectif->getPoidsCible();
+                                if ($latestPoids == $target) {
+                                    $progress = 100;
+                                } else if ($latestPoids < $target) {
+                                    $progress = round(($latestPoids / $target) * 100);
+                                } else {
+                                    $diff = $latestPoids - $target;
+                                    $progress = max(0, 100 - round(($diff / $target) * 100));
+                                }
+                                $statusText = "Dernier poids: " . $latestPoids . " kg (" . $progress . "%)";
+                            }
+                        ?>
+                        
+                        <div class="progress-section" style="margin-top: 15px; padding: 0 15px 15px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85em; color: #666;">
+                                <span>Progression vers l'objectif de poids</span>
+                                <strong><?= $progress ?>%</strong>
+                            </div>
+                            <div style="width: 100%; height: 10px; background: #eee; border-radius: 5px; overflow: hidden; position: relative; border: 1px solid #ddd;">
+                                <div style="width: <?= $progress ?>%; height: 100%; background: linear-gradient(90deg, #4CAF50, #81C784); border-radius: 5px; transition: width 1s ease-in-out;"></div>
+                            </div>
+                            <p style="font-size: 0.75em; color: #888; margin-top: 6px; font-style: italic; text-align: right;"><?= $statusText ?></p>
+                        </div>
                     </div>
                 <?php endforeach; ?>
             <?php else: ?>
@@ -605,6 +676,11 @@ $objectifs = $objectifController->listObjectifs();
                 </div>
             <?php endif; ?>
         </div>
+    </div>
+
+    <!-- Footer Simple Match Image -->
+    <div class="simple-footer">
+        💚 NutriLoop AI - Manger sainement pour une vie meilleure
     </div>
 
     <script src="../assets/js/objectif.js"></script>
