@@ -1,5 +1,8 @@
 <?php
+<<<<<<< HEAD
 session_start();
+=======
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
 include '../../controleurs/RecetteController.php';
 require_once __DIR__ . '/../../models/recette.php';
 
@@ -22,7 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
             
             $recetteController->addRecette($recette);
+<<<<<<< HEAD
             $_SESSION['success_message'] = 'Recette ajoutée avec succès';
+=======
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
             header('Location: recetteList.php');
             exit;
         } else {

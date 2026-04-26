@@ -1,5 +1,8 @@
 <?php
+<<<<<<< HEAD
 session_start();
+=======
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
 include '../../controleurs/RecetteController.php';
 require_once __DIR__ . '/../../models/recette.php';
 
@@ -39,6 +42,7 @@ $recettes = $RecetteController->listRecettes();
 </head>
 <body>
     <div class="container-list">
+<<<<<<< HEAD
         <?php if (isset($_SESSION['success_message'])): ?>
             <div class="notification-success">
                 <i class="fas fa-check-circle"></i>
@@ -47,6 +51,8 @@ $recettes = $RecetteController->listRecettes();
             <?php unset($_SESSION['success_message']); ?>
         <?php endif; ?>
         
+=======
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
         <div class="header">
             <h1>
                 <i class="fas fa-utensils"></i>
@@ -81,6 +87,13 @@ $recettes = $RecetteController->listRecettes();
                     </strong></span>
                 </div>
             </div>
+<<<<<<< HEAD
+=======
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Rechercher une recette..." onkeyup="searchTable()">
+                <button onclick="searchTable()"><i class="fas fa-search"></i></button>
+            </div>
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
         </div>
 
         <div class="content">

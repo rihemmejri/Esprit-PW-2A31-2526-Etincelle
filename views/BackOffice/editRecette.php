@@ -1,5 +1,8 @@
 <?php
+<<<<<<< HEAD
 session_start();
+=======
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
 include '../../controleurs/RecetteController.php';
 require_once __DIR__ . '/../../models/recette.php';
 
@@ -45,7 +48,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Mettre à jour dans la BD
         $recetteController->updateRecette($recette);
         
+<<<<<<< HEAD
         $_SESSION['success_message'] = 'Recette modifiée avec succès';
+=======
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
         // Redirection
         header('Location: recetteList.php');
         exit;

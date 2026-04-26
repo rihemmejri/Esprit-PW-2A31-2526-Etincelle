@@ -22,18 +22,24 @@
     box-sizing: border-box;
 }
 
+<<<<<<< HEAD
 html, body {
     height: 100%;
 }
 
+=======
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
 body {
     font-family: 'Poppins', sans-serif;
     background: var(--gray-light);
     color: #1a2a3a;
     line-height: 1.6;
     overflow-x: hidden;
+<<<<<<< HEAD
     display: flex;
     flex-direction: column;
+=======
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
 }
 
 /* ========== TYPOGRAPHY ========== */
@@ -77,7 +83,10 @@ h1, h2, h3, h4, h5, h6 {
     position: sticky;
     top: 0;
     z-index: 1000;
+<<<<<<< HEAD
     flex-shrink: 0;
+=======
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
 }
 
 .navbar {
@@ -87,7 +96,10 @@ h1, h2, h3, h4, h5, h6 {
     padding: 1rem 5%;
     max-width: 1400px;
     margin: 0 auto;
+<<<<<<< HEAD
     width: 100%;
+=======
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
 }
 
 .logo {
@@ -135,7 +147,10 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 500;
     transition: 0.3s;
     position: relative;
+<<<<<<< HEAD
     cursor: pointer;
+=======
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
 }
 
 .nav-menu a:hover, .nav-menu a.active {
@@ -178,6 +193,7 @@ h1, h2, h3, h4, h5, h6 {
     transition: 0.3s;
 }
 
+<<<<<<< HEAD
 /* ========== IFRAME CONTAINER ========== */
 .iframe-container {
     flex: 1;
@@ -193,6 +209,8 @@ h1, h2, h3, h4, h5, h6 {
     background: var(--white);
 }
 
+=======
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
 /* ========== HERO SECTION ========== */
 .hero {
     background: linear-gradient(135deg, var(--dark-blue) 0%, var(--dark-blue-light) 100%);
@@ -362,6 +380,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .modules-grid {
     display: grid;
+<<<<<<< HEAD
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
     max-width: 1100px;
@@ -371,6 +390,10 @@ h1, h2, h3, h4, h5, h6 {
     .modules-grid {
         grid-template-columns: repeat(3, 1fr);
     }
+=======
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
 }
 
 .module-card {
@@ -408,7 +431,11 @@ h1, h2, h3, h4, h5, h6 {
 .module-icon {
     width: 80px;
     height: 80px;
+<<<<<<< HEAD
     background: rgba(76, 175, 80, 0.1);
+=======
+    background: linear-gradient(135deg, rgba(76,175,80,0.1), rgba(0,51,102,0.1));
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
     border-radius: 50%;
     display: flex;
     align-items: center;

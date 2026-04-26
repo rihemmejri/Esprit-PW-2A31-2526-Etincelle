@@ -1,13 +1,19 @@
 <?php
 include '../../controleurs/ProduitController.php';
+<<<<<<< HEAD
 include '../../controleurs/CategorieController.php';
+=======
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
 require_once __DIR__ . '/../../models/produit.php';
 
 $error = "";
 $success = "";
 $produitController = new ProduitController();
+<<<<<<< HEAD
 $categorieController = new CategorieController();
 $categories = $categorieController->listCategories();
+=======
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
 $produit = null;
 
 if (isset($_GET['id'])) {
@@ -41,8 +47,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $produit->setSaison(htmlspecialchars($_POST['saison'] ?? ''));
             
             $produitController->updateProduit($produit);
+<<<<<<< HEAD
             session_start();
             $_SESSION['success_message'] = 'Produit modifié avec succès';
+=======
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
             header('Location: produitList.php');
             exit;
         } else {
@@ -64,6 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="container-form">
         <div class="form-card">
+<<<<<<< HEAD
             <div class="header" style="display: flex; justify-content: space-between; align-items: center; padding-right: 20px;">
                 <div>
                     <h1>
@@ -75,6 +85,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div style="display: flex; gap: 10px;">
                     <a href="produitList.php" class="btn btn-secondary" style="background: #003366; color: white;"><i class="fas fa-list"></i> Liste</a>
                 </div>
+=======
+            <div class="header">
+                <h1>
+                    <i class="fas fa-edit"></i>
+                    Modifier un produit
+                </h1>
+                <p>Modifiez les informations du produit ci-dessous</p>
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
             </div>
 
             <?php if ($error): ?>
@@ -121,11 +139,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </label>
                                 <select name="id_categorie" id="id_categorie">
                                     <option value="">Choisir une catégorie</option>
+<<<<<<< HEAD
                                     <?php foreach ($categories as $cat): ?>
                                         <option value="<?= $cat->getIdCategorie() ?>" <?= $produit->getIdCategorie() == $cat->getIdCategorie() ? 'selected' : '' ?>>
                                             <?= htmlspecialchars($cat->getNomCategorie()) ?>
                                         </option>
                                     <?php endforeach; ?>
+=======
+                                    <option value="1" <?= $produit->getIdCategorie() == 1 ? 'selected' : '' ?>>Légumes</option>
+                                    <option value="2" <?= $produit->getIdCategorie() == 2 ? 'selected' : '' ?>>Fruits</option>
+                                    <option value="3" <?= $produit->getIdCategorie() == 3 ? 'selected' : '' ?>>Produits Laitiers</option>
+                                    <option value="4" <?= $produit->getIdCategorie() == 4 ? 'selected' : '' ?>>Viandes</option>
+                                    <option value="5" <?= $produit->getIdCategorie() == 5 ? 'selected' : '' ?>>Poissons</option>
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
                                 </select>
                                 <small class="error-text" id="categorieError"></small>
                             </div>

@@ -1,5 +1,8 @@
 <?php
+<<<<<<< HEAD
 session_start();
+=======
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
 include '../../controleurs/RecetteController.php';
 require_once __DIR__ . '/../../models/recette.php';
 
@@ -10,7 +13,10 @@ if ($id) {
     // Vérifier si la confirmation est donnée
     if (isset($_GET['confirm']) && $_GET['confirm'] == 'yes') {
         $recetteController->deleteRecette($id);
+<<<<<<< HEAD
         $_SESSION['success_message'] = 'Recette supprimée avec succès';
+=======
+>>>>>>> 250cc12bdb995fa9e0d9c0b1489e043850f7f44c
         header('Location: recetteList.php');
         exit;
     }
