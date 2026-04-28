@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Espace - NutriLoop AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Variables pour les thèmes */
+        :root {
+            --bg-body: #f5f7fa;
+            --bg-header: white;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --card-bg: white;
+            --card-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            --border-color: #f0f0f0;
+            --profile-bg: #f0f2f5;
+            --profile-hover: #e4e6e9;
+            --input-bg: #f0f2f5;
+        }
+
+        body.dark {
+            --bg-body: #121212;
+            --bg-header: #1e1e2a;
+            --text-primary: #e8e8e8;
+            --text-secondary: #aaa;
+            --card-bg: #1e1e2a;
+            --card-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            --border-color: #2a2a35;
+            --profile-bg: #2a2a35;
+            --profile-hover: #3a3a45;
+            --input-bg: #2a2a35;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-body);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .header {
+            background: var(--bg-header);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: background 0.3s ease;
+        }
+
+        body.dark .header {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2e7d32;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+
+        .nav-menu li a {
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .nav-menu li a:hover {
+            color: #4CAF50;
+        }
+
+        .btn-dashboard {
+            background: #003366;
+            color: white !important;
+            padding: 8px 20px;
+            border-radius: 25px;
+        }
+
+        .btn-dashboard:hover {
+            background: #4CAF50;
+        }
+
+        .right-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .profile-dropdown {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            background: var(--profile-bg);
+            border-radius: 40px;
+            transition: 0.3s;
+        }
+
+        .profile-trigger:hover {
+            background: var(--profile-hover);
+        }
+
+        .profile-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #4CAF50, #003366);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .profile-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 10px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            width: 320px;
+            overflow: hidden;
+            display: none;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .profile-dropdown.active .dropdown-menu {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dropdown-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #4CAF50, #003366);
+            color: white;
+            text-align: center;
+        }
+
+        .dropdown-header .big-avatar {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin: 0 auto 10px;
+        }
+
+        .dropdown-header h4 {
+            margin-bottom: 5px;
+        }
+
+        .dropdown-header p {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .dropdown-info {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 0.85rem;
+        }
+
+        .info-label {
+            color: var(--text-secondary);
+        }
+
+        .info-value {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* Dark mode toggle inside dropdown */
+        .dropdown-theme {
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dropdown-theme span {
+            font-size: 0.85rem;
+            color: var(--text-primary);
+        }
+
+        .theme-switch {
+            width: 50px;
+            height: 24px;
+            background: #ccc;
+            border-radius: 30px;
+            position: relative;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        body.dark .theme-switch {
+            background: #4CAF50;
+        }
+
+        .theme-switch::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 3px;
+            transition: 0.3s;
+        }
+
+        body.dark .theme-switch::after {
+            left: 27px;
+        }
+
+        .dropdown-footer {
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-backoffice {
+            width: 100%;
+            padding: 12px;
+            background: #003366;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-backoffice:hover {
+            background: #002244;
+        }
+
+        .btn-logout {
+            width: 100%;
+            padding: 12px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: #b91c1c;
+        }
+
+        .main-content {
+            margin-top: 20px;
+            padding: 2rem 5%;
+            min-height: calc(100vh - 80px);
+        }
+
+        .welcome-card {
+            background: linear-gradient(135deg, #003366 0%, #4CAF50 100%);
+            border-radius: 24px;
+            padding: 40px;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .welcome-card h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            transition: 0.3s;
+            text-align: center;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        body.dark .stat-card:hover {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            color: #4CAF50;
+            margin-bottom: 1rem;
+        }
+
+        .stat-title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #003366;
+        }
+
+        body.dark .stat-number {
+            color: #4CAF50;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: var(--card-shadow);
+            text-decoration: none;
+            display: block;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        body.dark .feature-card:hover {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            color: #4CAF50;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            color: #003366;
+            margin-bottom: 0.5rem;
+        }
+
+        body.dark .feature-card h3 {
+            color: #4CAF50;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px 20px;
+            }
+            .nav-menu {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 15px;
+            }
+            .right-section {
+                margin-top: 10px;
+            }
+            .profile-name {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <nav class="navbar">
+        <div class="logo">
+            <img src="image/logo.PNG" alt="Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/45x45?text=🌱'">
+            <span class="logo-text">NutriLoop</span>
+        </div>
+        
+        <ul class="nav-menu">
+            <li><a href="index.html">Accueil</a></li>
+            <li><a href="about.html">À propos</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+        
+        <div class="right-section">
+            <div class="profile-dropdown" id="profileDropdown">
+                <div class="profile-trigger" onclick="toggleDropdown(event)">
+                    <div class="profile-avatar" id="userAvatar">JD</div>
+                    <span class="profile-name" id="userName">Chargement...</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <div class="dropdown-header">
+                        <div class="big-avatar" id="bigAvatar">JD</div>
+                        <h4 id="fullName">Jean Dupont</h4>
+                        <p id="userRole">Membre</p>
+                    </div>
+                    <div class="dropdown-info">
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-envelope"></i> Email</span>
+                            <span class="info-value" id="userEmail">jean@email.com</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-calendar"></i> Membre depuis</span>
+                            <span class="info-value" id="memberSince">01/01/2024</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-user-tag"></i> Statut</span>
+                            <span class="info-value" id="userStatus">Actif</span>
+                        </div>
+                    </div>
+                    <!-- Dark mode toggle inside dropdown -->
+                    <div class="dropdown-theme">
+                        <span><i class="fas fa-moon"></i> Mode sombre</span>
+                        <div class="theme-switch" onclick="toggleTheme(event)"></div>
+                    </div>
+                    <div class="dropdown-footer">
+                        <button class="btn-logout" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Se déconnecter
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<div class="main-content">
+    <div class="welcome-card">
+        <h1 id="welcomeMessage">Bonjour, Jean ! 👋</h1>
+        <p>Bienvenue sur votre espace personnel NutriLoop AI. Découvrez nos fonctionnalités pour une alimentation saine et équilibrée.</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-utensils"></i></div>
+            <div class="stat-title">Recettes consultées</div>
+            <div class="stat-number">24</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-fire"></i></div>
+            <div class="stat-title">Calories économisées</div>
+            <div class="stat-number">1,280</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-leaf"></i></div>
+            <div class="stat-title">Impact CO₂ réduit</div>
+            <div class="stat-number">5.2kg</div>
+        </div>
+    </div>
+
+    <div id="features" class="features-grid">
+        <div class="feature-card" onclick="alert('Module Nutrition Smart - Bientôt disponible')">
+            <div class="feature-icon"><i class="fas fa-apple-alt"></i></div>
+            <h3>Nutrition Smart</h3>
+            <p>Recommandations personnalisées basées sur vos habitudes</p>
+        </div>
+        
+        <a href="afficherRecette.php" class="feature-card">
+            <div class="feature-icon"><i class="fas fa-book-open"></i></div>
+            <h3>Recettes Anti-Gaspi</h3>
+            <p>Découvrez des recettes intelligentes</p>
+        </a>
+        
+        <div class="feature-card" onclick="alert('Module Suivi & Objectifs - Bientôt disponible')">
+            <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+            <h3>Suivi & Objectifs</h3>
+            <p>Suivez vos progrès et atteignez vos objectifs</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentUser = null;
+    
+    // Dark mode functions
+    function loadTheme() {
+        const savedTheme = localStorage.getItem('nutriloop_theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark');
+        } else {
+            document.body.classList.remove('dark');
+        }
+    }
+
+    function toggleTheme(event) {
+        if (event) event.stopPropagation();
+        
+        if (document.body.classList.contains('dark')) {
+            document.body.classList.remove('dark');
+            localStorage.setItem('nutriloop_theme', 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem('nutriloop_theme', 'dark');
+        }
+    }
+    
+    async function loadUserData() {
+        try {
+            const response = await fetch('get_user_session.php');
+            const data = await response.json();
+            if (data.user) {
+                currentUser = data.user;
+                updateProfileUI();
+            } else {
+                window.location.href = 'login.php';
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            window.location.href = 'login.php';
+        }
+    }
+    
+    function updateProfileUI() {
+        if (!currentUser) return;
+        const initial = (currentUser.prenom.charAt(0) + currentUser.nom.charAt(0)).toUpperCase();
+        const fullName = `${currentUser.prenom} ${currentUser.nom}`;
+        document.getElementById('userAvatar').textContent = initial;
+        document.getElementById('bigAvatar').textContent = initial;
+        document.getElementById('userName').textContent = currentUser.prenom;
+        document.getElementById('fullName').textContent = fullName;
+        document.getElementById('welcomeMessage').textContent = `Bonjour, ${currentUser.prenom} ! 👋`;
+        document.getElementById('userEmail').textContent = currentUser.email;
+        document.getElementById('memberSince').textContent = new Date(currentUser.date_inscription).toLocaleDateString('fr-FR');
+        document.getElementById('userRole').textContent = currentUser.role === 'ADMIN' ? 'Administrateur' : 'Membre';
+        document.getElementById('userStatus').innerHTML = currentUser.statut === 'actif' ? '✅ Actif' : '⭕ Inactif';
+    }
+    
+    function toggleDropdown(event) {
+        if (event) event.stopPropagation();
+        document.getElementById('profileDropdown').classList.toggle('active');
+    }
+    
+    function logout() {
+        if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+            window.location.href = 'logout.php';
+        }
+    }
+    
+    document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('profileDropdown');
+        if (dropdown && !dropdown.contains(event.target)) {
+            dropdown.classList.remove('active');
+        }
+    });
+    
+    // Empêcher la fermeture du dropdown quand on clique sur le toggle theme dans le dropdown
+    document.querySelector('.dropdown-theme')?.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+    
+    loadTheme();
+    loadUserData();
+</script>
+</body>
+</html>

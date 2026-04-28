@@ -1,0 +1,40 @@
+<!-- backoffice/users.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gestion Utilisateurs - NutriLoop</title>
+    <style>
+        body { font-family: 'Poppins', sans-serif; padding: 20px; background: #f5f7fa; }
+        h1 { color: #003366; }
+        table { width: 100%; background: white; border-radius: 20px; overflow: hidden; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #003366; color: white; }
+        .btn-back { margin-top: 20px; padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1><i class="fas fa-users"></i> Gestion des Utilisateurs</h1>
+    <table id="usersTable">
+        <thead>
+            <tr><th>ID</th><th>Nom</th><th>Email</th><th>Rôle</th></tr>
+        </thead>
+        <tbody id="usersList"></tbody>
+    </table>
+    <button class="btn-back" onclick="window.location.href='index.html'">← Retour Dashboard</button>
+    <script>
+        function loadUsers() {
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const tbody = document.getElementById('usersList');
+            tbody.innerHTML = users.map(user => `
+                <tr>
+                    <td>${user.id}</td>
+                    <td>${user.fullname}</td>
+                    <td>${user.email}</td>
+                    <td>${user.role}</td>
+                </tr>
+            `).join('');
+        }
+        loadUsers();
+    </script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 <?php
-// tayechni fil page index.php bech nredirectioni lel front office direct 
-header('Location: views/FrontOffice/Home.php');
-
+// Rediriger directement vers login.php
+header('Location: views/FrontOffice/login.php');
 exit;
+?>
