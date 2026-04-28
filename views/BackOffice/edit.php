@@ -31,14 +31,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $prenom = trim($_POST['prenom'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $role = strtoupper(trim($_POST['role'] ?? 'USER'));
-    $statut = trim($_POST['statut'] ?? 'actif');
+    $statut = strtoupper(trim($_POST['statut'] ?? 'ACTIF')); // ← CORRIGÉ: mettre en majuscule
     
     if (empty($nom) || empty($prenom) || empty($email)) {
         $error = "Tous les champs obligatoires doivent être remplis";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = "Email invalide";
     } else {
-        // 1. Mettre à jour nom, prénom, email, role (sans modifier le statut)
+        // 1. Mettre à jour nom, prénom, email, role
         $updatedUser = new User(
             $_GET['id'],
             $nom,
@@ -52,9 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $result = $userController->updateUser($updatedUser, $_GET['id']);
         
-        // 2. Mettre à jour le statut séparément avec la méthode changeStatus()
+        // 2. Mettre à jour le statut séparément
         if ($result) {
-            $statusResult = $userController->changeStatus($_GET['id'], $statut);
+            $statusResult = $userController->changeStatus($_GET['id'], $statut); // ← $statut est maintenant en majuscule
             
             if ($statusResult) {
                 header("Location: edit.php?id=" . $_GET['id'] . "&success=1");
@@ -85,6 +85,7 @@ if (isset($_GET['success'])) {
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Ton CSS reste le même */
         * {
             margin: 0;
             padding: 0;
@@ -421,8 +422,8 @@ if (isset($_GET['success'])) {
                         <div class="form-group">
                             <label>Statut</label>
                             <select id="statut" name="statut">
-                                <option value="actif" <?= $user['statut'] === 'actif' ? 'selected' : '' ?>>✅ Actif</option>
-                                <option value="inactif" <?= $user['statut'] === 'inactif' ? 'selected' : '' ?>>⭕ Inactif</option>
+                                <option value="ACTIF" <?= strtoupper($user['statut']) === 'ACTIF' ? 'selected' : '' ?>>✅ Actif</option>
+                                <option value="INACTIF" <?= strtoupper($user['statut']) === 'INACTIF' ? 'selected' : '' ?>>⭕ Inactif</option>
                             </select>
                         </div>
                     </div>
