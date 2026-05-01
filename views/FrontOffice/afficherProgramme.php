@@ -29,53 +29,105 @@ $programmes = $programmeController->listProgrammes();
             min-height: 100vh;
         }
 
-        /* ========== HEADER - VERT ========== */
+        /* ========== HEADER AVEC MENU (COMME L'AUTRE PAGE) ========== */
         .header {
-            background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
-            padding: 20px 0;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             position: sticky;
             top: 0;
-            z-index: 100;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            z-index: 1000;
         }
 
-        .header-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 30px;
+        .navbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
+            padding: 15px 40px;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
-        .logo-icon {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, #4CAF50, #2E7D32);
-            border-radius: 12px;
+        .logo-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2e7d32;
+        }
+
+        .nav-menu {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-            box-shadow: 0 10px 20px rgba(46,125,50,0.3);
+            list-style: none;
+            gap: 30px;
         }
 
-        .logo h1 {
-            font-size: 1.5rem;
-            color: white;
+        .nav-menu li a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: 0.3s;
         }
 
-        .logo span {
-            color: #A5D6A7;
+        .nav-menu li a:hover,
+        .nav-menu li a.active {
+            color: #4CAF50;
+        }
+
+        .btn-dashboard {
+            background: #2e7d32;
+            color: white !important;
+            padding: 8px 20px;
+            border-radius: 25px;
+        }
+
+        .btn-dashboard:hover {
+            background: #388e3c;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: #333;
+            margin: 3px 0;
+            transition: 0.3s;
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                position: fixed;
+                left: -100%;
+                top: 70px;
+                flex-direction: column;
+                background: white;
+                width: 100%;
+                text-align: center;
+                transition: 0.3s;
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+                padding: 20px 0;
+                gap: 15px;
+            }
+            .nav-menu.active {
+                left: 0;
+            }
+            .hamburger {
+                display: flex;
+            }
         }
 
         /* ========== HERO - VERT ========== */
@@ -498,21 +550,229 @@ $programmes = $programmeController->listProgrammes();
             padding: 30px;
             margin-top: 40px;
         }
+
+        /* Style pour le lien actif */
+        .nav-menu li a.active {
+            color: #4CAF50;
+            font-weight: 600;
+        }
+        
+        /* ========== CHATBOT GEMINI ========== */
+        .chatbot-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #2E7D32, #1B5E20);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            animation: bounce 2s infinite;
+        }
+
+        .chatbot-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-10px);}
+            60% {transform: translateY(-5px);}
+        }
+
+        .chat-window {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 350px;
+            height: 500px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .chat-window.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #2E7D32, #1B5E20);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h3 {
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-header h3 i {
+            font-size: 1.3rem;
+            color: #A5D6A7;
+        }
+
+        .close-chat {
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: transform 0.2s;
+        }
+
+        .close-chat:hover {
+            transform: rotate(90deg);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .message.bot {
+            background: white;
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid #eee;
+        }
+
+        .message.user {
+            background: #2E7D32;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+            box-shadow: 0 2px 5px rgba(46,125,50,0.2);
+        }
+
+        .chat-input {
+            padding: 15px;
+            background: white;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input input:focus {
+            border-color: #2E7D32;
+        }
+
+        .chat-input button {
+            background: #2E7D32;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .chat-input button:hover {
+            background: #1B5E20;
+        }
+        
+        .typing-indicator {
+            display: none;
+            padding: 10px 15px;
+            background: white;
+            border-radius: 15px;
+            border-bottom-left-radius: 5px;
+            align-self: flex-start;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid #eee;
+        }
+        .typing-indicator span {
+            width: 6px;
+            height: 6px;
+            background: #ccc;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="header-content">
+
+    <!-- ========== HEADER AVEC MENU (COMME L'AUTRE PAGE) ========== -->
+    <header class="header">
+        <nav class="navbar">
             <div class="logo">
-                <div class="logo-icon"><i class="fas fa-leaf"></i></div>
-                <h1>Nutri<span>Loop</span> AI</h1>
+                <img src="image/logo.PNG" alt="NutriLoop Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/45x45?text=🌱'">
+                <span class="logo-text">NutriLoop</span>
             </div>
-            <div class="logo">
-                <i class="fas fa-robot" style="color: #A5D6A7;"></i>
-                <span style="color: white;">Nutrition Smart</span>
+            <ul class="nav-menu">
+                <li><a href="index.html">Accueil</a></li>
+                <li><a href="index.html#features">Fonctionnalités</a></li>
+                <li><a href="index.html#modules">Modules</a></li>
+                <li><a href="about.html">À propos</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="../backoffice/index.html" class="btn-dashboard">Dashboard</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
-        </div>
-    </div>
+        </nav>
+    </header>
 
     <div class="hero">
         <h1><i class="fas fa-calendar-alt"></i> Programmes Nutritionnels</h1>
@@ -705,6 +965,30 @@ $programmes = $programmeController->listProgrammes();
         </div>
     </div>
 
+    <!-- Chatbot Widget -->
+    <div class="chatbot-btn" id="chatbotBtn" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+    </div>
+
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <h3><i class="fas fa-leaf"></i> NutriLoop Assistant</h3>
+            <i class="fas fa-times close-chat" onclick="toggleChat()"></i>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot">
+                Bonjour ! Je suis l'assistant expert de NutriLoop. Comment puis-je vous aider aujourd'hui avec votre nutrition ou nos programmes ?
+            </div>
+            <div class="typing-indicator" id="typingIndicator">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Posez votre question..." onkeypress="handleEnter(event)">
+            <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
     <script>
         // Mapping des images pour les repas
         const repasImages = {
@@ -824,6 +1108,171 @@ $programmes = $programmeController->listProgrammes();
                 
                 card.style.display = show ? '' : 'none';
             });
+        }
+
+        // Menu hamburger pour mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.querySelector('.hamburger');
+            const navMenu = document.querySelector('.nav-menu');
+            if (hamburger && navMenu) {
+                hamburger.addEventListener('click', function() {
+                    hamburger.classList.toggle('active');
+                    navMenu.classList.toggle('active');
+                });
+            }
+        });
+
+        // ================= GEMINI CHATBOT LOGIC =================
+        function toggleChat() {
+            const chatWindow = document.getElementById('chatWindow');
+            chatWindow.classList.toggle('active');
+            if (chatWindow.classList.contains('active')) {
+                document.getElementById('chatInput').focus();
+            }
+        }
+
+        function handleEnter(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const inputField = document.getElementById('chatInput');
+            const message = inputField.value.trim();
+            if (!message) return;
+
+            // Clear input
+            inputField.value = '';
+
+            // Add user message to UI
+            addMessageToUI(message, 'user');
+
+            // Show typing indicator
+            const typingIndicator = document.getElementById('typingIndicator');
+            typingIndicator.style.display = 'block';
+            
+            // Scroll to bottom
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.appendChild(typingIndicator); // move to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                // Call backend API
+                const response = await fetch('api/gemini_chat.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const data = await response.json();
+                
+                // Hide typing indicator
+                typingIndicator.style.display = 'none';
+
+                if (response.ok) {
+                    addMessageToUI(data.reply, 'bot');
+                    
+                    if (data.proposedProgram) {
+                        window.pendingProgram = data.proposedProgram;
+                        const btnHtml = `<br><button id="confirmBtn" onclick="confirmAddProgram()" style="margin-top: 10px; padding: 8px 12px; background: #A5D6A7; color: #333; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%;"><i class="fas fa-save"></i> Ajouter ce programme à ma liste</button>`;
+                        addMessageToUI(btnHtml, 'bot', false); // Do not save the button HTML to history
+                    }
+                } else {
+                    addMessageToUI("Désolé, une erreur est survenue lors de la communication avec l'assistant. (" + (data.error || 'Erreur inconnue') + ")", 'bot');
+                }
+            } catch (error) {
+                typingIndicator.style.display = 'none';
+                addMessageToUI("Erreur de connexion. Veuillez réessayer plus tard.", 'bot');
+            }
+        }
+
+        function addMessageToUI(text, sender, save = true) {
+            const chatMessages = document.getElementById('chatMessages');
+            const typingIndicator = document.getElementById('typingIndicator');
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + sender;
+            // Basic markdown-like bold parsing
+            let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // Line breaks
+            formattedText = formattedText.replace(/\n/g, '<br>');
+            messageDiv.innerHTML = formattedText;
+            
+            chatMessages.insertBefore(messageDiv, typingIndicator);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            if (save) {
+                saveChatHistory(text, sender);
+            }
+        }
+
+        function saveChatHistory(text, sender) {
+            let history = JSON.parse(localStorage.getItem('nutriloop_chat_history') || '[]');
+            history.push({ text, sender });
+            // Keep only last 50 messages to avoid huge storage
+            if (history.length > 50) history = history.slice(-50);
+            localStorage.setItem('nutriloop_chat_history', JSON.stringify(history));
+        }
+
+        function loadChatHistory() {
+            const history = JSON.parse(localStorage.getItem('nutriloop_chat_history') || '[]');
+            if (history.length > 0) {
+                // Clear default greeting if we have history
+                const defaultMsg = document.querySelector('.chat-messages .message.bot:first-child');
+                if (defaultMsg && history.length > 0) {
+                    defaultMsg.remove();
+                }
+                
+                history.forEach(msg => {
+                    addMessageToUI(msg.text, msg.sender, false); // false to not save again
+                });
+            }
+        }
+
+        // Load history on page load
+        document.addEventListener('DOMContentLoaded', loadChatHistory);
+
+        async function confirmAddProgram() {
+            if (!window.pendingProgram) return;
+            const btn = document.getElementById('confirmBtn');
+            if(btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sauvegarde en cours...';
+            }
+
+            try {
+                const response = await fetch('api/save_program.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(window.pendingProgram)
+                });
+                
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    if(btn) {
+                        btn.innerHTML = '<i class="fas fa-check"></i> Programme ajouté !';
+                        btn.style.background = '#81C784';
+                    }
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    alert("Erreur lors de l'ajout du programme : " + (data.error || 'Erreur inconnue'));
+                    if(btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-save"></i> Réessayer';
+                    }
+                }
+            } catch (error) {
+                alert("Erreur de connexion au serveur.");
+                if(btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-save"></i> Réessayer';
+                }
+            }
         }
     </script>
 </body>

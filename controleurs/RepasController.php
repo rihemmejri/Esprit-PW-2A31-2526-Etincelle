@@ -23,6 +23,10 @@ if (!class_exists('RepasController')) {
                     'glucides' => $repas->getGlucides(),
                     'lipides' => $repas->getLipides()
                 ]);
+                
+                $id_repas = $db->lastInsertId();
+                $repas->setIdRepas($id_repas);
+                
                 return true;
             } catch (Exception $e) {
                 error_log("Erreur addRepas: " . $e->getMessage());
