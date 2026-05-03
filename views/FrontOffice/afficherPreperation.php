@@ -1,4 +1,5 @@
 <?php
+session_start();
 include '../../controleurs/RecetteController.php';
 include '../../controleurs/PreperationController.php';
 require_once __DIR__ . '/../../models/recette.php';
@@ -23,7 +24,103 @@ if (!$recette) {
 // Récupérer les étapes de cette recette
 $etapes = $preperationController->getPreperationsByRecetteId($id);
 
-// Fonction pour obtenir l'URL de l'image en fonction du nom
+// ========== LOGIQUE INTELLIGENTE DE DÉTECTION DES ÉTAPES MANQUANTES ==========
+function analyserQualiteEtapes($etapes, $recetteNom) {
+    $qualite = [
+        'total' => count($etapes),
+        'manques' => [],
+        'score' => 100,
+        'critique' => false,
+        'message' => ''
+    ];
+    
+    // Étapes obligatoires selon le type de recette
+    $etapesObligatoires = [
+        'preparation' => false,
+        'cuisson' => false,
+        'assemblage' => false,
+        'finition' => false
+    ];
+    
+    // Analyser les étapes existantes
+    foreach ($etapes as $etape) {
+        $action = strtoupper($etape->getTypeAction());
+        $instruction = strtoupper($etape->getInstruction());
+        
+        if ($action == 'COUPER' || strpos($instruction, 'COUPER') !== false || strpos($instruction, 'PRÉPARER') !== false || strpos($instruction, 'PREPARER') !== false) {
+            $etapesObligatoires['preparation'] = true;
+        }
+        if ($action == 'CUISSON' || strpos($instruction, 'CUIRE') !== false || strpos($instruction, 'CHAUFFER') !== false || strpos($instruction, 'FOUR') !== false) {
+            $etapesObligatoires['cuisson'] = true;
+        }
+        if ($action == 'MELANGER' || strpos($instruction, 'MÉLANGER') !== false || strpos($instruction, 'MELANGER') !== false || strpos($instruction, 'AJOUTER') !== false) {
+            $etapesObligatoires['assemblage'] = true;
+        }
+        if (strpos($instruction, 'SERVIR') !== false || strpos($instruction, 'DÉCORER') !== false || strpos($instruction, 'DECORER') !== false || strpos($instruction, 'PRÉSENTER') !== false || strpos($instruction, 'PRESENTER') !== false) {
+            $etapesObligatoires['finition'] = true;
+        }
+    }
+    
+    // Vérifier les étapes manquantes
+    if (!$etapesObligatoires['preparation']) {
+        $qualite['manques'][] = '🔪 Étape de préparation des ingrédients';
+        $qualite['score'] -= 25;
+    }
+    if (!$etapesObligatoires['cuisson']) {
+        $qualite['manques'][] = '🔥 Étape de cuisson';
+        $qualite['score'] -= 25;
+    }
+    if (!$etapesObligatoires['assemblage']) {
+        $qualite['manques'][] = '🥄 Étape d\'assemblage/mélange';
+        $qualite['score'] -= 25;
+    }
+    if (!$etapesObligatoires['finition']) {
+        $qualite['manques'][] = '✨ Étape de finition/décoration';
+        $qualite['score'] -= 10;
+    }
+    
+    // Vérifier le nombre total d'étapes
+    if (count($etapes) < 3) {
+        $qualite['manques'][] = '📋 Très peu d\'étapes (minimum recommandé: 3)';
+        $qualite['score'] -= 20;
+        $qualite['critique'] = true;
+    }
+    
+    // Vérifier si une étape manque de durée
+    $etapesSansDuree = 0;
+    foreach ($etapes as $etape) {
+        if ($etape->getDuree() <= 0 && $etape->getTypeAction() == 'CUISSON') {
+            $etapesSansDuree++;
+        }
+    }
+    if ($etapesSansDuree > 0) {
+        $qualite['manques'][] = '⏱️ ' . $etapesSansDuree . ' étape(s) de cuisson sans durée';
+        $qualite['score'] -= 10;
+    }
+    
+    // Score minimum 0
+    if ($qualite['score'] < 0) $qualite['score'] = 0;
+    
+    // Message final
+    if ($qualite['score'] >= 80) {
+        $qualite['message'] = '✅ Recette bien détaillée !';
+        $qualite['critique'] = false;
+    } elseif ($qualite['score'] >= 50) {
+        $qualite['message'] = '⚠️ Quelques étapes manquantes';
+        $qualite['critique'] = true;
+    } else {
+        $qualite['message'] = '🚨 Recette incomplète ! Ajoutez des étapes';
+        $qualite['critique'] = true;
+    }
+    
+    return $qualite;
+}
+
+$qualiteEtapes = analyserQualiteEtapes($etapes, $recette->getNom());
+$etapesManquantes = $qualiteEtapes['manques'];
+$hasMissingSteps = $qualiteEtapes['critique'];
+
+// Fonction pour obtenir l'URL de l'image
 function getImageUrl($nom) {
     $nom = strtolower($nom);
     if (strpos($nom, 'pizza') !== false) {
@@ -52,6 +149,10 @@ function getImageUrl($nom) {
         return 'https://images.unsplash.com/photo-1519676867248-6e4f6f4f0a1c?w=800&h=400&fit=crop';
     } elseif (strpos($nom, 'couscous') !== false) {
         return 'https://images.unsplash.com/photo-1617098900591-3f4c9b9f5a1a?w=800&h=400&fit=crop';
+    } elseif (strpos($nom, 'tiramisu') !== false) {
+        return 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=800&h=400&fit=crop';
+    } elseif (strpos($nom, 'omelette') !== false || strpos($nom, 'oeuf') !== false) {
+        return 'https://images.unsplash.com/photo-1626978378685-1fd1c2f63d9b?w=800&h=400&fit=crop';
     } else {
         return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop';
     }
@@ -81,7 +182,6 @@ $imageUrl = getImageUrl($recette->getNom());
             font-family: 'Poppins', sans-serif;
         }
         
-        /* Header */
         .header {
             background: white;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
@@ -155,14 +255,12 @@ $imageUrl = getImageUrl($recette->getNom());
             transition: 0.3s;
         }
         
-        /* Container */
         .container-recette {
             max-width: 1200px;
             margin: 0 auto;
             padding: 40px 20px;
         }
         
-        /* Bouton retour */
         .btn-back {
             display: inline-flex;
             align-items: center;
@@ -182,7 +280,6 @@ $imageUrl = getImageUrl($recette->getNom());
             transform: translateX(-5px);
         }
         
-        /* Image hero */
         .recette-image {
             width: 100%;
             height: 350px;
@@ -190,6 +287,7 @@ $imageUrl = getImageUrl($recette->getNom());
             overflow: hidden;
             margin-bottom: 30px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            position: relative;
         }
         
         .recette-image img {
@@ -199,11 +297,19 @@ $imageUrl = getImageUrl($recette->getNom());
             transition: transform 0.5s ease;
         }
         
-        .recette-image img:hover {
-            transform: scale(1.03);
+        .quality-badge {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
         }
         
-        /* Hero section */
         .recette-hero {
             background: linear-gradient(135deg, #2e7d32, #1b5e20);
             color: white;
@@ -219,10 +325,6 @@ $imageUrl = getImageUrl($recette->getNom());
             display: flex;
             align-items: center;
             gap: 15px;
-        }
-        
-        .recette-hero h1 i {
-            font-size: 2rem;
         }
         
         .recette-meta {
@@ -242,7 +344,6 @@ $imageUrl = getImageUrl($recette->getNom());
             gap: 8px;
         }
         
-        /* Description */
         .description-section {
             background: white;
             padding: 30px;
@@ -264,7 +365,6 @@ $imageUrl = getImageUrl($recette->getNom());
             color: #555;
         }
         
-        /* Étapes */
         .etapes-section h2 {
             color: #2e7d32;
             margin-bottom: 30px;
@@ -333,15 +433,10 @@ $imageUrl = getImageUrl($recette->getNom());
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         
-        .etape-badge i {
-            color: #4CAF50;
-        }
-        
         .etape-body {
             padding: 25px;
         }
         
-        /* Tableau des informations détaillées */
         .etape-details-table {
             background: #f8f9fa;
             border-radius: 16px;
@@ -384,11 +479,6 @@ $imageUrl = getImageUrl($recette->getNom());
             margin-bottom: 20px;
         }
         
-        .etape-instruction i {
-            color: #4CAF50;
-            margin-right: 8px;
-        }
-        
         .etape-astuce {
             background: #fff8e1;
             padding: 15px 20px;
@@ -399,25 +489,6 @@ $imageUrl = getImageUrl($recette->getNom());
             display: flex;
             align-items: center;
             gap: 12px;
-        }
-        
-        .etape-astuce i {
-            font-size: 1.2rem;
-        }
-        
-        .etape-image-icon {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            padding: 15px;
-            background: linear-gradient(135deg, #f0f2f5, #e9ecef);
-            border-radius: 16px;
-            margin-bottom: 20px;
-        }
-        
-        .action-icon {
-            font-size: 3rem;
         }
         
         .empty-etapes {
@@ -434,7 +505,6 @@ $imageUrl = getImageUrl($recette->getNom());
             margin-bottom: 20px;
         }
         
-        /* Footer */
         .footer {
             background: #1a1a2e;
             color: white;
@@ -498,6 +568,33 @@ $imageUrl = getImageUrl($recette->getNom());
             border-top: 1px solid rgba(255,255,255,0.1);
         }
         
+        /* Bouton flottant pour activer les notifications */
+        .btn-notif {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #2e7d32, #1b5e20);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 14px 24px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 999;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .btn-notif:hover {
+            background: linear-gradient(135deg, #1b5e20, #0d3b0f);
+            transform: scale(1.05);
+        }
+        
         @media (max-width: 768px) {
             .navbar {
                 padding: 15px 20px;
@@ -537,12 +634,17 @@ $imageUrl = getImageUrl($recette->getNom());
             .recette-image {
                 height: 200px;
             }
+            .btn-notif {
+                bottom: 20px;
+                right: 20px;
+                padding: 10px 18px;
+                font-size: 0.8rem;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
     <header class="header">
         <nav class="navbar">
             <div class="logo">
@@ -551,8 +653,7 @@ $imageUrl = getImageUrl($recette->getNom());
             </div>
             <ul class="nav-menu">
                 <li><a href="index.html">Accueil</a></li>
-                <li><a href="index.html#features">Fonctionnalités</a></li>
-                <li><a href="index.html#modules">Modules</a></li>
+                <li><a href="afficherRecette.php">Recettes</a></li>
                 <li><a href="about.html">À propos</a></li>
                 <li><a href="contact.html">Contact</a></li>
                 <li><a href="../backoffice/index.html" class="btn-dashboard">Dashboard</a></li>
@@ -565,15 +666,23 @@ $imageUrl = getImageUrl($recette->getNom());
         </nav>
     </header>
 
-    <!-- Contenu -->
     <div class="container-recette">
         <a href="afficherRecette.php" class="btn-back">
             <i class="fas fa-arrow-left"></i> Retour aux recettes
         </a>
 
-        <!-- Image de la recette -->
+        <!-- Image -->
         <div class="recette-image">
             <img src="<?= $imageUrl ?>" alt="<?= htmlspecialchars($recette->getNom()) ?>">
+            <?php if ($hasMissingSteps): ?>
+            <div class="quality-badge">
+                <i class="fas fa-exclamation-triangle"></i> Incomplète (<?= $qualiteEtapes['score'] ?>%)
+            </div>
+            <?php else: ?>
+            <div class="quality-badge">
+                <i class="fas fa-check-circle"></i> Complète (100%)
+            </div>
+            <?php endif; ?>
         </div>
 
         <!-- Hero -->
@@ -629,7 +738,13 @@ $imageUrl = getImageUrl($recette->getNom());
 
         <!-- Étapes -->
         <div class="etapes-section">
-            <h2><i class="fas fa-list-ol"></i> Étapes de préparation</h2>
+            <h2><i class="fas fa-list-ol"></i> Étapes de préparation 
+                <?php if (count($etapes) > 0): ?>
+                <span style="font-size:0.8rem; background:#e8f5e9; padding:4px 12px; border-radius:20px; color:#2e7d32;">
+                    <?= count($etapes) ?> étape(s)
+                </span>
+                <?php endif; ?>
+            </h2>
             
             <?php if (count($etapes) > 0): ?>
                 <div class="etapes-grid">
@@ -649,31 +764,6 @@ $imageUrl = getImageUrl($recette->getNom());
                                 </div>
                             </div>
                             <div class="etape-body">
-                                <!-- Icône d'illustration -->
-                                <div class="etape-image-icon">
-                                    <?php
-                                    $action = $etape->getTypeAction();
-                                    $imageIcon = '';
-                                    $actionText = '';
-                                    if ($action == 'COUPER') {
-                                        $imageIcon = '🔪';
-                                        $actionText = 'Couper';
-                                    } elseif ($action == 'MELANGER') {
-                                        $imageIcon = '🥄';
-                                        $actionText = 'Mélanger';
-                                    } elseif ($action == 'CUISSON') {
-                                        $imageIcon = '🔥';
-                                        $actionText = 'Cuisson';
-                                    } else {
-                                        $imageIcon = '🍳';
-                                        $actionText = 'Préparation';
-                                    }
-                                    ?>
-                                    <span class="action-icon"><?= $imageIcon ?></span>
-                                    <span style="font-weight: 500; color: #2e7d32;"><?= $actionText ?></span>
-                                </div>
-
-                                <!-- Tableau des détails -->
                                 <div class="etape-details-table">
                                     <?php if ($etape->getTypeAction()): ?>
                                     <div class="detail-row">
@@ -685,56 +775,42 @@ $imageUrl = getImageUrl($recette->getNom());
                                     <?php if ($etape->getOutilUtilise()): ?>
                                     <div class="detail-row">
                                         <div class="detail-label"><i class="fas fa-tools"></i> Outil utilisé</div>
-                                        <div class="detail-value">
-                                            <?php
-                                            $outilIcon = '';
-                                            switch($etape->getOutilUtilise()) {
-                                                case 'FOUR': $outilIcon = '🔥'; break;
-                                                case 'MIXEUR': $outilIcon = '🔄'; break;
-                                                case 'CUILLERE': $outilIcon = '🥄'; break;
-                                                case 'RAPE': $outilIcon = '🫚'; break;
-                                                default: $outilIcon = '🔧';
-                                            }
-                                            echo $outilIcon . ' ' . htmlspecialchars($etape->getOutilUtilise());
-                                            ?>
-                                        </div>
+                                        <div class="detail-value"><?= htmlspecialchars($etape->getOutilUtilise()) ?></div>
                                     </div>
                                     <?php endif; ?>
                                     
                                     <?php if ($etape->getQuantiteIngredient()): ?>
                                     <div class="detail-row">
                                         <div class="detail-label"><i class="fas fa-weight-hanging"></i> Quantité ingrédient</div>
-                                        <div class="detail-value">⚖️ <?= htmlspecialchars($etape->getQuantiteIngredient()) ?></div>
+                                        <div class="detail-value"><?= htmlspecialchars($etape->getQuantiteIngredient()) ?></div>
                                     </div>
                                     <?php endif; ?>
                                     
                                     <?php if ($etape->getDuree() > 0): ?>
                                     <div class="detail-row">
                                         <div class="detail-label"><i class="fas fa-clock"></i> Durée</div>
-                                        <div class="detail-value">⏱️ <?= $etape->getDuree() ?> minutes</div>
+                                        <div class="detail-value"><?= $etape->getDuree() ?> minutes</div>
                                     </div>
                                     <?php endif; ?>
                                     
                                     <?php if ($etape->getTemperature()): ?>
                                     <div class="detail-row">
                                         <div class="detail-label"><i class="fas fa-thermometer-half"></i> Température</div>
-                                        <div class="detail-value">🌡️ <?= $etape->getTemperature() ?> °C</div>
+                                        <div class="detail-value"><?= $etape->getTemperature() ?> °C</div>
                                     </div>
                                     <?php endif; ?>
                                 </div>
 
-                                <!-- Instruction -->
                                 <div class="etape-instruction">
                                     <i class="fas fa-align-left"></i> 
                                     <strong>Instruction :</strong><br>
                                     <?= nl2br(htmlspecialchars($etape->getInstruction())) ?>
                                 </div>
 
-                                <!-- Astuce -->
                                 <?php if ($etape->getAstuce()): ?>
                                 <div class="etape-astuce">
                                     <i class="fas fa-lightbulb"></i>
-                                    <span><strong>💡 Astuce :</strong> <?= nl2br(htmlspecialchars($etape->getAstuce())) ?></span>
+                                    <span><strong>Astuce :</strong> <?= nl2br(htmlspecialchars($etape->getAstuce())) ?></span>
                                 </div>
                                 <?php endif; ?>
                             </div>
@@ -746,12 +822,14 @@ $imageUrl = getImageUrl($recette->getNom());
                     <i class="fas fa-info-circle"></i>
                     <h3>Aucune étape de préparation</h3>
                     <p>Cette recette n'a pas encore d'étapes de préparation.</p>
+                    <a href="../backoffice/preparation/addPreperation.php?recette_id=<?= $id ?>" style="display:inline-block; margin-top:15px; background:#4CAF50; color:white; padding:10px 20px; border-radius:25px; text-decoration:none;">
+                        <i class="fas fa-plus"></i> Ajouter des étapes
+                    </a>
                 </div>
             <?php endif; ?>
         </div>
     </div>
 
-    <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-section">
@@ -784,7 +862,112 @@ $imageUrl = getImageUrl($recette->getNom());
         </div>
     </footer>
 
+    <!-- Bouton flottant pour activer les notifications -->
+    <button class="btn-notif" id="activerNotifBtn">
+        <i class="fas fa-bell"></i> Activer les notifications
+    </button>
+
     <script>
+        // ========== NOTIFICATION WINDOWS - CODE COMPLET ==========
+        
+        // Récupérer les données PHP
+        const hasMissingSteps = <?= json_encode($hasMissingSteps) ?>;
+        const manquesList = <?= json_encode($etapesManquantes) ?>;
+        const score = <?= $qualiteEtapes['score'] ?>;
+        const totalEtapes = <?= count($etapes) ?>;
+        const recetteName = <?= json_encode($recette->getNom()) ?>;
+        
+        // Fonction pour afficher la notification
+        function afficherNotification() {
+            if (!hasMissingSteps || manquesList.length === 0) {
+                console.log("✅ Aucune étape manquante, pas de notification nécessaire");
+                return;
+            }
+            
+            let manquesText = "";
+            for(let i = 0; i < manquesList.length; i++) {
+                manquesText += "• " + manquesList[i] + "\n";
+            }
+            
+            const notification = new Notification("🚨 RECETTE INCOMPLÈTE ! 🚨", {
+                body: `📌 Recette: ${recetteName}\n📊 Score: ${score}%\n━━━━━━━━━━━━━━━━━━━━\n⚠️ ÉTAPES MANQUANTES:\n${manquesText}━━━━━━━━━━━━━━━━━━━━\n📋 Total: ${totalEtapes} étape(s) trouvée(s)`,
+                icon: "https://cdn-icons-png.flaticon.com/512/1995/1995572.png",
+                badge: "https://cdn-icons-png.flaticon.com/512/1995/1995572.png",
+                vibrate: [200, 100, 200, 100, 200],
+                silent: false,
+                requireInteraction: true
+            });
+            
+            notification.onclick = function() {
+                window.focus();
+                this.close();
+            };
+            
+            setTimeout(() => {
+                notification.close();
+            }, 15000);
+        }
+        
+        // Fonction pour demander la permission
+        function demanderPermissionNotifications() {
+            if (!("Notification" in window)) {
+                alert("❌ Votre navigateur ne supporte pas les notifications");
+                return false;
+            }
+            
+            if (Notification.permission === "granted") {
+                // Permission déjà accordée
+                afficherNotification();
+                return true;
+            } else if (Notification.permission !== "denied") {
+                // Demander la permission
+                Notification.requestPermission().then(function(permission) {
+                    if (permission === "granted") {
+                        alert("✅ Notifications activées !");
+                        afficherNotification();
+                    } else {
+                        alert("⚠️ Pour activer les notifications, allez dans Paramètres > Confidentialité > Notifications, et autorisez ce site");
+                    }
+                });
+            } else {
+                alert("⚠️ Les notifications sont bloquées.\n\nPour les activer:\n1. Cliquez sur le cadenas 🔒 dans la barre d'adresse\n2. Trouvez 'Notifications'\n3. Changez de 'Bloquer' à 'Autoriser'\n4. Rechargez la page");
+            }
+        }
+        
+        // Écouter le clic sur le bouton
+        document.getElementById('activerNotifBtn').addEventListener('click', function() {
+            demanderPermissionNotifications();
+        });
+        
+        // Vérifier automatiquement si la permission est déjà accordée
+        window.addEventListener('load', function() {
+            if (hasMissingSteps && manquesList.length > 0 && Notification.permission === "granted") {
+                setTimeout(function() {
+                    afficherNotification();
+                }, 1500);
+            }
+        });
+        
+        // Animation des étapes
+        const etapeCards = document.querySelectorAll('.etape-card');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '0';
+                    entry.target.style.transform = 'translateY(30px)';
+                    setTimeout(() => {
+                        entry.target.style.transition = 'all 0.5s ease';
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }, 100);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        etapeCards.forEach(card => observer.observe(card));
+        
+        // Hamburger menu
         document.addEventListener('DOMContentLoaded', function() {
             const hamburger = document.querySelector('.hamburger');
             const navMenu = document.querySelector('.nav-menu');

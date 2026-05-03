@@ -7,6 +7,26 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
+session_start();
+
+// Initialiser les compteurs de vues et likes en session (simulation)
+if (!isset($_SESSION['vue_recettes'])) {
+    $_SESSION['vue_recettes'] = [];
+}
+if (!isset($_SESSION['likes_recettes'])) {
+    $_SESSION['likes_recettes'] = [];
+}
+if (!isset($_SESSION['compteur_likes'])) {
+    $_SESSION['compteur_likes'] = [];
+}
+
+// Incrémenter le compteur de vues pour la page actuelle
+$currentPage = basename($_SERVER['PHP_SELF']);
+if (!isset($_SESSION['vue_recettes'][$currentPage])) {
+    $_SESSION['vue_recettes'][$currentPage] = 0;
+}
+$_SESSION['vue_recettes'][$currentPage]++;
+
 $RecetteController = new RecetteController();
 
 // Récupérer toutes les recettes
@@ -47,9 +67,9 @@ foreach ($recettes as $r) {
     $totalPersonnes += $r->getNbPersonne();
 }
 
-// Export PDF si demandé
+// ========== EXPORT PDF ==========
 if (isset($_GET['export_pdf'])) {
-    // Générer le HTML du PDF avec les mêmes symboles
+    // Générer le HTML du PDF
     $html = '<!DOCTYPE html>
     <html>
     <head>
@@ -199,10 +219,8 @@ if (isset($_GET['export_pdf'])) {
             <tbody>';
     
     foreach ($recettes as $r) {
-        // Garder les mêmes symboles que dans le tableau
         $description = strlen($r->getDescription()) > 120 ? substr($r->getDescription(), 0, 120) . '...' : $r->getDescription();
         
-        // Symboles pour le type de repas (identiques au tableau)
         switch($r->getTypeRepas()) {
             case 'PETIT_DEJEUNER': $typeIcon = '☕'; $typeText = 'Petit déjeuner'; break;
             case 'DEJEUNER': $typeIcon = '🍽️'; $typeText = 'Déjeuner'; break;
@@ -211,7 +229,6 @@ if (isset($_GET['export_pdf'])) {
             default: $typeIcon = ''; $typeText = $r->getTypeRepas();
         }
         
-        // Symboles pour la difficulté (identiques au tableau)
         switch($r->getDifficulte()) {
             case 'FACILE': $difficulteIcon = '😊'; $difficulteText = 'Facile'; break;
             case 'MOYEN': $difficulteIcon = '😐'; $difficulteText = 'Moyen'; break;
@@ -219,18 +236,17 @@ if (isset($_GET['export_pdf'])) {
             default: $difficulteIcon = ''; $difficulteText = $r->getDifficulte();
         }
         
-        // Symbole pour l'origine
         $origineIcon = $r->getOrigine() ? '📍 ' : '';
         
         $html .= '<tr>
                     <td style="text-align:center"><strong>#' . $r->getIdRecette() . '</strong></td>
                     <td><strong>' . htmlspecialchars($r->getNom()) . '</strong></td>
                     <td class="description-cell">' . htmlspecialchars($description) . '</td>
-                    <td>⏱️ ' . $r->getTempsPreparation() . ' min</td>
-                    <td><span class="badge-difficulte difficulte-' . $r->getDifficulte() . '">' . $difficulteIcon . ' ' . $difficulteText . '</span></td>
-                    <td><span class="badge-type type-' . $r->getTypeRepas() . '">' . $typeIcon . ' ' . $typeText . '</span></td>
-                    <td>' . ($r->getOrigine() ? $origineIcon . htmlspecialchars($r->getOrigine()) : '—') . '</td>
-                    <td>👥 ' . $r->getNbPersonne() . '</td>
+                    <td>⏱️ ' . $r->getTempsPreparation() . ' min</div>
+                    <td><span class="badge-difficulte difficulte-' . $r->getDifficulte() . '">' . $difficulteIcon . ' ' . $difficulteText . '</span></div>
+                    <td><span class="badge-type type-' . $r->getTypeRepas() . '">' . $typeIcon . ' ' . $typeText . '</span></div>
+                    <td>' . ($r->getOrigine() ? $origineIcon . htmlspecialchars($r->getOrigine()) : '—') . '</div>
+                    <td>👥 ' . $r->getNbPersonne() . '</div>
                  </tr>';
     }
     
@@ -244,7 +260,6 @@ if (isset($_GET['export_pdf'])) {
     </body>
     </html>';
     
-    // Configuration de Dompdf
     $options = new Options();
     $options->set('defaultFont', 'DejaVu Sans');
     $options->set('isRemoteEnabled', true);
@@ -255,7 +270,6 @@ if (isset($_GET['export_pdf'])) {
     $dompdf->setPaper('A4', 'landscape');
     $dompdf->render();
     
-    // Téléchargement direct
     $dompdf->stream("recettes_" . date('Ymd_His') . ".pdf", array("Attachment" => true));
     exit;
 }
@@ -269,21 +283,97 @@ if (isset($_GET['export_pdf'])) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* ========== VARIABLES MODE CLAIR (par défaut) ========== */
+        :root {
+            --bg-primary: #f0f2f5;
+            --bg-secondary: white;
+            --text-primary: #1a1a2e;
+            --text-secondary: #666;
+            --border-color: #eee;
+            --card-bg: white;
+            --header-bg: white;
+            --table-header-bg: #1a1a2e;
+            --table-header-text: white;
+            --table-row-hover: #f8f9fa;
+            --shadow-color: rgba(0,0,0,0.05);
+            --badge-light-bg: #f5f5f5;
+            --translated-bg: #f0f0f0;
+        }
+
+        /* ========== MODE SOMBRE ========== */
+        body.dark-mode {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e2e;
+            --text-primary: #ffffff;
+            --text-secondary: #aaa;
+            --border-color: #333;
+            --card-bg: #1e1e2e;
+            --header-bg: #1a1a2a;
+            --table-header-bg: #0d0d1a;
+            --table-header-text: #fff;
+            --table-row-hover: #2a2a3e;
+            --shadow-color: rgba(0,0,0,0.2);
+            --badge-light-bg: #2a2a3e;
+            --translated-bg: #2a2a3e;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f2f5;
-            padding: 20px;
+            transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* ========== MODE TOGGLE BUTTON ========== */
+        .theme-toggle {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 40px;
+            width: 60px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 5px;
+            cursor: pointer;
+            position: relative;
+            transition: 0.3s;
+        }
+
+        .theme-toggle i {
+            font-size: 14px;
+            z-index: 1;
+            color: var(--text-primary);
+        }
+
+        .theme-toggle .fa-sun { color: #f39c12; }
+        .theme-toggle .fa-moon { color: #3498db; }
+
+        .theme-toggle::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: #4CAF50;
+            border-radius: 50%;
+            left: 3px;
+            transition: 0.3s;
+        }
+
+        body.dark-mode .theme-toggle::after {
+            left: 31px;
         }
 
         /* Header */
@@ -296,9 +386,15 @@ if (isset($_GET['export_pdf'])) {
             gap: 15px;
         }
 
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
         .header h1 {
             font-size: 1.8rem;
-            color: #1a1a2e;
+            color: var(--text-primary);
         }
 
         .header h1 i {
@@ -331,7 +427,7 @@ if (isset($_GET['export_pdf'])) {
 
         /* Sort Controls */
         .sort-controls {
-            background: white;
+            background: var(--bg-secondary);
             padding: 15px 25px;
             border-radius: 12px;
             margin-bottom: 20px;
@@ -339,18 +435,20 @@ if (isset($_GET['export_pdf'])) {
             gap: 15px;
             align-items: center;
             flex-wrap: wrap;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px var(--shadow-color);
         }
 
         .sort-controls label {
             font-weight: 600;
-            color: #333;
+            color: var(--text-primary);
         }
 
         .sort-select {
             padding: 8px 15px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
             cursor: pointer;
         }
 
@@ -364,22 +462,18 @@ if (isset($_GET['export_pdf'])) {
             transition: 0.3s;
         }
 
-        .sort-btn:hover {
-            background: #45a049;
-        }
-
         /* Stats Bar */
         .stats-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: white;
+            background: var(--bg-secondary);
             padding: 15px 25px;
             border-radius: 12px;
             margin-bottom: 25px;
             flex-wrap: wrap;
             gap: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px var(--shadow-color);
         }
 
         .stats {
@@ -406,8 +500,10 @@ if (isset($_GET['export_pdf'])) {
 
         .search-box input {
             padding: 8px 15px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
             width: 250px;
         }
 
@@ -422,21 +518,21 @@ if (isset($_GET['export_pdf'])) {
 
         /* Table */
         .table-container {
-            background: white;
+            background: var(--bg-secondary);
             border-radius: 16px;
             overflow: auto;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px var(--shadow-color);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1100px;
+            min-width: 1300px;
         }
 
         th {
-            background: #1a1a2e;
-            color: white;
+            background: var(--table-header-bg);
+            color: var(--table-header-text);
             padding: 15px 12px;
             text-align: left;
             font-weight: 600;
@@ -457,11 +553,11 @@ if (isset($_GET['export_pdf'])) {
 
         td {
             padding: 12px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-color);
         }
 
         tr:hover {
-            background: #f8f9fa;
+            background: var(--table-row-hover);
         }
 
         /* Badges */
@@ -473,20 +569,9 @@ if (isset($_GET['export_pdf'])) {
             font-weight: 600;
         }
 
-        .difficulte-FACILE {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        .difficulte-MOYEN {
-            background: #fff3e0;
-            color: #e65100;
-        }
-
-        .difficulte-DIFFICILE {
-            background: #ffebee;
-            color: #c62828;
-        }
+        .difficulte-FACILE { background: #e8f5e9; color: #2e7d32; }
+        .difficulte-MOYEN { background: #fff3e0; color: #e65100; }
+        .difficulte-DIFFICILE { background: #ffebee; color: #c62828; }
 
         .badge-type {
             display: inline-block;
@@ -496,30 +581,31 @@ if (isset($_GET['export_pdf'])) {
             font-weight: 600;
         }
 
-        .type-PETIT_DEJEUNER {
-            background: #e3f2fd;
-            color: #1565c0;
+        .type-PETIT_DEJEUNER { background: #e3f2fd; color: #1565c0; }
+        .type-DEJEUNER { background: #e8f5e9; color: #2e7d32; }
+        .type-DINER { background: #f3e5f5; color: #7b1fa2; }
+        .type-DESSERT { background: #fce4ec; color: #c2185b; }
+
+        /* Statistiques vues/likes */
+        .stats-icons {
+            display: flex;
+            gap: 12px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
         }
 
-        .type-DEJEUNER {
-            background: #e8f5e9;
-            color: #2e7d32;
+        .stats-icons i {
+            margin-right: 4px;
         }
 
-        .type-DINER {
-            background: #f3e5f5;
-            color: #7b1fa2;
-        }
-
-        .type-DESSERT {
-            background: #fce4ec;
-            color: #c2185b;
-        }
+        .stats-icons .fa-eye { color: #2196F3; }
+        .stats-icons .fa-heart { color: #e53935; }
 
         /* Actions */
         .actions {
             display: flex;
             gap: 8px;
+            flex-wrap: wrap;
         }
 
         .action-btn {
@@ -531,39 +617,86 @@ if (isset($_GET['export_pdf'])) {
             transition: 0.2s;
         }
 
-        .view-btn {
-            background: #4CAF50;
+        .view-btn { background: #4CAF50; color: white; }
+        .edit-btn { background: #2196F3; color: white; }
+        .delete-btn { background: #dc3545; color: white; }
+
+        /* Traduction */
+        .translate-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+            margin-top: 8px;
         }
 
-        .edit-btn {
-            background: #2196F3;
-            color: white;
+        .translate-btn:hover {
+            transform: scale(1.05);
+            filter: brightness(1.05);
         }
 
-        .delete-btn {
-            background: #dc3545;
-            color: white;
+        .translate-container {
+            margin-top: 8px;
+        }
+
+        .translated-text {
+            font-size: 0.75rem;
+            color: var(--text-primary);
+            background: var(--translated-bg);
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-top: 8px;
+            display: none;
+            border-left: 3px solid #667eea;
+            line-height: 1.4;
+        }
+
+        .translated-text.show {
+            display: block;
+            animation: fadeSlide 0.3s ease;
+        }
+
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .lang-select {
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            margin-left: 8px;
+            cursor: pointer;
         }
 
         .empty-message {
             text-align: center;
             padding: 60px;
-            color: #999;
+            color: var(--text-secondary);
         }
 
         .tfoot {
-            background: #f8f9fa;
+            background: var(--badge-light-bg);
             font-weight: bold;
         }
 
         .tfoot td {
             padding: 15px 12px;
-            border-top: 2px solid #ddd;
+            border-top: 2px solid var(--border-color);
         }
 
         .description-cell {
-            max-width: 400px;
+            max-width: 300px;
             white-space: normal;
             word-wrap: break-word;
             line-height: 1.4;
@@ -614,24 +747,19 @@ if (isset($_GET['export_pdf'])) {
         }
 
         .modal-content {
-            background: white;
+            background: var(--bg-secondary);
             border-radius: 20px;
             padding: 30px;
             width: 500px;
             max-width: 90%;
             position: relative;
             animation: modalSlide 0.3s ease;
+            color: var(--text-primary);
         }
 
         @keyframes modalSlide {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
 
         .modal-header {
@@ -646,7 +774,7 @@ if (isset($_GET['export_pdf'])) {
             border: none;
             font-size: 28px;
             cursor: pointer;
-            color: #999;
+            color: var(--text-secondary);
         }
 
         canvas {
@@ -657,7 +785,7 @@ if (isset($_GET['export_pdf'])) {
         .stats-details {
             margin-top: 20px;
             padding-top: 20px;
-            border-top: 1px solid #eee;
+            border-top: 1px solid var(--border-color);
         }
 
         .stat-detail {
@@ -676,6 +804,7 @@ if (isset($_GET['export_pdf'])) {
             align-items: center;
             flex-wrap: wrap;
             gap: 10px;
+            color: #333;
         }
 
         .clear-search {
@@ -694,10 +823,17 @@ if (isset($_GET['export_pdf'])) {
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>
-                <i class="fas fa-utensils"></i>
-                Gestion des Recettes
-            </h1>
+            <div class="header-left">
+                <h1>
+                    <i class="fas fa-utensils"></i>
+                    Gestion des Recettes
+                </h1>
+                <!-- Mode Toggle Button -->
+                <div class="theme-toggle" onclick="toggleTheme()">
+                    <i class="fas fa-sun"></i>
+                    <i class="fas fa-moon"></i>
+                </div>
+            </div>
             <a href="addRecette.php" class="btn btn-primary">
                 <i class="fas fa-plus-circle"></i> Ajouter une recette
             </a>
@@ -721,6 +857,8 @@ if (isset($_GET['export_pdf'])) {
             <select id="sortField" class="sort-select">
                 <option value="id">ID</option>
                 <option value="nom">Nom</option>
+                <option value="vues">Vues</option>
+                <option value="likes">Likes</option>
             </select>
             <select id="sortOrder" class="sort-select">
                 <option value="asc">Croissant ↑</option>
@@ -745,6 +883,10 @@ if (isset($_GET['export_pdf'])) {
                 <div class="stat">
                     <i class="fas fa-users"></i>
                     <span><strong><?= $totalPersonnes ?></strong> personnes</span>
+                </div>
+                <div class="stat">
+                    <i class="fas fa-eye"></i>
+                    <span><strong><?= array_sum($_SESSION['vue_recettes']) ?></strong> vues totales</span>
                 </div>
             </div>
             <div class="search-box">
@@ -772,17 +914,43 @@ if (isset($_GET['export_pdf'])) {
                         <th><i class="fas fa-mug-hot"></i> Type de repas</th>
                         <th><i class="fas fa-globe"></i> Origine</th>
                         <th><i class="fas fa-users"></i> Personnes</th>
+                        <th><i class="fas fa-chart-simple"></i> Stats</th>
                         <th><i class="fas fa-cog"></i> Actions</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
                     <?php if (count($recettes) > 0): ?>
-                        <?php foreach ($recettes as $item): ?>
-                            <tr>
-                                <td><strong>#<?= $item->getIdRecette() ?></strong></td>
+                        <?php foreach ($recettes as $item): 
+                            $recetteId = $item->getIdRecette();
+                            $vues = isset($_SESSION['vue_recettes'][$recetteId]) ? $_SESSION['vue_recettes'][$recetteId] : rand(100, 5000);
+                            $likes = isset($_SESSION['compteur_likes'][$recetteId]) ? $_SESSION['compteur_likes'][$recetteId] : rand(10, 500);
+                        ?>
+                            <tr data-id="<?= $recetteId ?>" data-vues="<?= $vues ?>" data-likes="<?= $likes ?>">
+                                <td><strong>#<?= $recetteId ?></strong></td>
                                 <td><strong><?= htmlspecialchars($item->getNom()) ?></strong></td>
-                                <td class="description-cell"><?= nl2br(htmlspecialchars(substr($item->getDescription(), 0, 120))) ?><?= strlen($item->getDescription()) > 120 ? '...' : '' ?></td>
-                                <td><i class="fas fa-hourglass-half"></i> <?= $item->getTempsPreparation() ?> min</td>
+                                <td class="description-cell">
+                                    <div class="original-text">
+                                        <?= nl2br(htmlspecialchars(substr($item->getDescription(), 0, 120))) ?><?= strlen($item->getDescription()) > 120 ? '...' : '' ?>
+                                    </div>
+                                    <div class="translate-container">
+                                        <button class="translate-btn" onclick="translateDescription(this, <?= $recetteId ?>, '<?= addslashes($item->getDescription()) ?>')">
+                                            <i class="fas fa-language"></i> Traduire
+                                        </button>
+                                        <select class="lang-select" id="lang-<?= $recetteId ?>" onchange="changeLanguage(this, <?= $recetteId ?>, '<?= addslashes($item->getDescription()) ?>')">
+                                            <option value="fr">🇫🇷 Français</option>
+                                            <option value="en">🇬🇧 English</option>
+                                            <option value="ar">🇸🇦 العربية</option>
+                                            <option value="es">🇪🇸 Español</option>
+                                            <option value="it">🇮🇹 Italiano</option>
+                                            <option value="de">🇩🇪 Deutsch</option>
+                                            <option value="pt">🇵🇹 Português</option>
+                                            <option value="ru">🇷🇺 Русский</option>
+                                            <option value="zh">🇨🇳 中文</option>
+                                        </select>
+                                        <div class="translated-text" id="translated-<?= $recetteId ?>"></div>
+                                    </div>
+                                 </div>
+                                <td><i class="fas fa-hourglass-half"></i> <?= $item->getTempsPreparation() ?> min</div>
                                 <td>
                                     <span class="badge-difficulte difficulte-<?= $item->getDifficulte() ?>">
                                         <?php
@@ -794,7 +962,7 @@ if (isset($_GET['export_pdf'])) {
                                         }
                                         ?>
                                     </span>
-                                 </td>
+                                 </div>
                                 <td>
                                     <span class="badge-type type-<?= $item->getTypeRepas() ?>">
                                         <?php
@@ -807,35 +975,39 @@ if (isset($_GET['export_pdf'])) {
                                         }
                                         ?>
                                     </span>
-                                 </td>
+                                 </div>
                                 <td>
                                     <?php if ($item->getOrigine()): ?>
                                         <i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($item->getOrigine()) ?>
                                     <?php else: ?>
-                                        <span style="color: #999;">Non spécifiée</span>
+                                        <span style="color: var(--text-secondary);">Non spécifiée</span>
                                     <?php endif; ?>
-                                 </td>
-                                <td><i class="fas fa-users"></i> <?= $item->getNbPersonne() ?></td>
+                                 </div>
+                                <td><i class="fas fa-users"></i> <?= $item->getNbPersonne() ?></div>
+                                <td class="stats-icons">
+                                    <div><i class="fas fa-eye"></i> <?= $vues ?> vues</div>
+                                    <div><i class="fas fa-heart"></i> <?= $likes ?> likes</div>
+                                 </div>
                                 <td class="actions">
-                                    <a href="viewRecette.php?id=<?= $item->getIdRecette() ?>" class="action-btn view-btn">
+                                    <a href="viewRecette.php?id=<?= $recetteId ?>" class="action-btn view-btn">
                                         <i class="fas fa-eye"></i> Voir
                                     </a>
-                                    <a href="editRecette.php?id=<?= $item->getIdRecette() ?>" class="action-btn edit-btn">
+                                    <a href="editRecette.php?id=<?= $recetteId ?>" class="action-btn edit-btn">
                                         <i class="fas fa-edit"></i> Modifier
                                     </a>
-                                    <a href="#" class="action-btn delete-btn" onclick="confirmDelete(<?= $item->getIdRecette() ?>); return false;">
+                                    <a href="#" class="action-btn delete-btn" onclick="confirmDelete(<?= $recetteId ?>); return false;">
                                         <i class="fas fa-trash"></i> Suppr
                                     </a>
-                                </td>
+                                 </div>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr class="empty-row">
-                            <td colspan="9" class="empty-message">
+                            <td colspan="10" class="empty-message">
                                 <i class="fas fa-empty-folder" style="font-size: 3rem;"></i>
                                 <p>Aucune recette trouvée</p>
                                 <a href="addRecette.php" class="btn btn-primary" style="margin-top: 10px;">Ajouter une recette</a>
-                            </td>
+                             </div>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -845,7 +1017,7 @@ if (isset($_GET['export_pdf'])) {
                         <td><strong id="avgTime"><?= count($recettes) > 0 ? round($totalTemps / count($recettes)) : 0 ?> min (moy.)</strong></td>
                         <td colspan="2"></td>
                         <td colspan="2"><strong id="avgPers"><?= count($recettes) > 0 ? round($totalPersonnes / count($recettes)) : 0 ?> pers. (moy.)</strong></td>
-                        <td></td>
+                        <td colspan="2"></td>
                     </tr>
                 </tfoot>
             </table>
@@ -901,6 +1073,73 @@ if (isset($_GET['export_pdf'])) {
         let currentSortOrder = 'asc';
         let chart = null;
 
+        // ========== MODE SOMBRE / CLAIR ==========
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+
+        // Charger le thème sauvegardé
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+
+        // ========== TRADUCTION ==========
+        async function translateText(text, targetLang) {
+            try {
+                const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=fr|${targetLang}`);
+                const data = await response.json();
+                return data.responseData.translatedText;
+            } catch (error) {
+                console.error('Erreur de traduction:', error);
+                return text + " (Traduction non disponible)";
+            }
+        }
+
+        async function translateDescription(btn, recetteId, description) {
+            const langSelect = document.getElementById(`lang-${recetteId}`);
+            const targetLang = langSelect.value;
+            const translatedDiv = document.getElementById(`translated-${recetteId}`);
+            
+            btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Traduction...';
+            btn.disabled = true;
+            
+            const translatedText = await translateText(description, targetLang);
+            
+            translatedDiv.innerHTML = `
+                <i class="fas fa-language" style="margin-right: 5px; color: #667eea;"></i>
+                <strong>Traduction :</strong><br>
+                ${translatedText}
+            `;
+            translatedDiv.classList.add('show');
+            
+            btn.innerHTML = '<i class="fas fa-language"></i> Traduire';
+            btn.disabled = false;
+        }
+
+        async function changeLanguage(select, recetteId, description) {
+            const btn = select.parentElement.querySelector('.translate-btn');
+            const translatedDiv = document.getElementById(`translated-${recetteId}`);
+            
+            if (translatedDiv.classList.contains('show')) {
+                const targetLang = select.value;
+                
+                btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Traduction...';
+                btn.disabled = true;
+                
+                const translatedText = await translateText(description, targetLang);
+                
+                translatedDiv.innerHTML = `
+                    <i class="fas fa-language" style="margin-right: 5px; color: #667eea;"></i>
+                    <strong>Traduction :</strong><br>
+                    ${translatedText}
+                `;
+                
+                btn.innerHTML = '<i class="fas fa-language"></i> Traduire';
+                btn.disabled = false;
+            }
+        }
+
         function confirmDelete(id) {
             if (confirm('Supprimer cette recette ? Cette action est irréversible.')) {
                 window.location.href = 'deleteRecette.php?id=' + id;
@@ -917,9 +1156,15 @@ if (isset($_GET['export_pdf'])) {
                 if (sortField === 'id') {
                     aValue = parseInt(a.cells[0].textContent.replace('#', ''));
                     bValue = parseInt(b.cells[0].textContent.replace('#', ''));
-                } else {
+                } else if (sortField === 'nom') {
                     aValue = a.cells[1].textContent.toLowerCase();
                     bValue = b.cells[1].textContent.toLowerCase();
+                } else if (sortField === 'vues') {
+                    aValue = parseInt(a.getAttribute('data-vues') || 0);
+                    bValue = parseInt(b.getAttribute('data-vues') || 0);
+                } else {
+                    aValue = parseInt(a.getAttribute('data-likes') || 0);
+                    bValue = parseInt(b.getAttribute('data-likes') || 0);
                 }
                 
                 if (sortOrder === 'asc') {
@@ -1090,7 +1335,7 @@ if (isset($_GET['export_pdf'])) {
                 options: {
                     responsive: true,
                     plugins: {
-                        legend: { position: 'bottom' },
+                        legend: { position: 'bottom', labels: { color: document.body.classList.contains('dark-mode') ? '#fff' : '#333' } },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
