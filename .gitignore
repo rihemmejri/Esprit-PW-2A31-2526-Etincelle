@@ -1,0 +1,6 @@
+.env
+*.log
+vendor/
+.vscode/
+C:\xampp\htdocs\NutriLoop_PWW\.env
+C:\xampp\htdocs\NutriLoop_PWW\.gitignore
