@@ -24,6 +24,8 @@ foreach ($repas as $r) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion des Repas - NutriLoop</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -149,6 +151,31 @@ foreach ($repas as $r) {
             color: white;
             cursor: pointer;
         }
+
+        .filter-select {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        th.sortable {
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        th.sortable:hover {
+            background: #2a2a4e;
+        }
+        th.sortable::after {
+            content: '\f0dc';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            margin-left: 8px;
+            opacity: 0.5;
+        }
+        th.sortable.asc::after { content: '\f0de'; opacity: 1; color: #4CAF50; }
+        th.sortable.desc::after { content: '\f0dd'; opacity: 1; color: #4CAF50; }
 
         /* Table */
         .table-container {
@@ -345,6 +372,13 @@ foreach ($repas as $r) {
                 </div>
             </div>
             <div class="search-box">
+                <select id="filterType" class="filter-select" onchange="searchTable()">
+                    <option value="">Tous les types</option>
+                    <option value="petit déjeuner">Petit déjeuner</option>
+                    <option value="déjeuner">Déjeuner</option>
+                    <option value="dîner">Dîner</option>
+                    <option value="collation">Collation</option>
+                </select>
                 <input type="text" id="searchInput" placeholder="Rechercher..." onkeyup="searchTable()">
                 <button onclick="searchTable()"><i class="fas fa-search"></i></button>
             </div>
@@ -355,13 +389,13 @@ foreach ($repas as $r) {
             <table id="repasTable">
                 <thead>
                     <tr>
-                        <th><i class="fas fa-hashtag"></i> ID</th>
-                        <th><i class="fas fa-utensils"></i> Nom</th>
-                        <th><i class="fas fa-mug-hot"></i> Type</th>
-                        <th><i class="fas fa-fire"></i> Calories</th>
-                        <th><i class="fas fa-dumbbell"></i> Protéines</th>
-                        <th><i class="fas fa-bread-slice"></i> Glucides</th>
-                        <th><i class="fas fa-oil-can"></i> Lipides</th>
+                        <th class="sortable" onclick="sortTable(0)"><i class="fas fa-hashtag"></i> ID</th>
+                        <th class="sortable" onclick="sortTable(1)"><i class="fas fa-utensils"></i> Nom</th>
+                        <th class="sortable" onclick="sortTable(2)"><i class="fas fa-mug-hot"></i> Type</th>
+                        <th class="sortable" onclick="sortTable(3)"><i class="fas fa-fire"></i> Calories</th>
+                        <th class="sortable" onclick="sortTable(4)"><i class="fas fa-dumbbell"></i> Protéines</th>
+                        <th class="sortable" onclick="sortTable(5)"><i class="fas fa-bread-slice"></i> Glucides</th>
+                        <th class="sortable" onclick="sortTable(6)"><i class="fas fa-oil-can"></i> Lipides</th>
                         <th><i class="fas fa-cog"></i> Actions</th>
                     </tr>
                 </thead>
@@ -432,9 +466,14 @@ foreach ($repas as $r) {
                 <button class="page-btn" id="page3" style="display:none;">3</button>
                 <button class="page-btn" onclick="nextPage()"><i class="fas fa-chevron-right"></i></button>
             </div>
-            <button class="export-btn" onclick="exportTable()">
-                <i class="fas fa-download"></i> Exporter
-            </button>
+            <div>
+                <button class="export-btn" onclick="exportTable()" style="margin-right: 10px;">
+                    <i class="fas fa-file-csv"></i> CSV
+                </button>
+                <button class="export-btn" style="background: #e53935;" onclick="exportPDF()">
+                    <i class="fas fa-file-pdf"></i> PDF
+                </button>
+            </div>
         </div>
     </div>
 
@@ -447,33 +486,95 @@ foreach ($repas as $r) {
 
         function searchTable() {
             const input = document.getElementById('searchInput');
-            const filter = input.value.toLowerCase();
+            const filterText = input.value.toLowerCase();
+            const filterType = document.getElementById('filterType').value.toLowerCase();
             const rows = document.querySelectorAll('#repasTable tbody tr');
             
             rows.forEach(row => {
+                if (row.querySelector('.empty-message')) return;
+                
                 const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(filter) ? '' : 'none';
+                const typeText = row.children[2] ? row.children[2].textContent.toLowerCase() : '';
+                
+                const matchesText = text.includes(filterText);
+                const matchesType = filterType === "" || typeText.includes(filterType);
+                if (matchesText && matchesType) {
+                    row.classList.remove('hidden-by-filter');
+                } else {
+                    row.classList.add('hidden-by-filter');
+                }
             });
+            showPage(1);
+        }
+
+        let sortDirection = false;
+        function sortTable(columnIndex) {
+            const table = document.getElementById('repasTable');
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            
+            if (rows.length === 0 || rows[0].querySelector('.empty-message')) return;
+
+            sortDirection = !sortDirection;
+            const multiplier = sortDirection ? 1 : -1;
+
+            const allHeaders = table.querySelectorAll('th');
+            table.querySelectorAll('th.sortable').forEach(th => th.classList.remove('asc', 'desc'));
+            allHeaders[columnIndex].classList.add(sortDirection ? 'asc' : 'desc');
+
+            rows.sort((a, b) => {
+                if(a.querySelector('.tfoot') || b.querySelector('.tfoot')) return 0;
+                
+                const aText = a.children[columnIndex].textContent.trim();
+                const bText = b.children[columnIndex].textContent.trim();
+
+                const aNum = parseFloat(aText.replace(/[^0-9.-]+/g,""));
+                const bNum = parseFloat(bText.replace(/[^0-9.-]+/g,""));
+
+                if (!isNaN(aNum) && !isNaN(bNum)) {
+                    return (aNum - bNum) * multiplier;
+                }
+
+                return aText.localeCompare(bText) * multiplier;
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+            showPage(1);
         }
 
         let currentPage = 1;
         const rowsPerPage = 10;
 
         function showPage(page) {
-            const rows = document.querySelectorAll('#repasTable tbody tr');
-            const totalRows = rows.length;
-            const totalPages = Math.ceil(totalRows / rowsPerPage);
+            const allRows = Array.from(document.querySelectorAll('#repasTable tbody tr:not(.tfoot)'));
+            const visibleRows = allRows.filter(r => !r.classList.contains('hidden-by-filter') && !r.querySelector('.empty-message'));
+            const totalPages = Math.ceil(visibleRows.length / rowsPerPage) || 1;
             
             if (page < 1) page = 1;
             if (page > totalPages) page = totalPages;
             
-            rows.forEach((row, index) => {
-                row.style.display = (index >= (page - 1) * rowsPerPage && index < page * rowsPerPage) ? '' : 'none';
+            allRows.forEach(row => {
+                if (!row.classList.contains('tfoot')) {
+                    row.style.display = 'none';
+                }
+            });
+            
+            visibleRows.forEach((row, index) => {
+                if (index >= (page - 1) * rowsPerPage && index < page * rowsPerPage) {
+                    row.style.display = '';
+                }
             });
             
             currentPage = page;
-            document.querySelectorAll('.page-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('page' + page)?.classList.add('active');
+            document.querySelectorAll('.page-btn').forEach(btn => btn.style.display = 'none');
+            for (let i = 1; i <= Math.min(totalPages, 3); i++) {
+                const btn = document.getElementById('page' + i);
+                if (btn) {
+                    btn.style.display = 'inline-block';
+                    btn.textContent = i;
+                    btn.classList.toggle('active', i === page);
+                }
+            }
         }
 
         function previousPage() { showPage(currentPage - 1); }
@@ -492,6 +593,34 @@ foreach ($repas as $r) {
             a.download = 'repas_export.csv';
             a.click();
             URL.revokeObjectURL(url);
+        }
+
+        function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.text("Liste des Repas Nutritionnels", 14, 15);
+            
+            const headers = [['ID', 'Nom', 'Type', 'Calories', 'Protéines', 'Glucides', 'Lipides']];
+            const data = [];
+            <?php foreach ($repas as $item): ?>
+            data.push([
+                "<?= $item->getIdRepas() ?>",
+                "<?= addslashes(str_replace('"', '\"', $item->getNom())) ?>",
+                "<?= $item->getType() ?>",
+                "<?= $item->getCalories() ?> kcal",
+                "<?= $item->getProteines() ?> g",
+                "<?= $item->getGlucides() ?> g",
+                "<?= $item->getLipides() ?> g"
+            ]);
+            <?php endforeach; ?>
+            
+            doc.autoTable({
+                head: headers,
+                body: data,
+                startY: 20
+            });
+            doc.save('repas_export.pdf');
         }
 
         document.addEventListener('DOMContentLoaded', () => {

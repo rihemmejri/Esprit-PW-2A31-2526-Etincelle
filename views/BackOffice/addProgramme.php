@@ -72,8 +72,101 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ajouter un Programme - NutriLoop</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="../assets/css/nutrition-style.css">
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            padding: 40px 20px;
+        }
+        .container-form {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .form-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .header {
+            margin-bottom: 25px;
+            border-bottom: 2px solid #f0f2f5;
+            padding-bottom: 15px;
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+        }
+        .header h1 i {
+            color: #4CAF50;
+            margin-right: 10px;
+        }
+        .header p {
+            color: #666;
+            margin-top: 5px;
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        .btn-primary, .btn-secondary {
+            padding: 12px 25px;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: white;
+        }
+        .btn-primary { background: #4CAF50; }
+        .btn-primary:hover { background: #45a049; transform: translateY(-2px); }
+        .btn-secondary { background: #003366; }
+        .btn-secondary:hover { background: #002244; transform: translateY(-2px); }
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f2f5;
+        }
+        .error-message, .success-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .error-message { background: #ffebee; color: #c62828; }
+        .success-message { background: #e8f5e9; color: #2e7d32; }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .full-width { grid-column: 1 / -1; }
+        
         .repas-selector {
             background: #f8f9fa;
             border-radius: 15px;
@@ -104,9 +197,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-top: 15px;
             font-size: 0.9rem;
         }
-        .btn-add-repas:hover {
-            background: #45a049;
-        }
+        .btn-add-repas:hover { background: #45a049; }
         .btn-remove {
             background: #dc3545;
             color: white;
@@ -116,15 +207,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             height: 32px;
             cursor: pointer;
             font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .btn-remove:hover {
-            background: #c82333;
-        }
-        select, input {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 0.9rem;
+        .btn-remove:hover { background: #c82333; }
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .repas-row { grid-template-columns: 1fr; }
         }
     </style>
 </head>

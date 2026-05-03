@@ -7,7 +7,7 @@ if (!class_exists('Config')) {
             if (self::$conn === null) {
                 try {
                     self::$conn = new PDO(
-                        "mysql:host=localhost;dbname=nutriloop",
+                        "mysql:host=localhost;dbname=Nutriloop",
                         "root",
                         "",
                         [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]

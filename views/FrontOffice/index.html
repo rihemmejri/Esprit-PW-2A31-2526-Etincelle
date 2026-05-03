@@ -77,6 +77,38 @@
             border-radius: 12px;
             object-fit: cover;
         }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1050;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background: white;
+            border-left: 4px solid #4CAF50;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 250px;
+            animation: slideIn 0.3s ease forwards;
+            transition: opacity 0.3s;
+        }
+        .toast i {
+            color: #4CAF50;
+            font-size: 1.2rem;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -95,6 +127,7 @@
                 <li><a href="about.html">À propos</a></li>
                 <li><a href="contact.html">Contact</a></li>
                 <li><a href="../backoffice/index.html" class="btn-dashboard">Dashboard</a></li>
+                <li style="margin-top: 5px;"><div id="google_translate_element"></div></li>
             </ul>
             <div class="hamburger">
                 <span></span>
@@ -311,6 +344,12 @@
     </footer>
 
     <script src="js/main.js"></script>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+          new google.translate.TranslateElement({pageLanguage: 'fr', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     <script>
         // ========== CARTES CLIQUABLES ==========
         document.addEventListener('DOMContentLoaded', function() {
@@ -333,6 +372,49 @@
                 card.style.cursor = 'pointer';
             });
         });
+
+        // Notification Polling System
+        let lastProgramId = 0;
+
+        function showToast(message) {
+            let container = document.getElementById('toastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toastContainer';
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<i class="fas fa-bell"></i> <div>${message}</div>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        function checkNewPrograms() {
+            fetch('../backoffice/api/check_new_programs.php?last_id=' + lastProgramId)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        if (lastProgramId === 0) {
+                            lastProgramId = data.last_id;
+                        } else if (data.new_programs && data.new_programs.length > 0) {
+                            lastProgramId = data.last_id;
+                            data.new_programs.forEach(prog => {
+                                showToast(`Un nouveau programme a été généré avec succès !`);
+                            });
+                        }
+                    }
+                })
+                .catch(err => console.error("Erreur de notification:", err));
+        }
+
+        setInterval(checkNewPrograms, 5000); // Check every 5 seconds
+        checkNewPrograms();
     </script>
 </body>
 </html>
