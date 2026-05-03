@@ -23,7 +23,25 @@ if (empty($userMessage)) {
     exit;
 }
 
-$apiKey = 'AIzaSyBpwuiObjIT7LC3fDSzUcTei04LVOrqdvE';
+// Load environment variables
+$envFile = __DIR__ . '/../../../.env';
+if (file_exists($envFile)) {
+    $envContent = file_get_contents($envFile);
+    $lines = explode("\n", $envContent);
+    foreach ($lines as $line) {
+        if (strpos($line, '=') !== false && !empty(trim($line))) {
+            list($key, $value) = explode('=', $line, 2);
+            putenv(trim($key) . '=' . trim($value));
+        }
+    }
+}
+
+$apiKey = getenv('GEMINI_API_KEY');
+if (!$apiKey) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Gemini API key not configured']);
+    exit;
+}
 $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=" . $apiKey;
 
 $systemInstruction = "You are the NutriLoop AI, a professional nutrition and health assistant for the NutriLoop app. " .
