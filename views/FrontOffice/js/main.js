@@ -19,7 +19,7 @@ document.querySelectorAll('.nav-menu a').forEach(link => {
 
 // ========== SMOOTH SCROLL ==========
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
+    anchor.addEventListener('click', function (e) {
         e.preventDefault();
         const target = document.querySelector(this.getAttribute('href'));
         if (target) {
@@ -90,13 +90,13 @@ let lastScroll = 0;
 window.addEventListener('scroll', () => {
     const header = document.querySelector('.header');
     const currentScroll = window.pageYOffset;
-    
+
     if (currentScroll > 100) {
         header.style.boxShadow = '0 5px 20px rgba(0,0,0,0.1)';
     } else {
         header.style.boxShadow = 'none';
     }
-    
+
     lastScroll = currentScroll;
 });
 
@@ -142,4 +142,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ========== CONSOLE WELCOME ==========
 console.log('%c🍽️ NutriLoop AI - Solution Nutrition Intelligente', 'color: #4CAF50; font-size: 16px; font-weight: bold;');
-console.log('%cBackoffice Dashboard: /backoffice/index.html', 'color: #003366; font-size: 12px;');
+console.log('%cBackoffice Dashboard: /backoffice/index.php', 'color: #003366; font-size: 12px;');

@@ -1,13 +1,20 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NutriLoop  | Contact</title>
+    <title>NutriLoop | Contact</title>
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        body {
+            overflow: auto !important;
+            background: var(--gray-light);
+        }
+
         .contact-hero {
             background: linear-gradient(135deg, #003366 0%, #1a4d8c 100%);
             color: white;
@@ -16,7 +23,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .contact-hero::before {
             content: '';
             position: absolute;
@@ -28,53 +35,55 @@
             opacity: 0.1;
             pointer-events: none;
         }
-        
+
         .contact-hero h1 {
             color: white;
             font-size: 2.5rem;
             position: relative;
             animation: fadeInDown 0.8s ease;
         }
-        
+
         .contact-hero p {
             position: relative;
             animation: fadeInUp 0.8s ease;
         }
-        
+
         @keyframes fadeInDown {
             from {
                 opacity: 0;
                 transform: translateY(-30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
-        
+
         @keyframes fadeInUp {
             from {
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
-        
+
         .contact-section {
             padding: 4rem 5%;
             max-width: 1200px;
             margin: 0 auto;
         }
-        
+
         .contact-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 3rem;
         }
-        
+
         /* Logo image */
         .logo-img {
             width: 45px;
@@ -82,23 +91,23 @@
             border-radius: 12px;
             object-fit: cover;
         }
-        
+
         /* Info cards */
         .info-card {
             background: white;
             border-radius: 20px;
             padding: 2rem;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             transition: 0.3s;
             margin-bottom: 1.5rem;
         }
-        
+
         .info-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
         }
-        
+
         .info-icon {
             width: 70px;
             height: 70px;
@@ -112,31 +121,31 @@
             color: white;
             transition: 0.3s;
         }
-        
+
         .info-card:hover .info-icon {
             transform: scale(1.1);
         }
-        
+
         .info-card h3 {
             color: #003366;
             margin-bottom: 1rem;
         }
-        
+
         .info-card p {
             color: #666;
             margin-bottom: 0.5rem;
         }
-        
+
         .info-card a {
             color: #4CAF50;
             text-decoration: none;
             font-weight: 500;
         }
-        
+
         .info-card a:hover {
             text-decoration: underline;
         }
-        
+
         /* Social links */
         .social-links-contact {
             display: flex;
@@ -144,7 +153,7 @@
             gap: 1rem;
             margin-top: 1rem;
         }
-        
+
         .social-links-contact a {
             width: 45px;
             height: 45px;
@@ -157,31 +166,31 @@
             font-size: 1.2rem;
             transition: 0.3s;
         }
-        
+
         .social-links-contact a:hover {
             background: #4CAF50;
             color: white;
             transform: translateY(-3px);
         }
-        
+
         /* Formulaire */
         .contact-form-card {
             background: white;
             border-radius: 20px;
             padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
         }
-        
+
         .contact-form-card h3 {
             text-align: center;
             margin-bottom: 1.5rem;
             color: #003366;
         }
-        
+
         .form-group {
             margin-bottom: 1.5rem;
         }
-        
+
         .form-group input,
         .form-group textarea {
             width: 100%;
@@ -191,14 +200,14 @@
             font-family: 'Poppins', sans-serif;
             transition: 0.3s;
         }
-        
+
         .form-group input:focus,
         .form-group textarea:focus {
             border-color: #4CAF50;
             outline: none;
             box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
         }
-        
+
         .btn-submit {
             width: 100%;
             background: linear-gradient(135deg, #4CAF50, #2E7D32);
@@ -210,26 +219,26 @@
             cursor: pointer;
             transition: 0.3s;
         }
-        
+
         .btn-submit:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
         }
-        
+
         /* Map */
         .map-container {
             margin-top: 3rem;
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
         }
-        
+
         .map-container iframe {
             width: 100%;
             height: 350px;
             border: none;
         }
-        
+
         /* Section FAQ */
         .faq-section {
             margin-top: 3rem;
@@ -237,22 +246,22 @@
             border-radius: 20px;
             padding: 2rem;
         }
-        
+
         .faq-section h3 {
             text-align: center;
             margin-bottom: 1.5rem;
             color: #003366;
         }
-        
+
         .faq-item {
             border-bottom: 1px solid #eee;
             padding: 1rem 0;
         }
-        
+
         .faq-item:last-child {
             border-bottom: none;
         }
-        
+
         .faq-question {
             font-weight: 600;
             color: #4CAF50;
@@ -261,55 +270,36 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .faq-question i {
             transition: transform 0.3s;
         }
-        
+
         .faq-answer {
             display: none;
             padding-top: 0.5rem;
             color: #666;
             line-height: 1.6;
         }
-        
+
         .faq-item.active .faq-answer {
             display: block;
         }
-        
+
         @media (max-width: 768px) {
             .contact-grid {
                 grid-template-columns: 1fr;
             }
+
             .contact-hero h1 {
                 font-size: 1.8rem;
             }
         }
     </style>
 </head>
+
 <body>
 
-    <!-- ========== HEADER ========== -->
-    <header class="header">
-        <nav class="navbar">
-            <div class="logo">
-                <!-- Logo personnalisé logo.PNG -->
-                <img src="image/logo.PNG" alt="NutriLoop Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/45x45?text=🌱'">
-                <span class="logo-text">NutriLoop </span>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="index.html">Accueil</a></li>
-                <li><a href="about.html">À propos</a></li>
-                <li><a href="contact.html" class="active">Contact</a></li>
-                <li><a href="../backoffice/index.html" class="btn-dashboard">Dashboard</a></li>
-            </ul>
-            <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </nav>
-    </header>
 
     <!-- ========== CONTACT HERO ========== -->
     <section class="contact-hero">
@@ -380,10 +370,9 @@
 
         <!-- Google Maps -->
         <div class="map-container">
-            <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3193.123456789!2d10.181531!3d36.836537!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x12fd3382e5c0b8b7%3A0x9e8c0b8b7c0b8b7!2sTechnop%C3%B4le%20El%20Ghazala!5e0!3m2!1sfr!2stn!4v1700000000000!5m2!1sfr!2stn" 
-                allowfullscreen="" 
-                loading="lazy">
+            <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3193.123456789!2d10.181531!3d36.836537!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x12fd3382e5c0b8b7%3A0x9e8c0b8b7c0b8b7!2sTechnop%C3%B4le%20El%20Ghazala!5e0!3m2!1sfr!2stn!4v1700000000000!5m2!1sfr!2stn"
+                allowfullscreen="" loading="lazy">
             </iframe>
         </div>
 
@@ -395,28 +384,32 @@
                     Comment puis-je créer un compte ?
                     <i class="fas fa-chevron-down"></i>
                 </div>
-                <div class="faq-answer">Vous pouvez créer un compte gratuitement en cliquant sur "Dashboard" puis "S'inscrire".</div>
+                <div class="faq-answer">Vous pouvez créer un compte gratuitement en cliquant sur "Dashboard" puis
+                    "S'inscrire".</div>
             </div>
             <div class="faq-item">
                 <div class="faq-question">
                     Les recommandations sont-elles personnalisées ?
                     <i class="fas fa-chevron-down"></i>
                 </div>
-                <div class="faq-answer">Oui, notre IA analyse vos préférences alimentaires pour vous proposer des recettes adaptées à vos objectifs.</div>
+                <div class="faq-answer">Oui, notre IA analyse vos préférences alimentaires pour vous proposer des
+                    recettes adaptées à vos objectifs.</div>
             </div>
             <div class="faq-item">
                 <div class="faq-question">
                     Est-ce que NutriLoop est gratuit ?
                     <i class="fas fa-chevron-down"></i>
                 </div>
-                <div class="faq-answer">NutriLoop propose une version gratuite avec des fonctionnalités de base, et des options premium pour un suivi avancé.</div>
+                <div class="faq-answer">NutriLoop propose une version gratuite avec des fonctionnalités de base, et des
+                    options premium pour un suivi avancé.</div>
             </div>
             <div class="faq-item">
                 <div class="faq-question">
                     Comment puis-je modifier mes informations ?
                     <i class="fas fa-chevron-down"></i>
                 </div>
-                <div class="faq-answer">Connectez-vous à votre compte, allez dans "Mon profil" et cliquez sur "Modifier mes informations".</div>
+                <div class="faq-answer">Connectez-vous à votre compte, allez dans "Mon profil" et cliquez sur "Modifier
+                    mes informations".</div>
             </div>
         </div>
     </section>
@@ -426,7 +419,8 @@
         <div class="footer-content">
             <div class="footer-section">
                 <h3>NutriLoop </h3>
-                <p>L'intelligence artificielle au service de votre assiette pour une meilleure santé et un monde plus durable.</p>
+                <p>L'intelligence artificielle au service de votre assiette pour une meilleure santé et un monde plus
+                    durable.</p>
                 <div class="social-links">
                     <a href="#"><i class="fab fa-facebook-f"></i></a>
                     <a href="#"><i class="fab fa-twitter"></i></a>
@@ -437,7 +431,7 @@
             <div class="footer-section">
                 <h4>Liens rapides</h4>
                 <ul>
-                    <li><a href="index.html">Accueil</a></li>
+                    <li><a href="index.php">Accueil</a></li>
                     <li><a href="about.html">À propos</a></li>
                     <li><a href="contact.html">Contact</a></li>
                 </ul>
@@ -461,13 +455,13 @@
         // Formulaire de contact
         const contactForm = document.getElementById('contactForm');
         if (contactForm) {
-            contactForm.addEventListener('submit', function(e) {
+            contactForm.addEventListener('submit', function (e) {
                 e.preventDefault();
-                
+
                 const nom = document.getElementById('nom')?.value || '';
                 const email = document.getElementById('email')?.value || '';
                 const message = document.getElementById('message')?.value || '';
-                
+
                 if (nom && email && message) {
                     alert(`✅ Merci ${nom} ! Votre message a été envoyé avec succès.\n\nNous vous répondrons dans les plus brefs délais.`);
                     this.reset();
@@ -476,7 +470,7 @@
                 }
             });
         }
-        
+
         // FAQ accordéon
         document.querySelectorAll('.faq-question').forEach(question => {
             question.addEventListener('click', () => {
@@ -492,4 +486,5 @@
         });
     </script>
 </body>
+
 </html>

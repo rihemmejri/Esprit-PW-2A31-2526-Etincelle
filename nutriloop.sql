@@ -130,6 +130,66 @@ CREATE TABLE suivi (
         ON DELETE SET NULL
 );
 
+CREATE TABLE score_journalier (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    date DATE,
+    calories_consommees INT,
+    eau_bue FLOAT,
+    objectif_calories INT,
+    objectif_eau FLOAT,
+    score FLOAT,
+    FOREIGN KEY (user_id) REFERENCES user(id_user)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE alert (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    type ENUM('INFO','WARNING','CRITICAL','SUCCESS'),
+    categorie VARCHAR(50),
+    message TEXT,
+    date DATETIME,
+    lu BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (user_id) REFERENCES user(id_user)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE badge (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    type ENUM('GOLD','SILVER','BRONZE','PERFECT_DAY','STREAK','WARNING'),
+    titre VARCHAR(100),
+    description TEXT,
+    date_obtention DATE,
+    FOREIGN KEY (user_id) REFERENCES user(id_user)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE daily_status (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    date DATE,
+    calories INT,
+    eau FLOAT,
+    score FLOAT,
+    status ENUM('PERFECT','NORMAL','BAD','NO_DATA'),
+    message TEXT,
+    FOREIGN KEY (user_id) REFERENCES user(id_user)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE ai_prediction (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    date DATE,
+    input_data TEXT,
+    prediction TEXT,
+    risk_level ENUM('LOW','MEDIUM','HIGH'),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES user(id_user)
+        ON DELETE CASCADE
+);
 -- =========================
 -- EVENTS (Chaima)
 -- =========================
