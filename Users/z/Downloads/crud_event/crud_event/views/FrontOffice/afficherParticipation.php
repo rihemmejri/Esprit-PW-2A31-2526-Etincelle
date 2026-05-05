@@ -13,49 +13,108 @@ if (!$evenement || $evenement->getStatut() !== 'ACTIF') { header('Location: affi
 
 $participations  = $participationController->getParticipationsByEvenement($id);
 $placesReservees = 0;
-foreach ($participations as $p) {
-    $placesReservees += ($p->getNbPlacesReservees() ?? 1);
-}
+foreach ($participations as $p) $placesReservees += ($p->getNbPlacesReservees() ?? 1);
 $placesRestantes = $evenement->getNbPlacesMax() - $placesReservees;
 $pourcentage     = $evenement->getNbPlacesMax() > 0 ? round(($placesReservees / $evenement->getNbPlacesMax()) * 100) : 0;
 
 $error = ''; $success = '';
+$etape = 'inscription';
+if ($evenement->isPayant() && isset($_POST['etape']) && $_POST['etape'] === 'paiement') {
+    $etape = 'paiement';
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // MODIFICATION 1 : id_user récupéré du POST
-    $id_user             = intval($_POST['id_user']             ?? 0);
-    $nom                 = trim($_POST['nom']                   ?? '');
-    $email               = trim($_POST['email']                 ?? '');
-    $telephone           = trim($_POST['telephone']             ?? '');
-    $nb_places_reservees = intval($_POST['nb_places_reservees'] ?? 1);
 
-    $errors = [];
-    if ($id_user < 1)                             $errors[] = "L'ID utilisateur est obligatoire.";
-    if (empty($nom))                              $errors[] = "Le nom complet est obligatoire.";
-    if (empty($email))                            $errors[] = "L'email est obligatoire.";
-    elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = "L'email n'est pas valide.";
-    if ($nb_places_reservees < 1)                 $errors[] = "Le nombre de places doit être au moins 1.";
-    if ($nb_places_reservees > $placesRestantes)  $errors[] = "Vous demandez plus de places que disponibles ($placesRestantes restante(s)).";
-    if (!empty($telephone) && !preg_match('/^[0-9+\s\-()]{6,20}$/', $telephone)) $errors[] = "Le numéro de téléphone n'est pas valide.";
+    if ($_POST['etape'] === 'inscription') {
+        $id_user             = intval($_POST['id_user']             ?? 0);
+        $nom                 = trim($_POST['nom']                   ?? '');
+        $email               = trim($_POST['email']                 ?? '');
+        $telephone           = trim($_POST['telephone']             ?? '');
+        $nb_places_reservees = intval($_POST['nb_places_reservees'] ?? 1);
 
-    if (!empty($errors)) {
-        $error = implode('<br>', $errors);
-    } elseif ($placesRestantes <= 0) {
-        $error = "Désolé, il n'y a plus de places disponibles.";
-    } else {
-        $participation = new Participation(
-            $id, $id_user,
-            htmlspecialchars($nom),
-            htmlspecialchars($email),
-            !empty($telephone) ? htmlspecialchars($telephone) : null,
-            'EN_ATTENTE', null, null, null,
-            $nb_places_reservees
-        );
-        $participationController->addParticipation($participation);
-        $placesReservees += $nb_places_reservees;
-        $placesRestantes -= $nb_places_reservees;
-        $pourcentage = round(($placesReservees / $evenement->getNbPlacesMax()) * 100);
-        $success = "Inscription réussie ! Bienvenue $nom, vous avez réservé $nb_places_reservees place(s).";
+        $errors = [];
+        if ($id_user < 1)                                                              $errors[] = "L'ID utilisateur est obligatoire.";
+        if (empty($nom))                                                               $errors[] = "Le nom complet est obligatoire.";
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL))               $errors[] = "L'email n'est pas valide.";
+        if ($nb_places_reservees < 1)                                                  $errors[] = "Le nombre de places doit être au moins 1.";
+        if ($nb_places_reservees > $placesRestantes)                                   $errors[] = "Seulement $placesRestantes place(s) disponible(s).";
+        if (!empty($telephone) && !preg_match('/^[0-9+\s\-()]{6,20}$/', $telephone))  $errors[] = "Numéro de téléphone invalide.";
+
+        if (!empty($errors)) {
+            $error = implode('<br>', $errors);
+        } elseif ($placesRestantes <= 0) {
+            $error = "Plus de places disponibles.";
+        } elseif ($evenement->isPayant()) {
+            $etape = 'paiement';
+        } else {
+            $participation = new Participation(
+                $id, $id_user,
+                htmlspecialchars($nom),
+                htmlspecialchars($email),
+                !empty($telephone) ? htmlspecialchars($telephone) : null,
+                'EN_ATTENTE', null, null, null,
+                $nb_places_reservees,
+                'GRATUIT', null, 0.00
+            );
+            $newId = $participationController->addParticipation($participation, $evenement);
+            if ($newId) {
+                $placesReservees += $nb_places_reservees;
+                $placesRestantes -= $nb_places_reservees;
+                $pourcentage = round(($placesReservees / $evenement->getNbPlacesMax()) * 100);
+                $success = "Inscription réussie ! Bienvenue $nom, vous avez réservé $nb_places_reservees place(s).";
+            } else {
+                $error = "Erreur lors de l'inscription. Veuillez réessayer.";
+            }
+        }
+    }
+
+    elseif ($_POST['etape'] === 'paiement') {
+        $id_user             = intval($_POST['id_user']             ?? 0);
+        $nom                 = trim($_POST['nom']                   ?? '');
+        $email               = trim($_POST['email']                 ?? '');
+        $telephone           = trim($_POST['telephone']             ?? '');
+        $nb_places_reservees = intval($_POST['nb_places_reservees'] ?? 1);
+        $carte_nom           = trim($_POST['carte_nom']             ?? '');
+        $carte_numero        = preg_replace('/\s/', '', $_POST['carte_numero'] ?? '');
+        $carte_exp           = trim($_POST['carte_exp']             ?? '');
+        $carte_cvv           = trim($_POST['carte_cvv']             ?? '');
+        $montant_total       = $evenement->getPrix() * $nb_places_reservees;
+
+        $errors = [];
+        if (strlen($carte_nom) < 3)                       $errors[] = "Nom du titulaire invalide.";
+        if (!preg_match('/^\d{16}$/', $carte_numero))     $errors[] = "Numéro de carte invalide (16 chiffres).";
+        if (!preg_match('/^\d{2}\/\d{2}$/', $carte_exp)) $errors[] = "Date d'expiration invalide (MM/AA).";
+        if (!preg_match('/^\d{3,4}$/', $carte_cvv))       $errors[] = "CVV invalide.";
+
+        if (!empty($errors)) {
+            $error = implode('<br>', $errors);
+            $etape = 'paiement';
+        } else {
+            $reference = 'NL-' . strtoupper(substr(md5(uniqid()), 0, 8));
+            $participation = new Participation(
+                $id, $id_user,
+                htmlspecialchars($nom),
+                htmlspecialchars($email),
+                !empty($telephone) ? htmlspecialchars($telephone) : null,
+                'EN_ATTENTE', null, null, null,
+                $nb_places_reservees,
+                'PAYE', $reference, $montant_total
+            );
+            $newId = $participationController->addParticipation($participation, $evenement);
+            if ($newId) {
+                $participation->setIdParticipation($newId);
+                $participationController->genererQRCode($participation);
+                $placesReservees += $nb_places_reservees;
+                $placesRestantes -= $nb_places_reservees;
+                $pourcentage = round(($placesReservees / $evenement->getNbPlacesMax()) * 100);
+                $success = "Paiement confirmé ! Bienvenue $nom — Réf: $reference — $nb_places_reservees place(s) réservée(s).";
+                $successRef = $reference;
+                $successMontant = $montant_total;
+            } else {
+                $error = "Erreur lors de l'enregistrement. Veuillez réessayer.";
+                $etape = 'paiement';
+            }
+        }
     }
 }
 
@@ -66,6 +125,7 @@ $images = [
     'AUTRE'     => 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=1200&h=400&fit=crop',
 ];
 $typeEmojis = ['SPORT'=>'🏃','NUTRITION'=>'🥗','WORKSHOP'=>'📚','AUTRE'=>'📅'];
+$lieuEncode = urlencode($evenement->getLieu());
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -109,6 +169,7 @@ $typeEmojis = ['SPORT'=>'🏃','NUTRITION'=>'🥗','WORKSHOP'=>'📚','AUTRE'=>'
         .success-box { background:#e8f5e9; border:2px solid #4CAF50; border-radius:20px; padding:30px; text-align:center; margin-bottom:24px; }
         .success-box i { font-size:3.5em; color:#4CAF50; margin-bottom:14px; display:block; }
         .success-box h3 { color:#2e7d32; margin-bottom:10px; }
+        .success-ref { display:inline-block; background:white; border:2px solid #4CAF50; border-radius:12px; padding:10px 24px; margin:12px 0; font-size:1.1em; font-weight:700; color:#2e7d32; letter-spacing:2px; }
         .btn-retour { display:inline-flex; align-items:center; gap:8px; background:#4CAF50; color:white; padding:12px 26px; border-radius:25px; text-decoration:none; font-weight:600; transition:.3s; margin-top:14px; }
         .btn-retour:hover { background:#388e3c; }
 
@@ -116,27 +177,58 @@ $typeEmojis = ['SPORT'=>'🏃','NUTRITION'=>'🥗','WORKSHOP'=>'📚','AUTRE'=>'
 
         .form-card { background:white; border-radius:22px; padding:32px; box-shadow:0 8px 28px rgba(0,0,0,.08); }
         .form-card h2 { color:#1565C0; margin-bottom:24px; display:flex; align-items:center; gap:10px; border-bottom:3px solid #2196F3; padding-bottom:12px; }
-
         .form-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
         @media(max-width:600px){ .form-row { grid-template-columns:1fr; } }
         .form-group { margin-bottom:16px; }
         .form-group label { display:block; margin-bottom:6px; font-weight:600; color:#333; font-size:.9em; }
         .form-group label i { color:#2196F3; margin-right:6px; }
         .required { color:#f44336; }
-
         .form-group input { width:100%; padding:12px 15px; border:2px solid #e0e0e0; border-radius:12px; font-size:14px; font-family:'Poppins',sans-serif; transition:.3s; }
         .form-group input:focus { outline:none; border-color:#2196F3; box-shadow:0 0 0 3px rgba(33,150,243,.1); }
         .form-group input.input-error { border-color:#f44336; background:#fff5f5; }
         .form-group input.input-ok    { border-color:#4CAF50; background:#f5fff5; }
-
         .field-error { color:#f44336; font-size:.78em; margin-top:4px; display:none; }
         .field-error.show { display:block; }
         .input-hint { font-size:.75em; color:#999; margin-top:4px; display:block; }
 
+        .prix-card { border-radius:14px; padding:16px 20px; margin-bottom:20px; display:flex; align-items:center; gap:14px; }
+        .prix-card.gratuit { background:#e8f5e9; border:2px solid #4CAF50; }
+        .prix-card.payant  { background:#e3f2fd; border:2px solid #2196F3; }
+        .prix-card-icon { width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+        .prix-card-icon.gratuit { background:#4CAF50; color:white; }
+        .prix-card-icon.payant  { background:#2196F3; color:white; }
+        .prix-card-text h4 { font-size:14px; font-weight:700; margin-bottom:3px; }
+        .prix-card-text h4.gratuit { color:#2e7d32; }
+        .prix-card-text h4.payant  { color:#1565c0; }
+        .prix-card-text p { font-size:12px; color:#666; margin:0; }
+        .prix-card-montant { margin-left:auto; font-size:20px; font-weight:700; }
+        .prix-card-montant.gratuit { color:#2e7d32; }
+        .prix-card-montant.payant  { color:#1565c0; }
+
+        .total-box { background:#fff3e0; border:2px solid #FFA726; border-radius:10px; padding:12px 16px; margin-top:-8px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; }
+        .total-box .lbl { font-size:13px; color:#e65100; font-weight:600; }
+        .total-box .val { font-size:20px; font-weight:700; color:#e65100; }
+
+        .card-preview { background:linear-gradient(135deg,#1a1a2e,#2d2d4e); border-radius:16px; padding:22px; margin-bottom:20px; color:white; position:relative; overflow:hidden; }
+        .card-preview::before { content:''; position:absolute; top:-30px; right:-30px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,.05); }
+        .card-chip { width:36px; height:28px; background:linear-gradient(135deg,#f0c060,#d4a030); border-radius:5px; margin-bottom:14px; }
+        .card-number { font-size:17px; letter-spacing:3px; margin-bottom:14px; font-family:monospace; }
+        .card-info { display:flex; justify-content:space-between; font-size:11px; opacity:.7; }
+        .card-brand { position:absolute; top:16px; right:18px; font-size:22px; opacity:.6; }
+        .sim-badge { background:#fff3e0; border:1.5px solid #FFA726; border-radius:10px; padding:10px 14px; margin-bottom:16px; font-size:12px; color:#e65100; display:flex; align-items:center; gap:8px; }
+
         .btn-submit { width:100%; background:linear-gradient(135deg,#2196F3,#4CAF50); color:white; padding:15px; border:none; border-radius:14px; font-size:1.05em; font-weight:700; cursor:pointer; font-family:'Poppins',sans-serif; display:flex; align-items:center; justify-content:center; gap:10px; transition:.3s; margin-top:8px; }
         .btn-submit:hover { transform:translateY(-2px); box-shadow:0 10px 25px rgba(33,150,243,.35); }
         .btn-submit:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+        .btn-submit.payant { background:linear-gradient(135deg,#2196F3,#673AB7); }
 
+        .steps { display:flex; margin-bottom:24px; }
+        .step { flex:1; text-align:center; padding:12px; font-size:13px; font-weight:600; color:#aaa; border-bottom:3px solid #e0e0e0; }
+        .step.active { color:#2196F3; border-color:#2196F3; }
+        .step.done   { color:#4CAF50; border-color:#4CAF50; }
+        .step i { display:block; font-size:18px; margin-bottom:4px; }
+
+        /* SIDEBAR */
         .sidebar { display:flex; flex-direction:column; gap:20px; }
         .info-card { background:white; border-radius:20px; padding:22px; box-shadow:0 5px 20px rgba(0,0,0,.07); }
         .info-card h3 { font-size:.95em; color:#1565C0; margin-bottom:14px; display:flex; align-items:center; gap:8px; border-bottom:2px solid #e3f2fd; padding-bottom:10px; }
@@ -146,16 +238,20 @@ $typeEmojis = ['SPORT'=>'🏃','NUTRITION'=>'🥗','WORKSHOP'=>'📚','AUTRE'=>'
         .info-row i { color:#2196F3; width:18px; margin-top:2px; }
         .info-label { font-size:.78em; color:#999; display:block; }
         .info-value { font-size:.9em; font-weight:600; color:#333; }
-
         .places-bar-bg { background:#e0e0e0; border-radius:10px; height:10px; overflow:hidden; margin-top:6px; }
-        .places-bar-fill { height:100%; border-radius:10px; background:linear-gradient(90deg,#4CAF50,#2196F3); transition:width .5s; }
+        .places-bar-fill { height:100%; border-radius:10px; background:linear-gradient(90deg,#4CAF50,#2196F3); }
         .places-bar-fill.danger { background:linear-gradient(90deg,#f44336,#ff9800); }
         .places-numbers { display:flex; justify-content:space-between; font-size:.76em; color:#888; margin-top:5px; }
-
         .avantages-list { list-style:none; }
         .avantages-list li { display:flex; align-items:center; gap:10px; padding:7px 0; font-size:.86em; color:#444; border-bottom:1px solid #f5f5f5; }
         .avantages-list li:last-child { border-bottom:none; }
         .avantages-list li i { color:#4CAF50; width:16px; }
+
+        /* Google Maps */
+        .map-container { border-radius:10px; overflow:hidden; border:1.5px solid #e0e0e0; }
+        .map-container iframe { width:100%; height:200px; border:none; display:block; }
+        .map-btn { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:10px; padding:10px; background:#2196F3; color:white; border-radius:8px; text-decoration:none; font-size:13px; font-weight:600; transition:.3s; }
+        .map-btn:hover { background:#1976D2; }
 
         .footer { background:#1a1a2e; color:white; padding:40px 20px 20px; margin-top:20px; }
         .footer-content { max-width:1200px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:28px; }
@@ -198,119 +294,244 @@ $typeEmojis = ['SPORT'=>'🏃','NUTRITION'=>'🥗','WORKSHOP'=>'📚','AUTRE'=>'
             <span><i class="fas fa-calendar-day"></i> <?= date('d/m/Y', strtotime($evenement->getDateEvenement())) ?></span>
             <span><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($evenement->getLieu()) ?></span>
             <span><i class="fas fa-users"></i> <?= $placesRestantes ?> places restantes</span>
+            <?php if ($evenement->isPayant()): ?>
+            <span><i class="fas fa-credit-card"></i> <?= number_format($evenement->getPrix(), 2) ?> TND / place</span>
+            <?php else: ?>
+            <span><i class="fas fa-gift"></i> Gratuit</span>
+            <?php endif; ?>
         </div>
     </div>
 </div>
 
 <div class="page-layout">
-    <div>
-        <a href="afficherEvenement.php" class="btn-back"><i class="fas fa-arrow-left"></i> Retour aux événements</a>
+<div>
+    <a href="afficherEvenement.php" class="btn-back"><i class="fas fa-arrow-left"></i> Retour aux événements</a>
 
-        <?php if ($success): ?>
-        <div class="success-box">
-            <i class="fas fa-check-circle"></i>
-            <h3>✅ Inscription confirmée !</h3>
-            <p><?= htmlspecialchars($success) ?></p>
-            <p style="font-size:.84em;color:#888"><i class="fas fa-clock"></i> Date : <strong><?= date('d/m/Y à H:i') ?></strong></p>
-            <a href="afficherEvenement.php" class="btn-retour"><i class="fas fa-calendar-alt"></i> Voir d'autres événements</a>
+    <?php if ($success): ?>
+    <div class="success-box">
+        <i class="fas fa-check-circle"></i>
+        <h3><?= $evenement->isPayant() ? '💳 Paiement confirmé !' : '✅ Inscription confirmée !' ?></h3>
+        <p><?= htmlspecialchars($success) ?></p>
+        <?php if (isset($successRef)): ?>
+            <div class="success-ref"><?= htmlspecialchars($successRef) ?></div>
+            <p style="font-size:.84em;color:#666;">Montant payé : <strong><?= number_format($successMontant, 2) ?> TND</strong></p>
+        <?php endif; ?>
+        <p style="font-size:.84em;color:#888;margin-top:8px;"><i class="fas fa-clock"></i> <?= date('d/m/Y à H:i') ?></p>
+        <a href="afficherEvenement.php" class="btn-retour"><i class="fas fa-calendar-alt"></i> Voir d'autres événements</a>
+    </div>
+
+    <?php else: ?>
+
+    <?php if ($placesRestantes <= 0): ?>
+    <div class="error-box"><i class="fas fa-exclamation-triangle"></i> <strong>Complet !</strong> Plus de places disponibles.</div>
+    <?php endif; ?>
+
+    <?php if ($evenement->isPayant()): ?>
+    <div class="steps">
+        <div class="step <?= $etape === 'inscription' ? 'active' : 'done' ?>">
+            <i class="fas fa-user-plus"></i> Inscription
+        </div>
+        <div class="step <?= $etape === 'paiement' ? 'active' : '' ?>">
+            <i class="fas fa-credit-card"></i> Paiement
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($etape === 'inscription'): ?>
+    <div class="form-card">
+        <h2><i class="fas fa-user-plus"></i> Formulaire d'inscription</h2>
+
+        <?php if ($error): ?>
+        <div class="error-box"><i class="fas fa-exclamation-circle"></i> <span><?= $error ?></span></div>
+        <?php endif; ?>
+
+        <?php if ($evenement->isPayant()): ?>
+        <div class="prix-card payant">
+            <div class="prix-card-icon payant"><i class="fas fa-credit-card"></i></div>
+            <div class="prix-card-text">
+                <h4 class="payant">Événement payant</h4>
+                <p>Paiement requis à l'étape suivante</p>
+            </div>
+            <div class="prix-card-montant payant"><?= number_format($evenement->getPrix(), 2) ?> TND <small style="font-size:12px;font-weight:400;">/place</small></div>
         </div>
         <?php else: ?>
-
-        <?php if ($placesRestantes <= 0): ?>
-        <div class="error-box"><i class="fas fa-exclamation-triangle"></i> <strong>Complet !</strong> Plus de places disponibles.</div>
+        <div class="prix-card gratuit">
+            <div class="prix-card-icon gratuit"><i class="fas fa-gift"></i></div>
+            <div class="prix-card-text">
+                <h4 class="gratuit">Événement gratuit</h4>
+                <p>Inscription libre, aucun paiement requis</p>
+            </div>
+            <div class="prix-card-montant gratuit">Gratuit</div>
+        </div>
         <?php endif; ?>
 
-        <div class="form-card">
-            <h2><i class="fas fa-user-plus"></i> Formulaire d'inscription</h2>
-
-            <?php if ($error): ?>
-            <div class="error-box"><i class="fas fa-exclamation-circle"></i> <span><?= $error ?></span></div>
-            <?php endif; ?>
-
-            <form id="inscriptionForm" action="" method="POST" novalidate>
-
-                <!-- MODIFICATION 2 : ID user visible -->
-                <div class="form-row">
-                    <div class="form-group">
-                        <label><i class="fas fa-id-card"></i> ID Utilisateur <span class="required">*</span></label>
-                        <input type="number" id="id_user" name="id_user" placeholder="Ex: 1" min="1"
-                               value="<?= htmlspecialchars($_POST['id_user'] ?? '') ?>">
-                        <span class="input-hint">Votre ID dans votre profil NutriLoop</span>
-                        <span class="field-error" id="err-iduser">L'ID utilisateur est obligatoire (min 1).</span>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-user"></i> Nom complet <span class="required">*</span></label>
-                        <input type="text" id="nom" name="nom" placeholder="Votre nom et prénom"
-                               value="<?= htmlspecialchars($_POST['nom'] ?? '') ?>">
-                        <span class="field-error" id="err-nom">Le nom est obligatoire (minimum 3 caractères).</span>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label><i class="fas fa-envelope"></i> Email <span class="required">*</span></label>
-                        <input type="email" id="email" name="email" placeholder="votre@email.com"
-                               value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
-                        <span class="field-error" id="err-email">Veuillez entrer un email valide.</span>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-phone"></i> Téléphone</label>
-                        <input type="tel" id="telephone" name="telephone" placeholder="+216 XX XXX XXX"
-                               value="<?= htmlspecialchars($_POST['telephone'] ?? '') ?>">
-                        <span class="field-error" id="err-telephone">Numéro invalide.</span>
-                    </div>
-                </div>
-
+        <form id="inscriptionForm" action="" method="POST" novalidate>
+            <input type="hidden" name="etape" value="inscription">
+            <div class="form-row">
                 <div class="form-group">
-                    <label><i class="fas fa-ticket-alt"></i> Nombre de places <span class="required">*</span></label>
-                    <input type="number" id="nb_places" name="nb_places_reservees"
-                           min="1" max="<?= max(1, $placesRestantes) ?>" value="1">
-                    <span class="input-hint"><?= $placesRestantes ?> place(s) disponible(s) max</span>
-                    <span class="field-error" id="err-places">Entre 1 et <?= $placesRestantes ?> places.</span>
+                    <label><i class="fas fa-id-card"></i> ID Utilisateur <span class="required">*</span></label>
+                    <input type="number" id="id_user" name="id_user" placeholder="Ex: 1" min="1" value="<?= htmlspecialchars($_POST['id_user'] ?? '') ?>">
+                    <span class="input-hint">Votre ID dans votre profil NutriLoop</span>
+                    <span class="field-error" id="err-iduser">L'ID utilisateur est obligatoire (min 1).</span>
                 </div>
-
-                <button type="submit" class="btn-submit" <?= $placesRestantes <= 0 ? 'disabled' : '' ?>>
-                    <i class="fas fa-paper-plane"></i>
-                    <?= $placesRestantes <= 0 ? 'Complet — Inscription impossible' : 'Confirmer mon inscription' ?>
-                </button>
-            </form>
-        </div>
-        <?php endif; ?>
-    </div>
-
-    <div class="sidebar">
-        <div class="info-card">
-            <h3><i class="fas fa-calendar-alt"></i> Détails de l'événement</h3>
-            <div class="info-row"><i class="fas fa-calendar-day"></i><div><span class="info-label">Date</span><span class="info-value"><?= date('d/m/Y', strtotime($evenement->getDateEvenement())) ?></span></div></div>
-            <div class="info-row"><i class="fas fa-map-marker-alt"></i><div><span class="info-label">Lieu</span><span class="info-value"><?= htmlspecialchars($evenement->getLieu()) ?></span></div></div>
-            <div class="info-row"><i class="fas fa-clock"></i><div><span class="info-label">Date d'inscription</span><span class="info-value"><?= date('d/m/Y à H:i') ?></span></div></div>
-        </div>
-
-        <div class="info-card">
-            <h3><i class="fas fa-users"></i> Places disponibles</h3>
-            <div class="info-row"><i class="fas fa-ticket-alt"></i><div><span class="info-label">Places totales</span><span class="info-value"><?= $evenement->getNbPlacesMax() ?></span></div></div>
-            <div class="info-row"><i class="fas fa-user-check"></i><div><span class="info-label">Places réservées</span><span class="info-value" style="color:#f44336"><?= $placesReservees ?></span></div></div>
-            <div class="info-row"><i class="fas fa-user-plus"></i><div><span class="info-label">Places restantes</span><span class="info-value" style="color:<?= $placesRestantes <= 5 ? '#f44336' : '#2e7d32' ?>"><?= $placesRestantes ?></span></div></div>
-            <div class="places-bar-bg"><div class="places-bar-fill <?= $pourcentage >= 80 ? 'danger' : '' ?>" style="width:<?= $pourcentage ?>%"></div></div>
-            <div class="places-numbers"><span><?= $pourcentage ?>% rempli</span><span><?= $placesRestantes ?>/<?= $evenement->getNbPlacesMax() ?> libres</span></div>
-            <?php if ($placesRestantes <= 5 && $placesRestantes > 0): ?>
-            <div style="background:#fff3e0;padding:10px;border-radius:10px;margin-top:12px;font-size:.82em;color:#e65100;display:flex;align-items:center;gap:8px">
-                <i class="fas fa-fire"></i> <strong>Dernières places !</strong>
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Nom complet <span class="required">*</span></label>
+                    <input type="text" id="nom" name="nom" placeholder="Votre nom et prénom" value="<?= htmlspecialchars($_POST['nom'] ?? '') ?>">
+                    <span class="field-error" id="err-nom">Le nom est obligatoire (minimum 3 caractères).</span>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email <span class="required">*</span></label>
+                    <input type="email" id="email" name="email" placeholder="votre@email.com" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
+                    <span class="field-error" id="err-email">Veuillez entrer un email valide.</span>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-phone"></i> Téléphone</label>
+                    <input type="tel" id="telephone" name="telephone" placeholder="+216 XX XXX XXX" value="<?= htmlspecialchars($_POST['telephone'] ?? '') ?>">
+                    <span class="field-error" id="err-telephone">Numéro invalide.</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-ticket-alt"></i> Nombre de places <span class="required">*</span></label>
+                <input type="number" id="nb_places" name="nb_places_reservees" min="1" max="<?= max(1, $placesRestantes) ?>" value="1" oninput="updateTotal()">
+                <span class="input-hint"><?= $placesRestantes ?> place(s) disponible(s) max</span>
+                <span class="field-error" id="err-places">Entre 1 et <?= $placesRestantes ?> places.</span>
+            </div>
+            <?php if ($evenement->isPayant()): ?>
+            <div class="total-box">
+                <span class="lbl"><i class="fas fa-coins"></i> Total à payer :</span>
+                <span class="val" id="totalVal"><?= number_format($evenement->getPrix(), 2) ?> TND</span>
             </div>
             <?php endif; ?>
-        </div>
+            <button type="submit" class="btn-submit <?= $evenement->isPayant() ? 'payant' : '' ?>" <?= $placesRestantes <= 0 ? 'disabled' : '' ?>>
+                <i class="fas <?= $evenement->isPayant() ? 'fa-credit-card' : 'fa-paper-plane' ?>"></i>
+                <?= $placesRestantes <= 0 ? 'Complet — Inscription impossible' : ($evenement->isPayant() ? 'Continuer vers le paiement' : 'Confirmer mon inscription') ?>
+            </button>
+        </form>
+    </div>
 
-        <div class="info-card">
-            <h3><i class="fas fa-star"></i> Ce que vous obtenez</h3>
-            <ul class="avantages-list">
-                <li><i class="fas fa-check"></i> Accès complet à l'événement</li>
-                <li><i class="fas fa-check"></i> Certificat de participation</li>
-                <li><i class="fas fa-check"></i> Supports et ressources offerts</li>
-                <li><i class="fas fa-check"></i> Accès à la communauté NutriLoop</li>
-                <li><i class="fas fa-check"></i> Conseils personnalisés en nutrition</li>
-            </ul>
+    <?php elseif ($etape === 'paiement'): ?>
+    <div class="form-card">
+        <h2><i class="fas fa-credit-card"></i> Paiement</h2>
+        <?php if ($error): ?>
+        <div class="error-box"><i class="fas fa-exclamation-circle"></i> <span><?= $error ?></span></div>
+        <?php endif; ?>
+        <div class="prix-card payant" style="margin-bottom:20px;">
+            <div class="prix-card-icon payant"><i class="fas fa-receipt"></i></div>
+            <div class="prix-card-text">
+                <h4 class="payant"><?= htmlspecialchars($evenement->getTitre()) ?></h4>
+                <p><?= intval($_POST['nb_places_reservees'] ?? 1) ?> place(s) × <?= number_format($evenement->getPrix(), 2) ?> TND</p>
+            </div>
+            <div class="prix-card-montant payant"><?= number_format($evenement->getPrix() * intval($_POST['nb_places_reservees'] ?? 1), 2) ?> TND</div>
+        </div>
+        <div class="sim-badge"><i class="fas fa-flask"></i><span><strong>Mode simulation</strong> — Utilisez n'importe quelle valeur. Aucune transaction réelle.</span></div>
+        <div class="card-preview">
+            <div class="card-chip"></div>
+            <div class="card-number" id="previewNumber">•••• •••• •••• ••••</div>
+            <div class="card-info">
+                <div><div style="font-size:9px;opacity:.5;margin-bottom:2px;">TITULAIRE</div><div id="previewNom" style="font-size:12px;letter-spacing:1px;">VOTRE NOM</div></div>
+                <div><div style="font-size:9px;opacity:.5;margin-bottom:2px;">EXPIRE</div><div id="previewExp" style="font-size:12px;">MM/AA</div></div>
+            </div>
+            <div class="card-brand"><i class="fab fa-cc-visa"></i></div>
+        </div>
+        <form id="paiementForm" action="" method="POST" novalidate>
+            <input type="hidden" name="etape"               value="paiement">
+            <input type="hidden" name="id_user"             value="<?= htmlspecialchars($_POST['id_user'] ?? '') ?>">
+            <input type="hidden" name="nom"                 value="<?= htmlspecialchars($_POST['nom'] ?? '') ?>">
+            <input type="hidden" name="email"               value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
+            <input type="hidden" name="telephone"           value="<?= htmlspecialchars($_POST['telephone'] ?? '') ?>">
+            <input type="hidden" name="nb_places_reservees" value="<?= intval($_POST['nb_places_reservees'] ?? 1) ?>">
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> Nom du titulaire</label>
+                <input type="text" name="carte_nom" id="carte_nom" placeholder="EX: KARIM BEN ALI" oninput="updatePreview()">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-hashtag"></i> Numéro de carte</label>
+                <input type="text" name="carte_numero" id="carte_numero" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCard(this);updatePreview()">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label><i class="fas fa-calendar"></i> Date d'expiration</label>
+                    <input type="text" name="carte_exp" id="carte_exp" placeholder="MM/AA" maxlength="5" oninput="formatExp(this);updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> CVV</label>
+                    <input type="text" name="carte_cvv" id="carte_cvv" placeholder="123" maxlength="4">
+                </div>
+            </div>
+            <button type="submit" class="btn-submit payant" id="payBtn">
+                <i class="fas fa-lock"></i>
+                Payer <?= number_format($evenement->getPrix() * intval($_POST['nb_places_reservees'] ?? 1), 2) ?> TND
+            </button>
+        </form>
+    </div>
+    <?php endif; ?>
+    <?php endif; ?>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+
+    <!-- Détails événement -->
+    <div class="info-card">
+        <h3><i class="fas fa-calendar-alt"></i> Détails de l'événement</h3>
+        <div class="info-row"><i class="fas fa-calendar-day"></i><div><span class="info-label">Date</span><span class="info-value"><?= date('d/m/Y', strtotime($evenement->getDateEvenement())) ?></span></div></div>
+        <div class="info-row"><i class="fas fa-map-marker-alt"></i><div><span class="info-label">Lieu</span><span class="info-value"><?= htmlspecialchars($evenement->getLieu()) ?></span></div></div>
+        <div class="info-row">
+            <?php if ($evenement->isPayant()): ?>
+            <i class="fas fa-credit-card" style="color:#2196F3;"></i>
+            <div><span class="info-label">Tarif</span><span class="info-value" style="color:#1565c0;"><?= number_format($evenement->getPrix(), 2) ?> TND / place</span></div>
+            <?php else: ?>
+            <i class="fas fa-gift" style="color:#4CAF50;"></i>
+            <div><span class="info-label">Tarif</span><span class="info-value" style="color:#2e7d32;">Gratuit</span></div>
+            <?php endif; ?>
         </div>
     </div>
+
+    <!-- Google Maps -->
+    <div class="info-card">
+        <h3><i class="fas fa-map-marked-alt" style="color:#f44336;"></i> Lieu sur la carte</h3>
+        <div class="map-container">
+            <iframe
+                src="https://maps.google.com/maps?q=<?= $lieuEncode ?>&output=embed&z=15"
+                allowfullscreen="" loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+        </div>
+        <a href="https://www.google.com/maps/search/?api=1&query=<?= $lieuEncode ?>"
+           target="_blank" class="map-btn">
+            <i class="fas fa-directions"></i> Obtenir un itinéraire
+        </a>
+    </div>
+
+    <!-- Places disponibles -->
+    <div class="info-card">
+        <h3><i class="fas fa-users"></i> Places disponibles</h3>
+        <div class="info-row"><i class="fas fa-ticket-alt"></i><div><span class="info-label">Places totales</span><span class="info-value"><?= $evenement->getNbPlacesMax() ?></span></div></div>
+        <div class="info-row"><i class="fas fa-user-check"></i><div><span class="info-label">Places réservées</span><span class="info-value" style="color:#f44336"><?= $placesReservees ?></span></div></div>
+        <div class="info-row"><i class="fas fa-user-plus"></i><div><span class="info-label">Places restantes</span><span class="info-value" style="color:<?= $placesRestantes <= 5 ? '#f44336' : '#2e7d32' ?>"><?= $placesRestantes ?></span></div></div>
+        <div class="places-bar-bg"><div class="places-bar-fill <?= $pourcentage >= 80 ? 'danger' : '' ?>" style="width:<?= $pourcentage ?>%"></div></div>
+        <div class="places-numbers"><span><?= $pourcentage ?>% rempli</span><span><?= $placesRestantes ?>/<?= $evenement->getNbPlacesMax() ?> libres</span></div>
+        <?php if ($placesRestantes <= 5 && $placesRestantes > 0): ?>
+        <div style="background:#fff3e0;padding:10px;border-radius:10px;margin-top:12px;font-size:.82em;color:#e65100;display:flex;align-items:center;gap:8px">
+            <i class="fas fa-fire"></i> <strong>Dernières places !</strong>
+        </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- Avantages -->
+    <div class="info-card">
+        <h3><i class="fas fa-star"></i> Ce que vous obtenez</h3>
+        <ul class="avantages-list">
+            <li><i class="fas fa-check"></i> Accès complet à l'événement</li>
+            <li><i class="fas fa-check"></i> Certificat de participation</li>
+            <li><i class="fas fa-check"></i> Supports et ressources offerts</li>
+            <li><i class="fas fa-check"></i> Accès à la communauté NutriLoop</li>
+            <li><i class="fas fa-check"></i> Conseils personnalisés en nutrition</li>
+        </ul>
+    </div>
+</div>
 </div>
 
 <footer class="footer">
@@ -345,7 +566,41 @@ $typeEmojis = ['SPORT'=>'🏃','NUTRITION'=>'🥗','WORKSHOP'=>'📚','AUTRE'=>'
 </footer>
 
 <script>
-const maxPlaces = <?= max(1, $placesRestantes) ?>;
+const prixUnitaire = <?= $evenement->getPrix() ?>;
+
+function updateTotal() {
+    const places = parseInt(document.getElementById('nb_places')?.value) || 1;
+    const val = document.getElementById('totalVal');
+    if (val) val.textContent = (prixUnitaire * places).toFixed(2) + ' TND';
+}
+
+function formatCard(input) {
+    let val = input.value.replace(/\D/g, '').substring(0, 16);
+    input.value = val.replace(/(\d{4})(?=\d)/g, '$1 ');
+}
+function formatExp(input) {
+    let val = input.value.replace(/\D/g, '').substring(0, 4);
+    if (val.length >= 2) val = val.substring(0,2) + '/' + val.substring(2);
+    input.value = val;
+}
+function updatePreview() {
+    const nom = document.getElementById('carte_nom')?.value.toUpperCase() || 'VOTRE NOM';
+    const num = document.getElementById('carte_numero')?.value.replace(/\s/g,'') || '';
+    const exp = document.getElementById('carte_exp')?.value || 'MM/AA';
+    let display = '';
+    for (let i=0; i<16; i++) {
+        if (i > 0 && i % 4 === 0) display += ' ';
+        display += i < num.length ? num[i] : '•';
+    }
+    if (document.getElementById('previewNom'))    document.getElementById('previewNom').textContent = nom;
+    if (document.getElementById('previewNumber')) document.getElementById('previewNumber').textContent = display;
+    if (document.getElementById('previewExp'))    document.getElementById('previewExp').textContent = exp;
+}
+
+document.getElementById('paiementForm')?.addEventListener('submit', function() {
+    const btn = document.getElementById('payBtn');
+    if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement...'; btn.disabled = true; }
+});
 
 function showError(inputId, errId, show) {
     const input = document.getElementById(inputId);
@@ -354,62 +609,26 @@ function showError(inputId, errId, show) {
     if (show) { input.classList.add('input-error'); input.classList.remove('input-ok'); err.classList.add('show'); }
     else       { input.classList.remove('input-error'); input.classList.add('input-ok'); err.classList.remove('show'); }
 }
-
-// MODIFICATION 3 : validation id_user
-function validateIdUser() {
-    const val = parseInt(document.getElementById('id_user').value);
-    const ok  = !isNaN(val) && val >= 1;
-    showError('id_user', 'err-iduser', !ok);
-    return ok;
-}
-
-function validateNom() {
-    const val = document.getElementById('nom').value.trim();
-    showError('nom', 'err-nom', val.length < 3);
-    return val.length >= 3;
-}
-
-function validateEmail() {
-    const val = document.getElementById('email').value.trim();
-    const ok  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
-    showError('email', 'err-email', !ok);
-    return ok;
-}
-
-function validateTelephone() {
-    const val = document.getElementById('telephone').value.trim();
-    if (val === '') { document.getElementById('telephone').classList.remove('input-error','input-ok'); document.getElementById('err-telephone').classList.remove('show'); return true; }
-    const ok = /^[0-9+\s\-()\d]{6,20}$/.test(val);
-    showError('telephone', 'err-telephone', !ok);
-    return ok;
-}
-
-function validatePlaces() {
-    const val = parseInt(document.getElementById('nb_places').value);
-    const ok  = val >= 1 && val <= maxPlaces;
-    showError('nb_places', 'err-places', !ok);
-    return ok;
-}
+function validateIdUser() { const v=parseInt(document.getElementById('id_user')?.value); const ok=!isNaN(v)&&v>=1; showError('id_user','err-iduser',!ok); return ok; }
+function validateNom()    { const v=document.getElementById('nom')?.value.trim(); const ok=v&&v.length>=3; showError('nom','err-nom',!ok); return ok; }
+function validateEmail()  { const v=document.getElementById('email')?.value.trim(); const ok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); showError('email','err-email',!ok); return ok; }
+function validatePlaces() { const v=parseInt(document.getElementById('nb_places')?.value); const ok=v>=1&&v<=<?= max(1,$placesRestantes) ?>; showError('nb_places','err-places',!ok); return ok; }
 
 document.getElementById('id_user')?.addEventListener('input', validateIdUser);
 document.getElementById('nom')?.addEventListener('input', validateNom);
 document.getElementById('email')?.addEventListener('input', validateEmail);
-document.getElementById('telephone')?.addEventListener('input', validateTelephone);
 document.getElementById('nb_places')?.addEventListener('input', validatePlaces);
 
 document.getElementById('inscriptionForm')?.addEventListener('submit', function(e) {
-    const ok = validateIdUser() & validateNom() & validateEmail() & validateTelephone() & validatePlaces();
-    if (!ok) {
-        e.preventDefault();
-        const firstError = document.querySelector('.input-error');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+    const ok = validateIdUser() & validateNom() & validateEmail() & validatePlaces();
+    if (!ok) { e.preventDefault(); document.querySelector('.input-error')?.scrollIntoView({behavior:'smooth',block:'center'}); }
 });
 
 document.addEventListener('DOMContentLoaded', function() {
     const hamburger = document.querySelector('.hamburger');
     const navMenu   = document.querySelector('.nav-menu');
     if (hamburger && navMenu) hamburger.addEventListener('click', () => { hamburger.classList.toggle('active'); navMenu.classList.toggle('active'); });
+    updateTotal();
 });
 </script>
 </body>

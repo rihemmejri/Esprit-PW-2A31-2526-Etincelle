@@ -54,17 +54,9 @@ $images = [
         .filter-group input, .filter-group select { width:100%; padding:10px 14px; border:1px solid #ddd; border-radius:10px; font-size:14px; font-family:'Poppins',sans-serif; transition:.3s; }
         .filter-group input:focus, .filter-group select:focus { outline:none; border-color:#2196F3; box-shadow:0 0 0 3px rgba(33,150,243,.1); }
 
-        /* Tri */
-        .sort-bar { display:flex; align-items:center; gap:10px; margin:0 20px 20px; flex-wrap:wrap; }
-        .sort-bar span { font-size:.9em; color:#666; font-weight:500; }
-        .sort-btn { padding:7px 16px; border-radius:20px; border:1px solid #ddd; background:white; cursor:pointer; font-size:.82em; font-family:'Poppins',sans-serif; transition:.3s; display:inline-flex; align-items:center; gap:5px; }
-        .sort-btn:hover { border-color:#2196F3; color:#2196F3; }
-        .sort-btn.active { background:#2196F3; color:white; border-color:#2196F3; }
-        .sort-btn i { font-size:.85em; }
-
         .events-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:30px; padding:0 20px 60px; }
 
-        .event-card { background:white; border-radius:20px; overflow:hidden; box-shadow:0 5px 20px rgba(0,0,0,.08); transition:all .3s ease; cursor:pointer; }
+        .event-card { background:white; border-radius:20px; overflow:hidden; box-shadow:0 5px 20px rgba(0,0,0,.08); transition:all .3s ease; }
         .event-card:hover { transform:translateY(-8px); box-shadow:0 20px 40px rgba(0,0,0,.15); }
 
         .event-image { height:200px; position:relative; overflow:hidden; }
@@ -82,36 +74,27 @@ $images = [
         .stt-CANCELLED { background:#ffebee; color:#c62828; }
         .stt-COMPLETED { background:#e8eaf6; color:#3949ab; }
 
+        .event-prix-badge { position:absolute; bottom:15px; right:15px; padding:6px 14px; border-radius:20px; font-size:.78em; font-weight:700; }
+        .prix-gratuit-badge { background:#4CAF50; color:white; }
+        .prix-payant-badge  { background:#2196F3; color:white; }
+
         .event-content { padding:20px; }
         .event-title { font-size:1.2em; font-weight:700; color:#333; margin-bottom:10px; }
         .event-meta { display:flex; gap:14px; margin-bottom:12px; flex-wrap:wrap; }
         .event-meta span { font-size:.82em; color:#666; display:flex; align-items:center; gap:5px; }
         .event-meta i { color:#2196F3; }
         .event-description { color:#666; line-height:1.6; margin-bottom:18px; font-size:.88em; }
-        .event-footer { display:flex; justify-content:space-between; align-items:center; padding-top:14px; border-top:1px solid #eee; }
+        .event-footer { display:flex; justify-content:space-between; align-items:center; padding-top:14px; border-top:1px solid #eee; flex-wrap:wrap; gap:10px; }
 
-        .places-badge { padding:5px 12px; border-radius:20px; font-size:.8em; font-weight:600; }
-        .places-ok   { background:#e8f5e9; color:#2e7d32; }
-        .places-peu  { background:#fff3e0; color:#e65100; }
-        .places-full { background:#ffebee; color:#c62828; }
+        .prix-tag { padding:5px 12px; border-radius:20px; font-size:.8em; font-weight:700; display:flex; align-items:center; gap:5px; }
+        .prix-tag.gratuit { background:#e8f5e9; color:#2e7d32; }
+        .prix-tag.payant  { background:#e3f2fd; color:#1565c0; }
 
         .btn-inscrire { background:linear-gradient(135deg,#2196F3,#4CAF50); color:white; padding:9px 20px; border-radius:25px; border:none; cursor:pointer; font-size:.85em; font-weight:600; font-family:'Poppins',sans-serif; display:inline-flex; align-items:center; gap:7px; transition:all .3s; text-decoration:none; }
         .btn-inscrire:hover { transform:translateX(5px); box-shadow:0 5px 15px rgba(33,150,243,.3); }
 
         .no-results { text-align:center; padding:60px; background:white; border-radius:20px; grid-column:1/-1; }
         .no-results i { font-size:64px; color:#ccc; margin-bottom:18px; display:block; }
-
-        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.55); z-index:1000; justify-content:center; align-items:center; }
-        .modal-content { background:white; max-width:580px; width:92%; border-radius:20px; overflow:hidden; animation:slideIn .3s ease; max-height:92vh; overflow-y:auto; }
-        @keyframes slideIn { from { transform:translateY(-50px); opacity:0; } to { transform:translateY(0); opacity:1; } }
-        .modal-header { background:linear-gradient(135deg,#2196F3,#4CAF50); color:white; padding:20px 24px; display:flex; justify-content:space-between; align-items:center; }
-        .modal-header h3 { margin:0; font-size:1.2rem; display:flex; align-items:center; gap:10px; }
-        .modal-close { background:none; border:none; color:white; font-size:28px; cursor:pointer; }
-        .modal-body { padding:24px; }
-        .modal-detail { margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid #eee; }
-        .modal-detail strong { display:inline-block; width:130px; color:#1565C0; }
-        .btn-s-inscrire { background:linear-gradient(135deg,#2196F3,#4CAF50); color:white; padding:11px 24px; border-radius:25px; text-decoration:none; display:inline-flex; align-items:center; gap:9px; margin-top:16px; font-weight:600; transition:.3s; }
-        .btn-s-inscrire:hover { transform:translateX(5px); }
 
         .footer { background:#1a1a2e; color:white; padding:40px 20px 20px; margin-top:60px; }
         .footer-content { max-width:1200px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:28px; }
@@ -179,16 +162,24 @@ $images = [
                 <option value="COMPLETED">🏁 Terminé</option>
             </select>
         </div>
+        <div class="filter-group">
+            <label><i class="fas fa-coins"></i> Tarif</label>
+            <select id="filterTarif" onchange="filterEvenements()">
+                <option value="">Tous les tarifs</option>
+                <option value="gratuit">🎁 Gratuit</option>
+                <option value="payant">💳 Payant</option>
+            </select>
+        </div>
     </div>
 </div>
-
-
 
 <!-- GRILLE -->
 <div class="events-grid" id="eventsGrid">
 <?php if (count($evenements) > 0): ?>
     <?php foreach ($evenements as $ev):
-        $imgUrl = $images[$ev->getTypeEvenement()] ?? $images['AUTRE'];
+        $imgUrl   = $images[$ev->getTypeEvenement()] ?? $images['AUTRE'];
+        $isPayant = $ev->isPayant();
+        $prixLabel = $isPayant ? number_format($ev->getPrix(), 2) . ' TND' : 'Gratuit';
     ?>
     <div class="event-card"
          data-titre="<?= strtolower(htmlspecialchars($ev->getTitre())) ?>"
@@ -196,12 +187,17 @@ $images = [
          data-statut="<?= $ev->getStatut() ?>"
          data-date="<?= $ev->getDateEvenement() ?>"
          data-places="<?= $ev->getNbPlacesMax() ?>"
-         data-lieu="<?= strtolower(htmlspecialchars($ev->getLieu())) ?>">
+         data-lieu="<?= strtolower(htmlspecialchars($ev->getLieu())) ?>"
+         data-tarif="<?= $isPayant ? 'payant' : 'gratuit' ?>">
 
         <div class="event-image">
             <img src="<?= $imgUrl ?>" alt="<?= htmlspecialchars($ev->getTitre()) ?>">
             <span class="event-type-badge badge-<?= $ev->getTypeEvenement() ?>"><?= $ev->getTypeEvenement() ?></span>
             <span class="event-statut-badge stt-<?= $ev->getStatut() ?>"><?= $ev->getStatut() ?></span>
+            <span class="event-prix-badge <?= $isPayant ? 'prix-payant-badge' : 'prix-gratuit-badge' ?>">
+                <i class="fas <?= $isPayant ? 'fa-credit-card' : 'fa-gift' ?>"></i>
+                <?= $prixLabel ?>
+            </span>
         </div>
 
         <div class="event-content">
@@ -215,24 +211,21 @@ $images = [
                 <?= htmlspecialchars(substr($ev->getDescription(), 0, 110)) ?><?= strlen($ev->getDescription()) > 110 ? '…' : '' ?>
             </p>
             <div class="event-footer">
-                <span class="places-badge places-ok">
-                    <i class="fas fa-ticket-alt"></i> <?= $ev->getNbPlacesMax() ?> places
+                <span class="prix-tag <?= $isPayant ? 'payant' : 'gratuit' ?>">
+                    <i class="fas <?= $isPayant ? 'fa-credit-card' : 'fa-gift' ?>"></i>
+                    <?= $prixLabel ?>
                 </span>
+
                 <?php if ($ev->getStatut() === 'ACTIF'): ?>
-                <button class="btn-inscrire"
-                    onclick='showEventModal(<?= json_encode([
-                        "id"          => $ev->getIdEvenement(),
-                        "titre"       => $ev->getTitre(),
-                        "type"        => $ev->getTypeEvenement(),
-                        "date"        => date("d/m/Y", strtotime($ev->getDateEvenement())),
-                        "lieu"        => $ev->getLieu(),
-                        "places"      => $ev->getNbPlacesMax(),
-                        "description" => $ev->getDescription()
-                    ]) ?>)'>
+                <!-- ── LIEN DIRECT vers afficherParticipation.php ── -->
+                <a href="afficherParticipation.php?id=<?= $ev->getIdEvenement() ?>"
+                   class="btn-inscrire">
                     <i class="fas fa-user-plus"></i> S'inscrire
-                </button>
+                </a>
                 <?php else: ?>
-                <span style="color:#aaa;font-size:.84em;font-style:italic"><i class="fas fa-lock"></i> Non disponible</span>
+                <span style="color:#aaa;font-size:.84em;font-style:italic">
+                    <i class="fas fa-lock"></i> Non disponible
+                </span>
                 <?php endif; ?>
             </div>
         </div>
@@ -251,17 +244,6 @@ $images = [
         <i class="fas fa-search"></i>
         <h3>Aucun événement trouvé</h3>
         <p>Modifiez vos critères de recherche.</p>
-    </div>
-</div>
-
-<!-- MODAL -->
-<div id="eventModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-calendar-check"></i> Détails de l'événement</h3>
-            <button class="modal-close" onclick="closeModal()">&times;</button>
-        </div>
-        <div class="modal-body" id="modalBody"></div>
     </div>
 </div>
 
@@ -297,102 +279,34 @@ $images = [
 </footer>
 
 <script>
-// ===== FILTRES =====
 function filterEvenements() {
     const search = document.getElementById('searchEvenement').value.toLowerCase();
     const type   = document.getElementById('filterType').value;
     const statut = document.getElementById('filterStatut').value;
+    const tarif  = document.getElementById('filterTarif').value;
     const cards  = document.querySelectorAll('.event-card');
     let visibleCount = 0;
 
     cards.forEach(card => {
-        const titre      = card.getAttribute('data-titre') || '';
-        const cardType   = card.getAttribute('data-type')  || '';
-        const cardStatut = card.getAttribute('data-statut')|| '';
-        const lieu       = card.getAttribute('data-lieu')  || '';
-
         let match = true;
-        if (search  && !titre.includes(search)) match = false;
-        if (type    && cardType   !== type)   match = false;
-        if (statut  && cardStatut !== statut) match = false;
-
-        if (match) {
-            card.style.display = '';
-            visibleCount++;
-        } else {
-            card.style.display = 'none';
-        }
+        if (search && !card.dataset.titre.includes(search) && !card.dataset.lieu.includes(search)) match = false;
+        if (type   && card.dataset.type   !== type)   match = false;
+        if (statut && card.dataset.statut !== statut) match = false;
+        if (tarif  && card.dataset.tarif  !== tarif)  match = false;
+        card.style.display = match ? '' : 'none';
+        if (match) visibleCount++;
     });
 
     document.getElementById('noResults').style.display = visibleCount === 0 ? 'block' : 'none';
 }
 
-// ===== TRI =====
-let sortDir = { date: 'asc', titre: 'asc', places: 'desc' };
-let currentSort = 'date';
-
-function sortEvenements(criterion) {
-    // Inverser direction si même critère
-    if (currentSort === criterion) {
-        sortDir[criterion] = sortDir[criterion] === 'asc' ? 'desc' : 'asc';
-    }
-    currentSort = criterion;
-
-    // Mettre à jour boutons
-    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('sort-' + criterion).classList.add('active');
-
-    const grid  = document.getElementById('eventsGrid');
-    const cards = Array.from(grid.querySelectorAll('.event-card'));
-
-    cards.sort((a, b) => {
-        let aVal, bVal;
-        if (criterion === 'date') {
-            aVal = new Date(a.dataset.date);
-            bVal = new Date(b.dataset.date);
-            return sortDir[criterion] === 'asc' ? aVal - bVal : bVal - aVal;
-        } else if (criterion === 'titre') {
-            aVal = a.dataset.titre;
-            bVal = b.dataset.titre;
-            return sortDir[criterion] === 'asc'
-                ? aVal.localeCompare(bVal, 'fr')
-                : bVal.localeCompare(aVal, 'fr');
-        } else if (criterion === 'places') {
-            aVal = parseInt(a.dataset.places);
-            bVal = parseInt(b.dataset.places);
-            return sortDir[criterion] === 'asc' ? aVal - bVal : bVal - aVal;
-        }
-    });
-
-    cards.forEach(card => grid.appendChild(card));
-}
-
-// ===== MODAL =====
-function showEventModal(ev) {
-    const typeTexts = { SPORT:'🏃 Sport', NUTRITION:'🥗 Nutrition', WORKSHOP:'📚 Workshop', AUTRE:'📅 Autre' };
-    document.getElementById('modalBody').innerHTML = `
-        <div class="modal-detail"><strong><i class="fas fa-heading"></i> Titre :</strong> ${ev.titre}</div>
-        <div class="modal-detail"><strong><i class="fas fa-tag"></i> Type :</strong> ${typeTexts[ev.type] || ev.type}</div>
-        <div class="modal-detail"><strong><i class="fas fa-calendar-day"></i> Date :</strong> ${ev.date}</div>
-        <div class="modal-detail"><strong><i class="fas fa-map-marker-alt"></i> Lieu :</strong> ${ev.lieu}</div>
-        <div class="modal-detail"><strong><i class="fas fa-users"></i> Places :</strong> ${ev.places} places disponibles</div>
-        <div class="modal-detail"><strong><i class="fas fa-align-left"></i> Description :</strong><br>${ev.description}</div>
-        <div style="text-align:center">
-            <a href="afficherParticipation.php?id=${ev.id}" class="btn-s-inscrire">
-                <i class="fas fa-user-plus"></i> S'inscrire à cet événement
-            </a>
-        </div>
-    `;
-    document.getElementById('eventModal').style.display = 'flex';
-}
-
-function closeModal() { document.getElementById('eventModal').style.display = 'none'; }
-window.onclick = e => { if (e.target === document.getElementById('eventModal')) closeModal(); };
-
 document.addEventListener('DOMContentLoaded', function() {
     const hamburger = document.querySelector('.hamburger');
     const navMenu   = document.querySelector('.nav-menu');
-    if (hamburger && navMenu) hamburger.addEventListener('click', () => { hamburger.classList.toggle('active'); navMenu.classList.toggle('active'); });
+    if (hamburger && navMenu) hamburger.addEventListener('click', () => {
+        hamburger.classList.toggle('active');
+        navMenu.classList.toggle('active');
+    });
 });
 </script>
 </body>
