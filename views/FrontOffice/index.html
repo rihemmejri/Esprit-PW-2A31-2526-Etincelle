@@ -25,6 +25,8 @@
             --profile-bg: #f0f2f5;
             --profile-hover: #e4e6e9;
             --input-bg: #f0f2f5;
+            --notification-bg: white;
+            --notification-hover: #f5f5f5;
         }
 
         body.dark {
@@ -38,6 +40,8 @@
             --profile-bg: #2a2a35;
             --profile-hover: #3a3a45;
             --input-bg: #2a2a35;
+            --notification-bg: #1e1e2a;
+            --notification-hover: #2a2a35;
         }
 
         body {
@@ -120,6 +124,184 @@
             align-items: center;
             gap: 20px;
         }
+
+        /* ===== STYLES NOTIFICATIONS ===== */
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notification-bell i {
+            font-size: 1.3rem;
+            color: var(--text-primary);
+            transition: 0.3s;
+        }
+
+        .notification-bell:hover i {
+            color: #4CAF50;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -10px;
+            background: #dc2626;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: bold;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 380px;
+            max-width: calc(100vw - 20px);
+            background: var(--notification-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            z-index: 1000;
+            display: none;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .notification-bell.active .notification-dropdown {
+            display: block;
+        }
+
+        .notification-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-header h4 {
+            margin: 0;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .mark-all-read {
+            font-size: 0.7rem;
+            color: #4CAF50;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .notification-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .notification-item:hover {
+            background: var(--notification-hover);
+        }
+
+        .notification-item.unread {
+            background: rgba(76, 175, 80, 0.08);
+            border-left: 3px solid #4CAF50;
+        }
+
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .notification-icon i {
+            font-size: 1.2rem;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .notification-message {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .notification-time {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        .notification-empty {
+            padding: 40px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .notification-empty i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        /* Toast notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--notification-bg);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            z-index: 2000;
+            animation: slideInRight 0.3s ease;
+            max-width: 350px;
+            border-left: 4px solid;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .toast-notification.fade-out {
+            animation: fadeOut 0.3s ease forwards;
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateX(100%); }
+        }
+
+        /* ===== FIN STYLES NOTIFICATIONS ===== */
 
         .profile-dropdown {
             position: relative;
@@ -236,7 +418,6 @@
             color: var(--text-primary);
         }
 
-        /* Dark mode toggle inside dropdown */
         .dropdown-theme {
             padding: 10px 20px;
             border-bottom: 1px solid var(--border-color);
@@ -458,6 +639,10 @@
             .profile-name {
                 display: none;
             }
+            .notification-dropdown {
+                width: 320px;
+                right: -50px;
+            }
         }
     </style>
 </head>
@@ -477,6 +662,24 @@
         </ul>
         
         <div class="right-section">
+            <!-- NOTIFICATIONS -->
+            <div class="notification-bell" id="notificationBell">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <h4><i class="fas fa-bell"></i> Notifications</h4>
+                        <a href="#" class="mark-all-read" id="markAllReadBtn">Tout marquer comme lu</a>
+                    </div>
+                    <div class="notification-list" id="notificationList">
+                        <div class="notification-empty">
+                            <i class="fas fa-bell-slash"></i>
+                            <p>Aucune notification</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="profile-dropdown" id="profileDropdown">
                 <div class="profile-trigger" onclick="toggleDropdown(event)">
                     <div class="profile-avatar" id="userAvatar">JD</div>
@@ -503,7 +706,6 @@
                             <span class="info-value" id="userStatus">Actif</span>
                         </div>
                     </div>
-                    <!-- Dark mode toggle inside dropdown -->
                     <div class="dropdown-theme">
                         <span><i class="fas fa-moon"></i> Mode sombre</span>
                         <div class="theme-switch" onclick="toggleTheme(event)"></div>
@@ -566,8 +768,167 @@
 
 <script>
     let currentUser = null;
+    let notifications = [];
+    let unreadCount = 0;
+    let lastCheckTime = new Date();
     
-    // Dark mode functions
+    // ===== NOTIFICATIONS FUNCTIONS =====
+    async function loadNotifications() {
+        try {
+            const response = await fetch('../../controleurs/notification_api.php?action=get');
+            const data = await response.json();
+            
+            if (data.success) {
+                notifications = data.notifications;
+                unreadCount = data.unread_count;
+                updateNotificationUI();
+            }
+        } catch (error) {
+            console.error('Erreur chargement notifications:', error);
+        }
+    }
+    
+    function updateNotificationUI() {
+        const badge = document.getElementById('notificationBadge');
+        if (unreadCount > 0) {
+            badge.style.display = 'flex';
+            badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+        } else {
+            badge.style.display = 'none';
+        }
+        
+        const listContainer = document.getElementById('notificationList');
+        if (!notifications || notifications.length === 0) {
+            listContainer.innerHTML = `
+                <div class="notification-empty">
+                    <i class="fas fa-bell-slash"></i>
+                    <p>Aucune notification</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        notifications.forEach(notif => {
+            const timeAgo = getTimeAgo(notif.created_at);
+            const unreadClass = notif.is_read == 0 ? 'unread' : '';
+            
+            html += `
+                <div class="notification-item ${unreadClass}" data-id="${notif.id_notification}" onclick="markAsRead(${notif.id_notification})">
+                    <div class="notification-icon" style="background: ${notif.color}20; color: ${notif.color}">
+                        <i class="fas ${notif.icon}"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">${escapeHtml(notif.title)}</div>
+                        <div class="notification-message">${escapeHtml(notif.message)}</div>
+                        <div class="notification-time">${timeAgo}</div>
+                    </div>
+                </div>
+            `;
+        });
+        listContainer.innerHTML = html;
+    }
+    
+    function getTimeAgo(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+        
+        if (diffMins < 1) return 'À l\'instant';
+        if (diffMins < 60) return `Il y a ${diffMins} min`;
+        if (diffHours < 24) return `Il y a ${diffHours} h`;
+        if (diffDays === 1) return 'Hier';
+        return `Il y a ${diffDays} jours`;
+    }
+    
+    async function markAsRead(id) {
+        try {
+            const response = await fetch('../../controleurs/notification_api.php?action=mark_read', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_notification: id })
+            });
+            const data = await response.json();
+            if (data.success) {
+                loadNotifications();
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+        }
+    }
+    
+    async function markAllAsRead() {
+        try {
+            const response = await fetch('../../controleurs/notification_api.php?action=mark_all_read', {
+                method: 'POST'
+            });
+            const data = await response.json();
+            if (data.success) {
+                loadNotifications();
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+        }
+    }
+    
+    function showToastNotification(title, message, color = '#4CAF50') {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.style.borderLeftColor = color;
+        toast.innerHTML = `
+            <i class="fas fa-bell" style="color: ${color}"></i>
+            <div>
+                <strong style="font-size: 0.85rem;">${escapeHtml(title)}</strong>
+                <p style="font-size: 0.75rem; margin: 0;">${escapeHtml(message)}</p>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.add('fade-out');
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
+    }
+    
+    async function checkNewNotifications() {
+        try {
+            const response = await fetch('../../controleurs/notification_api.php?action=get');
+            const data = await response.json();
+            
+            if (data.success && data.notifications) {
+                const newUnreadCount = data.unread_count;
+                
+                if (newUnreadCount > unreadCount && notifications.length > 0) {
+                    const newNotifs = data.notifications.filter(n => !notifications.find(old => old.id_notification === n.id_notification));
+                    if (newNotifs.length > 0) {
+                        const latest = newNotifs[0];
+                        showToastNotification(latest.title, latest.message, latest.color);
+                    }
+                }
+                
+                notifications = data.notifications;
+                unreadCount = newUnreadCount;
+                updateNotificationUI();
+            }
+        } catch (error) {
+            console.error('Erreur check notifications:', error);
+        }
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // ===== DARK MODE FUNCTIONS =====
     function loadTheme() {
         const savedTheme = localStorage.getItem('nutriloop_theme');
         if (savedTheme === 'dark') {
@@ -589,6 +950,7 @@
         }
     }
     
+    // ===== USER SESSION FUNCTIONS =====
     async function loadUserData() {
         try {
             const response = await fetch('get_user_session.php');
@@ -596,6 +958,7 @@
             if (data.user) {
                 currentUser = data.user;
                 updateProfileUI();
+                loadNotifications();
             } else {
                 window.location.href = 'login.php';
             }
@@ -631,20 +994,37 @@
         }
     }
     
+    // ===== EVENT LISTENERS =====
     document.addEventListener('click', function(event) {
         const dropdown = document.getElementById('profileDropdown');
         if (dropdown && !dropdown.contains(event.target)) {
             dropdown.classList.remove('active');
         }
+        const notificationBell = document.getElementById('notificationBell');
+        if (notificationBell && !notificationBell.contains(event.target)) {
+            notificationBell.classList.remove('active');
+        }
     });
     
-    // Empêcher la fermeture du dropdown quand on clique sur le toggle theme dans le dropdown
+    document.getElementById('notificationBell')?.addEventListener('click', function(e) {
+        e.stopPropagation();
+        this.classList.toggle('active');
+    });
+    
+    document.getElementById('markAllReadBtn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        markAllAsRead();
+    });
+    
     document.querySelector('.dropdown-theme')?.addEventListener('click', function(e) {
         e.stopPropagation();
     });
     
+    // ===== INITIALISATION =====
     loadTheme();
     loadUserData();
+    setInterval(checkNewNotifications, 30000);
 </script>
 </body>
 </html>

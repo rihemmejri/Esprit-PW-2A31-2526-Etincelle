@@ -30,6 +30,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $result = $userController->addUser($user);
             
             if ($result) {
+                // 🔔 NOTIFICATION : UNIQUEMENT POUR LES ADMINS
+                require_once __DIR__ . '/../../controleurs/NotificationController.php';
+                $notificationController = new NotificationController();
+                
+                // Envoyer une notification uniquement aux administrateurs
+                $notificationController->notifyAdminsOnly(
+                    'signup',
+                    '📝 NOUVEL UTILISATEUR INSCRIT',
+                    "Un nouvel utilisateur vient de s'inscrire : {$_POST['prenom']} {$_POST['nom']} ({$_POST['email']})"
+                );
+                
                 $success = "Inscription réussie ! Vous pouvez maintenant vous connecter.";
                 header("refresh:2;url=login.php");
             } else {
@@ -375,7 +386,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     const hasNumbers = /[0-9]/.test(password);
                     const hasSymbols = /[!@#$%^&*(),.?":{}|<>]/.test(password);
                     
-                    // Faible : 1 seul type (lettres uniquement OU chiffres uniquement OU symboles uniquement)
                     if ((hasLetters && !hasNumbers && !hasSymbols) || 
                         (!hasLetters && hasNumbers && !hasSymbols) || 
                         (!hasLetters && !hasNumbers && hasSymbols)) {
@@ -383,7 +393,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         className = 'strength-faible text-faible';
                         progressWidth = 33;
                     }
-                    // Moyen : 2 types (lettres+chiffres OU lettres+symboles OU chiffres+symboles)
                     else if ((hasLetters && hasNumbers && !hasSymbols) || 
                              (hasLetters && !hasNumbers && hasSymbols) || 
                              (!hasLetters && hasNumbers && hasSymbols)) {
@@ -391,7 +400,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         className = 'strength-moyen text-moyen';
                         progressWidth = 66;
                     }
-                    // Fort : les 3 types ensemble (lettres + chiffres + symboles)
                     else if (hasLetters && hasNumbers && hasSymbols) {
                         message = '✅ Mot de passe fort';
                         className = 'strength-fort text-fort';

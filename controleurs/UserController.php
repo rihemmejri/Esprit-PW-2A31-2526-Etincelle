@@ -1,23 +1,21 @@
 <?php
 // controleurs/UserController.php
 require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../models/ConnexionStats.php';
 require_once __DIR__ . '/../config.php';
 
 class UserController {
 
-    // Afficher la liste des utilisateurs
     public function listUsers() {
         $sql = "SELECT * FROM user ORDER BY id_user DESC";
         $db = config::getConnexion();
         try {
-            $list = $db->query($sql);
-            return $list;
+            return $db->query($sql);
         } catch (Exception $e) {
             die('Error:' . $e->getMessage());
         }
     }
 
-    // Supprimer un utilisateur
     public function deleteUser($id_user) {
         $sql = "DELETE FROM user WHERE id_user = :id_user";
         $db = config::getConnexion();
@@ -31,10 +29,9 @@ class UserController {
         }
     }
 
-    // Ajouter un utilisateur
     public function addUser(User $user) {
-        $sql = "INSERT INTO user (nom, prenom, email, mot_de_passe, date_inscription, role, statut) 
-                VALUES (:nom, :prenom, :email, :mot_de_passe, :date_inscription, :role, :statut)";
+        $sql = "INSERT INTO user (nom, prenom, email, mot_de_passe, date_inscription, role, statut, failed_attempts, is_locked) 
+                VALUES (:nom, :prenom, :email, :mot_de_passe, :date_inscription, :role, :statut, 0, 0)";
         $db = config::getConnexion();
         try {
             $query = $db->prepare($sql);
@@ -54,53 +51,30 @@ class UserController {
         }
     }
 
-    // Modifier un utilisateur (sans modifier le mot de passe) - CORRIGÉ
     public function updateUser(User $user, $id_user) {
         try {
-            $db = config::getConnexion();  // Utiliser config au lieu de Database
-            
-            $sql = "UPDATE user SET 
-                    nom = :nom, 
-                    prenom = :prenom, 
-                    email = :email, 
-                    role = :role, 
-                    statut = :statut 
-                    WHERE id_user = :id_user";
-            
+            $db = config::getConnexion();
+            $sql = "UPDATE user SET nom = :nom, prenom = :prenom, email = :email, role = :role, statut = :statut WHERE id_user = :id_user";
             $stmt = $db->prepare($sql);
-            
-            $result = $stmt->execute([
+            return $stmt->execute([
                 ':nom' => $user->getNom(),
                 ':prenom' => $user->getPrenom(),
                 ':email' => $user->getEmail(),
                 ':role' => $user->getRole(),
                 ':statut' => $user->getStatut(),
-                ':id_user' => $id_user  // Changer :id en :id_user
+                ':id_user' => $id_user
             ]);
-            
-            return $result;
         } catch (PDOException $e) {
             error_log("Erreur updateUser: " . $e->getMessage());
             return false;
         }
     }
 
-    // Modifier un utilisateur avec mot de passe
     public function updateUserWithPassword(User $user, $id_user, $new_password = null) {
         try {
             $db = config::getConnexion();
-            
             if ($new_password) {
-                $sql = 'UPDATE user SET 
-                    nom = :nom,
-                    prenom = :prenom,
-                    email = :email,
-                    mot_de_passe = :mot_de_passe,
-                    date_inscription = :date_inscription,
-                    role = :role,
-                    statut = :statut
-                WHERE id_user = :id_user';
-                
+                $sql = 'UPDATE user SET nom = :nom, prenom = :prenom, email = :email, mot_de_passe = :mot_de_passe, date_inscription = :date_inscription, role = :role, statut = :statut WHERE id_user = :id_user';
                 $query = $db->prepare($sql);
                 $query->execute([
                     'id_user' => $id_user,
@@ -113,15 +87,7 @@ class UserController {
                     'statut' => $user->getStatut()
                 ]);
             } else {
-                $sql = 'UPDATE user SET 
-                    nom = :nom,
-                    prenom = :prenom,
-                    email = :email,
-                    date_inscription = :date_inscription,
-                    role = :role,
-                    statut = :statut
-                WHERE id_user = :id_user';
-                
+                $sql = 'UPDATE user SET nom = :nom, prenom = :prenom, email = :email, date_inscription = :date_inscription, role = :role, statut = :statut WHERE id_user = :id_user';
                 $query = $db->prepare($sql);
                 $query->execute([
                     'id_user' => $id_user,
@@ -140,23 +106,19 @@ class UserController {
         }
     }
 
-    // Afficher un seul utilisateur
     public function showUser($id_user) {
         $sql = "SELECT * FROM user WHERE id_user = :id_user";
         $db = config::getConnexion();
         $query = $db->prepare($sql);
         $query->bindValue(':id_user', $id_user);
-
         try {
             $query->execute();
-            $user = $query->fetch(PDO::FETCH_ASSOC);
-            return $user;
+            return $query->fetch(PDO::FETCH_ASSOC);
         } catch(Exception $e) {
             die('Error: '. $e->getMessage());
         }
     }
 
-    // Trouver un utilisateur par email
     public function findUserByEmail($email) {
         $sql = "SELECT * FROM user WHERE email = :email";
         $db = config::getConnexion();
@@ -165,21 +127,183 @@ class UserController {
         return $query->fetch(PDO::FETCH_ASSOC);
     }
 
-    // Méthode LOGIN
-    public function login($email, $password) {
-        $sql = "SELECT * FROM user WHERE email = :email";
-        $db = config::getConnexion();
-        $query = $db->prepare($sql);
-        $query->execute(['email' => $email]);
-        $user = $query->fetch(PDO::FETCH_ASSOC);
-        
-        if($user && password_verify($password, $user['mot_de_passe'])) {
-            return $user;
-        }
-        return false;
+    // ========== FONCTIONS DE VERROUILLAGE (par EMAIL) ==========
+    
+    public function isAccountLocked($email) {
+        $user = $this->findUserByEmail($email);
+        if (!$user) return false;
+        return isset($user['is_locked']) && $user['is_locked'] == 1;
     }
     
-    // Compter le nombre total d'utilisateurs
+    private function lockAccountByEmail($email) {
+        $sql = "UPDATE user SET is_locked = 1, locked_at = NOW(), failed_attempts = 3 WHERE email = :email";
+        $db = config::getConnexion();
+        $stmt = $db->prepare($sql);
+        return $stmt->execute([':email' => $email]);
+    }
+    
+    public function unlockAccountByEmail($email) {
+        $sql = "UPDATE user SET is_locked = 0, locked_at = NULL, failed_attempts = 0 WHERE email = :email";
+        $db = config::getConnexion();
+        $stmt = $db->prepare($sql);
+        return $stmt->execute([':email' => $email]);
+    }
+    
+    public function getLockedAccounts() {
+        $sql = "SELECT * FROM user WHERE is_locked = 1 ORDER BY locked_at DESC";
+        $db = config::getConnexion();
+        $stmt = $db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    // ========== FONCTIONS DE NOTIFICATION ==========
+    
+    private function createNotification($id_user, $type, $title, $message, $lien = null) {
+        $sql = "INSERT INTO notifications (id_user, type, title, message, lien, created_at) 
+                VALUES (:id_user, :type, :title, :message, :lien, NOW())";
+        $db = config::getConnexion();
+        $stmt = $db->prepare($sql);
+        return $stmt->execute([
+            ':id_user' => $id_user,
+            ':type' => $type,
+            ':title' => $title,
+            ':message' => $message,
+            ':lien' => $lien
+        ]);
+    }
+    
+    private function notifyAllAdmins($type, $title, $message, $lien = null) {
+        $sql = "SELECT id_user FROM user WHERE role = 'ADMIN' AND statut = 'actif'";
+        $db = config::getConnexion();
+        $stmt = $db->prepare($sql);
+        $stmt->execute();
+        $admins = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        foreach ($admins as $admin) {
+            $this->createNotification($admin['id_user'], $type, $title, $message, $lien);
+        }
+        return count($admins);
+    }
+    
+    private function registerFailedAttempt($email, $ip) {
+        $user = $this->findUserByEmail($email);
+        
+        if ($user) {
+            $currentAttempts = $user['failed_attempts'] ?? 0;
+            $failedAttempts = $currentAttempts + 1;
+            
+            // Mettre à jour le nombre de tentatives
+            $sql = "UPDATE user SET failed_attempts = :failed_attempts WHERE email = :email";
+            $db = config::getConnexion();
+            $stmt = $db->prepare($sql);
+            $stmt->execute([
+                ':failed_attempts' => $failedAttempts,
+                ':email' => $email
+            ]);
+            
+            // Si 3 tentatives -> verrouillage + notification avec LIEN
+            if ($failedAttempts >= 3) {
+                $this->lockAccountByEmail($email);
+                
+                // 🔴 LIEN VERS LA PAGE DES COMPTES VERROUILLÉS
+                $lien = '../BackOffice/index.html';
+                
+                $this->notifyAllAdmins(
+                    'account_locked',
+                    '🔒 COMPTE VERROUILLÉ',
+                    "Le compte de {$user['prenom']} {$user['nom']} ({$user['email']}) a été verrouillé après 3 tentatives de connexion échouées depuis l'IP: {$ip}",
+                    $lien
+                );
+            }
+        }
+        
+        // Logger
+        $sql = "INSERT INTO connexion_logs (email, success, ip_address, attempt_time) VALUES (:email, 0, :ip, NOW())";
+        $db = config::getConnexion();
+        $stmt = $db->prepare($sql);
+        $stmt->execute([':email' => $email, ':ip' => $ip]);
+    }
+    
+    private function resetFailedAttempts($email) {
+        $sql = "UPDATE user SET failed_attempts = 0 WHERE email = :email";
+        $db = config::getConnexion();
+        $stmt = $db->prepare($sql);
+        $stmt->execute([':email' => $email]);
+    }
+
+    // ========== LOGIN PRINCIPAL (par EMAIL) ==========
+    
+    public function login($email, $password) {
+        $user = $this->findUserByEmail($email);
+        
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        
+        // Vérifier si l'utilisateur existe
+        if (!$user) {
+            $_SESSION['login_error'] = "Email ou mot de passe incorrect";
+            return false;
+        }
+        
+        // Vérifier si le compte est verrouillé
+        if ($this->isAccountLocked($email)) {
+            $_SESSION['login_error'] = "🔒 COMPTE VERROUILLE !\n\nContactez un administrateur pour débloquer votre compte.";
+            return false;
+        }
+        
+        // Vérifier mot de passe
+        if (password_verify($password, $user['mot_de_passe'])) {
+            // Succès
+            $this->resetFailedAttempts($email);
+            
+            $stats = new ConnexionStats();
+            $stats->logConnexion($user['id_user']);
+            
+            return $user;
+        } else {
+            // Échec
+            $currentAttempts = $user['failed_attempts'] ?? 0;
+            $newAttempts = $currentAttempts + 1;
+            $remaining = 3 - $newAttempts;
+            
+            $this->registerFailedAttempt($email, $ip);
+            
+            if ($newAttempts >= 3) {
+                $_SESSION['login_error'] = "❌ COMPTE VERROUILLE !\n\n3 tentatives échouées.\nVotre compte est maintenant verrouillé.\nContactez un administrateur pour le débloquer.";
+            } else {
+                $_SESSION['login_error'] = "❌ Mot de passe incorrect\n\nTentative {$newAttempts}/3\n⚠️ Plus que {$remaining} tentative(s) avant verrouillage définitif.";
+            }
+            
+            return false;
+        }
+    }
+    
+    // ========== ADMIN : DÉVERROUILLER PAR EMAIL ==========
+    
+    public function adminUnlockAccountByEmail($email, $adminName) {
+        $user = $this->findUserByEmail($email);
+        if (!$user) return false;
+        
+        $this->unlockAccountByEmail($email);
+        
+        // Notifier l'utilisateur
+        $this->createNotification(
+            $user['id_user'],
+            'account_unlocked',
+            '🔓 Compte déverrouillé',
+            "L'administrateur {$adminName} a déverrouillé votre compte. Vous pouvez maintenant vous reconnecter."
+        );
+        
+        // Notifier les autres admins
+        $this->notifyAllAdmins(
+            'account_unlocked',
+            '🔓 Compte déverrouillé par admin',
+            "L'administrateur {$adminName} a déverrouillé le compte de {$user['prenom']} {$user['nom']} ({$email})"
+        );
+        
+        return true;
+    }
+
     public function countUsers() {
         $sql = "SELECT COUNT(*) as total FROM user";
         $db = config::getConnexion();
@@ -191,8 +315,7 @@ class UserController {
             die('Error:' . $e->getMessage());
         }
     }
-    
-    // Rechercher des utilisateurs
+
     public function searchUsers($keyword) {
         $sql = "SELECT * FROM user WHERE nom LIKE :keyword OR prenom LIKE :keyword OR email LIKE :keyword";
         $db = config::getConnexion();
@@ -200,16 +323,12 @@ class UserController {
         $query->execute(['keyword' => '%' . $keyword . '%']);
         return $query;
     }
-    
-    // Changer le statut d'un utilisateur
+
     public function changeStatus($id_user, $statut) {
         $sql = "UPDATE user SET statut = :statut WHERE id_user = :id_user";
         $db = config::getConnexion();
         $query = $db->prepare($sql);
-        $query->execute([
-            'id_user' => $id_user,
-            'statut' => $statut
-        ]);
+        $query->execute(['id_user' => $id_user, 'statut' => $statut]);
         return true;
     }
 }

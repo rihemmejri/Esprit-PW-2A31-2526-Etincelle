@@ -3,10 +3,9 @@ session_start();
 require_once __DIR__ . '/../../controleurs/UserController.php';
 require_once __DIR__ . '/../../models/User.php';
 
-// Si déjà connecté, rediriger selon le rôle
 if (isset($_SESSION['user'])) {
     if ($_SESSION['user']['role'] === 'ADMIN') {
-        header('Location: ../BackOffice/index.html');
+        header('Location: ../BackOffice/choose_interface.php');
     } else {
         header('Location: index.html');
     }
@@ -14,6 +13,7 @@ if (isset($_SESSION['user'])) {
 }
 
 $error = '';
+$locked_message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $userController = new UserController();
@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if ($user) {
         $_SESSION['user'] = $user;
-        session_regenerate_id(true); // تبديل ID session لأمان
+        session_regenerate_id(true);
         if ($user['role'] === 'ADMIN') {
             header('Location: ../BackOffice/choose_interface.php');
         } else {
@@ -29,7 +29,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         exit();
     } else {
-        $error = "Email ou mot de passe incorrect";
+        if (isset($_SESSION['login_error'])) {
+            $error = $_SESSION['login_error'];
+            unset($_SESSION['login_error']);
+        } else {
+            $error = "Email ou mot de passe incorrect";
+        }
     }
 }
 ?>
@@ -164,10 +169,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .alert {
-            padding: 12px 15px;
-            border-radius: 10px;
+            padding: 15px 20px;
+            border-radius: 12px;
             margin-bottom: 20px;
             font-size: 14px;
+            white-space: pre-line;
         }
         
         .alert-danger {
@@ -176,27 +182,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-left: 4px solid #dc2626;
         }
         
+        .alert-warning {
+            background: #fff3e0;
+            color: #ff9800;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .alert-error {
+            background: #fee2e2;
+            color: #b91c1c;
+            border-left: 4px solid #b91c1c;
+            font-weight: 500;
+        }
+        
         .alert-success {
             background: #d4edda;
             color: #155724;
             border-left: 4px solid #28a745;
-        }
-        
-        .register-link {
-            text-align: center;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #e0e0e0;
-        }
-        
-        .register-link a {
-            color: #4CAF50;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        
-        .register-link a:hover {
-            text-decoration: underline;
         }
         
         .forgot-password {
@@ -216,12 +218,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #4CAF50;
             text-decoration: underline;
         }
+        
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .register-link a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .security-info {
+            background: #f0f2f5;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 11px;
+            color: #666;
+            text-align: center;
+        }
+        
+        .lock-icon {
+            display: inline-block;
+            margin-right: 8px;
+        }
     </style>
-    <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
 </head>
 <body>
     <div class="login-container">
@@ -233,8 +262,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
        
         <div class="login-form">
             <?php if ($error): ?>
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($error) ?>
+                <div class="alert alert-error">
+                    <i class="fas <?= strpos($error, 'verrouillé') !== false ? 'fa-lock' : 'fa-exclamation-circle' ?>"></i>
+                    <?= nl2br(htmlspecialchars($error)) ?>
                 </div>
             <?php endif; ?>
             
@@ -271,13 +301,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <i class="fas fa-arrow-right-to-bracket"></i> Se connecter
                 </button>
             </form>
-             <a href="face-login.php" style="display: inline-flex; align-items: center; gap: 10px; background: #000; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none;">
-    <i class="fas fa-face-smile"></i>
-    Se connecter avec Face ID
-</a>
             
             <div class="register-link">
                 <p>Pas encore de compte ? <a href="register.php">Inscrivez-vous</a></p>
+            </div>
+            
+            <div class="security-info">
+                <i class="fas fa-shield-alt"></i> Sécurité : après 3 tentatives échouées, votre compte sera verrouillé 15 minutes
             </div>
         </div>
     </div>
