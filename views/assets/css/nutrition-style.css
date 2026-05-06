@@ -55,37 +55,6 @@ body {
     }
 }
 
-/* Notification Success */
-.notification-success {
-    background: linear-gradient(135deg, var(--success-light) 0%, var(--success-green) 100%);
-    color: var(--white);
-    padding: 16px 20px;
-    margin: 0 20px 20px 20px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: 600;
-    font-size: 15px;
-    animation: slideDown 0.5s ease-out;
-    border-left: 4px solid var(--white);
-}
-
-.notification-success i {
-    font-size: 20px;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 .form-card {
     background: var(--white);
     border-radius: 20px;

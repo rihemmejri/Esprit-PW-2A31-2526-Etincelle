@@ -1,5 +1,4 @@
 <?php
-session_start();
 include '../../controleurs/RecetteController.php';
 require_once __DIR__ . '/../../models/recette.php';
 
@@ -45,7 +44,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Mettre à jour dans la BD
         $recetteController->updateRecette($recette);
         
-        $_SESSION['success_message'] = 'Recette modifiée avec succès';
         // Redirection
         header('Location: recetteList.php');
         exit;

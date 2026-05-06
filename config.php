@@ -21,9 +21,9 @@ if (!class_exists('Config')) {
                     $pass = getenv('DB_PASS');
 
                     self::$conn = new PDO(
-                        "mysql:host=$host;dbname=$dbname",
-                        $user,
-                        $pass,
+                        "mysql:host=localhost;dbname=Nutriloop",
+                        "root",
+                        "",
                         [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
                     );
                 } catch (PDOException $e) {
