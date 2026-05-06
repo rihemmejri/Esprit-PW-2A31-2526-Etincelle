@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriLoop AI | Dashboard Admin</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .logo-img {
+            width: 45px; height: 45px;
+            border-radius: 12px; object-fit: cover;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem; margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white; border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: 0.3s; position: relative; overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: ''; position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: linear-gradient(90deg, #4CAF50, #003366);
+        }
+
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+
+        .stat-icon { font-size: 2rem; color: #4CAF50; float: right; opacity: 0.7; }
+
+        /* Recherche */
+        .search-bar { position: relative; }
+
+        .search-suggestions {
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: white; border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            z-index: 1000; display: none;
+            max-height: 300px; overflow-y: auto;
+        }
+
+        .search-suggestions.show { display: block; }
+
+        .suggestion-item {
+            padding: 10px 15px; cursor: pointer;
+            transition: 0.2s; display: flex; align-items: center; gap: 10px;
+        }
+
+        .suggestion-item:hover { background: #f5f7fa; }
+        .suggestion-item i { color: #4CAF50; width: 20px; }
+
+        /* User */
+        .user-profile img {
+            width: 45px; height: 45px;
+            border-radius: 50%; object-fit: cover;
+            border: 2px solid #4CAF50;
+        }
+
+        /* Tips */
+        .nutrition-tips {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem; margin-top: 2rem;
+        }
+
+        .tip-card {
+            background: linear-gradient(135deg, #f5f7fa, #fff);
+            border-radius: 16px; padding: 1rem;
+            text-align: center; transition: 0.3s;
+        }
+
+        .tip-card:hover { transform: translateY(-3px); }
+
+        .tip-card img {
+            width: 60px; height: 60px;
+            border-radius: 50%; object-fit: cover; margin-bottom: 0.5rem;
+        }
+
+        .tip-card h4 { font-size: 0.9rem; color: #003366; }
+        .tip-card p  { font-size: 0.7rem; color: #666; }
+
+        /* Events récents */
+        .recent-events {
+            display: flex; gap: 1rem; margin-top: 1rem;
+            overflow-x: auto; padding-bottom: 0.5rem;
+        }
+
+        .event-mini-card {
+            min-width: 160px; background: white;
+            border-radius: 16px; padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-top: 4px solid #2196F3;
+            transition: 0.3s; cursor: pointer;
+        }
+
+        .event-mini-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+
+        .event-mini-card .event-emoji { font-size: 2rem; margin-bottom: 0.5rem; }
+        .event-mini-card h4 { font-size: 0.82rem; color: #003366; margin-bottom: 4px; }
+        .event-mini-card small { font-size: 0.72rem; color: #666; }
+
+        /* Recettes */
+        .recent-recipes {
+            display: flex; gap: 1rem; margin-top: 1rem;
+            overflow-x: auto; padding-bottom: 0.5rem;
+        }
+
+        .recipe-card {
+            min-width: 150px; background: white;
+            border-radius: 16px; padding: 0.8rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .recipe-card img {
+            width: 80px; height: 80px;
+            border-radius: 12px; object-fit: cover;
+        }
+
+        .recipe-card h4 { font-size: 0.8rem; margin-top: 0.5rem; color: #003366; }
+
+        /* Sous-menu événements */
+        .nav-sub-menu {
+            display: none;
+            flex-direction: column;
+            padding-left: 20px;
+            margin-top: 4px;
+            gap: 2px;
+        }
+
+        .nav-sub-menu.open { display: flex; }
+
+        .nav-sub-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 18px; color: rgba(255,255,255,.55);
+            cursor: pointer; transition: .2s;
+            border-radius: 8px; font-size: 0.85rem;
+        }
+
+        .nav-sub-item i { width: 16px; text-align: center; font-size: 0.85rem; }
+
+        .nav-sub-item:hover { background: rgba(255,255,255,.08); color: white; }
+
+        .nav-sub-item.active-sub { background: rgba(33,150,243,.2); color: #64B5F6; }
+
+        /* Chevron toggle */
+        .nav-toggle-icon {
+            margin-left: auto;
+            transition: transform .3s;
+            font-size: 0.75rem;
+            opacity: 0.6;
+        }
+
+        .nav-item.open .nav-toggle-icon { transform: rotate(180deg); }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+
+    <!-- ========== SIDEBAR ========== -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="../FrontOffice/image/logo.PNG" alt="Logo" class="logo-img"
+                     onerror="this.src='https://via.placeholder.com/45x45?text=🌱'">
+                <span class="logo-text">NutriLoop<br><small>Admin</small></span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <ul>
+                <!-- Dashboard -->
+                <li class="nav-item active" data-module="dashboard">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </li>
+
+                <!-- Module 1 -->
+                <li class="nav-item" data-module="users">
+                    <i class="fas fa-users"></i>
+                    <span>Utilisateurs</span>
+                    <span class="badge">Module 1</span>
+                </li>
+
+                <!-- Module 2 -->
+                <li class="nav-item" data-module="nutrition">
+                    <i class="fas fa-apple-alt"></i>
+                    <span>Nutrition Smart</span>
+                    <span class="badge">Module 2</span>
+                </li>
+
+                <!-- Module 3 -->
+                <li class="nav-item" data-module="products">
+                    <i class="fas fa-boxes"></i>
+                    <span>Gestion Produits</span>
+                    <span class="badge">Module 3</span>
+                </li>
+
+                <!-- Module 4 - Recettes avec sous-menu -->
+                <li class="nav-item" data-module="recette" data-toggle="true">
+                    <i class="fas fa-utensils"></i>
+                    <span>Recettes Anti-Gaspi</span>
+                    <span class="badge module-badge">Module 4</span>
+                    <i class="fas fa-chevron-down nav-toggle-icon"></i>
+                </li>
+                <ul class="nav-sub-menu" id="subRecette">
+                    <li class="nav-sub-item" onclick="loadModule('recetteList.php')">
+                        <i class="fas fa-list"></i> Liste des recettes
+                    </li>
+                    <li class="nav-sub-item" onclick="loadModule('addRecette.php')">
+                        <i class="fas fa-plus"></i> Ajouter une recette
+                    </li>
+                    <li class="nav-sub-item" onclick="loadModule('preperationList.php')">
+                        <i class="fas fa-list-ol"></i> Liste des préparations
+                    </li>
+                    <li class="nav-sub-item" onclick="loadModule('addPreperation.php')">
+                        <i class="fas fa-plus"></i> Ajouter une préparation
+                    </li>
+                </ul>
+
+                <!-- Module 6 - Événements avec sous-menu -->
+                <li class="nav-item" data-module="events" data-toggle="true">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Gestion Événements</span>
+                    <span class="badge">Module 6</span>
+                    <i class="fas fa-chevron-down nav-toggle-icon"></i>
+                </li>
+                <ul class="nav-sub-menu" id="subEvents">
+                    <li class="nav-sub-item" onclick="loadModule('evenementList.php')">
+                        <i class="fas fa-calendar-alt"></i> Liste des événements
+                    </li>
+                    <li class="nav-sub-item" onclick="loadModule('addEvenement.php')">
+                        <i class="fas fa-plus"></i> Ajouter un événement
+                    </li>
+                    <li class="nav-sub-item" onclick="loadModule('participationList.php')">
+                        <i class="fas fa-users"></i> Liste des participations
+                    </li>
+                    <li class="nav-sub-item" onclick="loadModule('addParticipation.php')">
+                        <i class="fas fa-user-plus"></i> Ajouter une participation
+                    </li>
+                </ul>
+
+                <!-- Module 5 -->
+                <li class="nav-item" data-module="tracking">
+                    <i class="fas fa-chart-simple"></i>
+                    <span>Suivi & Objectifs</span>
+                    <span class="badge">Module 5</span>
+                </li>
+
+                
+            </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <img src="../FrontOffice/image/ryhem.PNG" alt="Ryhem Mejri"
+                     onerror="this.src='https://randomuser.me/api/portraits/women/68.jpg'">
+                <div>
+                    <h4>Ryhem Mejri</h4>
+                    <p>Administrateur Principal</p>
+                </div>
+            </div>
+            <a href="../FrontOffice/index.html" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Front Office</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput"
+                       placeholder="Rechercher une recette, un événement...">
+                <div class="search-suggestions" id="searchSuggestions"></div>
+            </div>
+            <div class="top-actions">
+                <div class="notification">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+                <div class="user-profile">
+                    <img src="../FrontOffice/image/ryhem.PNG" alt="Profile"
+                         onerror="this.src='https://randomuser.me/api/portraits/women/68.jpg'">
+                </div>
+            </div>
+        </header>
+
+        <div class="page-content" id="pageContent">
+            <iframe id="contentFrame" src=""
+                    style="width:100%;height:calc(100vh - 120px);border:none;
+                           background:#f5f7fa;display:none;border-radius:16px;">
+            </iframe>
+
+            <div id="defaultContent">
+                <!-- Stats -->
+                <div class="stats-grid" id="dashboardStats"></div>
+
+                <!-- Conseils nutrition -->
+                <div class="data-table" style="margin-bottom:1.5rem">
+                    <h3><i class="fas fa-leaf"></i> Conseils Nutrition du jour</h3>
+                    <div class="nutrition-tips">
+                        <div class="tip-card">
+                            <img src="https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=100&h=100&fit=crop" alt="Fruits">
+                            <h4>🥗 Mangez coloré</h4>
+                            <p>Variez les fruits et légumes pour tous les nutriments</p>
+                        </div>
+                        <div class="tip-card">
+                            <img src="https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=100&h=100&fit=crop" alt="Eau">
+                            <h4>💧 Hydratez-vous</h4>
+                            <p>Buvez 1.5L à 2L d'eau par jour</p>
+                        </div>
+                        <div class="tip-card">
+                            <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&h=100&fit=crop" alt="Équilibre">
+                            <h4>⚖️ Équilibre</h4>
+                            <p>50% légumes, 25% protéines, 25% féculents</p>
+                        </div>
+                        <div class="tip-card">
+                            <img src="https://images.unsplash.com/photo-1599058917765-a3b875d67c78?w=100&h=100&fit=crop" alt="Anti-gaspi">
+                            <h4>♻️ Anti-gaspi</h4>
+                            <p>Utilisez vos restes pour de nouvelles recettes</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Graphique activité -->
+                <div class="data-table">
+                    <h3><i class="fas fa-chart-line"></i> Activité récente</h3>
+                    <canvas id="activityChart" height="100"></canvas>
+                </div>
+
+                <!-- Événements récents -->
+                <div class="data-table" style="margin-top:1.5rem">
+                    <h3><i class="fas fa-calendar-alt"></i> Événements à venir</h3>
+                    <div class="recent-events">
+                        <div class="event-mini-card" onclick="loadModule('evenementList.php')">
+                            <div class="event-emoji">🏃</div>
+                            <h4>Marathon Nutrition</h4>
+                            <small>📅 Sport • 30 places</small>
+                        </div>
+                        <div class="event-mini-card" onclick="loadModule('evenementList.php')">
+                            <div class="event-emoji">🥗</div>
+                            <h4>Atelier Méditerranéen</h4>
+                            <small>📅 Nutrition • 20 places</small>
+                        </div>
+                        <div class="event-mini-card" onclick="loadModule('evenementList.php')">
+                            <div class="event-emoji">📚</div>
+                            <h4>Workshop Anti-Gaspi</h4>
+                            <small>📅 Workshop • 15 places</small>
+                        </div>
+                        <div class="event-mini-card" onclick="loadModule('evenementList.php')">
+                            <div class="event-emoji">🥗</div>
+                            <h4>Cuisine Végane</h4>
+                            <small>📅 Nutrition • 25 places</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recettes populaires -->
+                <div class="data-table" style="margin-top:1.5rem">
+                    <h3><i class="fas fa-star"></i> Recettes populaires cette semaine</h3>
+                    <div class="recent-recipes">
+                        <div class="recipe-card">
+                            <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=150&h=150&fit=crop" alt="Salade">
+                            <h4>Salade Quinoa</h4>
+                            <small>⭐ 4.8</small>
+                        </div>
+                        <div class="recipe-card">
+                            <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=150&h=150&fit=crop" alt="Bowl">
+                            <h4>Buddha Bowl</h4>
+                            <small>⭐ 4.9</small>
+                        </div>
+                        <div class="recipe-card">
+                            <img src="https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=150&h=150&fit=crop" alt="Smoothie">
+                            <h4>Smoothie Bowl</h4>
+                            <small>⭐ 4.7</small>
+                        </div>
+                        <div class="recipe-card">
+                            <img src="https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=150&h=150&fit=crop" alt="Pâtes">
+                            <h4>Pâtes complètes</h4>
+                            <small>⭐ 4.6</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+// ========== RENDER DASHBOARD ==========
+function renderDashboard() {
+    const statsHtml = document.getElementById('dashboardStats');
+    if (statsHtml) {
+        statsHtml.innerHTML = `
+            <div class="stat-card">
+                <i class="fas fa-users stat-icon"></i>
+                <div class="stat-title">Utilisateurs</div>
+                <div class="stat-number">1,234</div>
+                <small>+12% ce mois</small>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-utensils stat-icon"></i>
+                <div class="stat-title">Recettes</div>
+                <div class="stat-number">156</div>
+                <small>+8 nouvelles</small>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-calendar-alt stat-icon"></i>
+                <div class="stat-title">Événements</div>
+                <div class="stat-number">12</div>
+                <small>3 à venir</small>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-user-check stat-icon"></i>
+                <div class="stat-title">Participations</div>
+                <div class="stat-number">348</div>
+                <small>+24 cette semaine</small>
+            </div>
+        `;
+    }
+
+    const ctx = document.getElementById('activityChart')?.getContext('2d');
+    if (ctx) {
+        if (window.myChart) window.myChart.destroy();
+        window.myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+                datasets: [
+                    {
+                        label: 'Connexions',
+                        data: [45, 52, 48, 61, 55, 42, 38],
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76,175,80,0.1)',
+                        tension: 0.4, fill: true
+                    },
+                    {
+                        label: 'Nouvelles recettes',
+                        data: [3, 5, 2, 4, 6, 3, 1],
+                        borderColor: '#003366',
+                        backgroundColor: 'rgba(0,51,102,0.1)',
+                        tension: 0.4, fill: true
+                    },
+                    {
+                        label: 'Inscriptions événements',
+                        data: [8, 14, 6, 18, 12, 20, 9],
+                        borderColor: '#2196F3',
+                        backgroundColor: 'rgba(33,150,243,0.1)',
+                        tension: 0.4, fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+}
+
+// ========== RECHERCHE AVEC SUGGESTIONS ==========
+const searchInput    = document.getElementById('searchInput');
+const suggestionsDiv = document.getElementById('searchSuggestions');
+
+const searchItems = [
+    // Recettes
+    { name: 'Recettes Anti-Gaspi',    icon: 'fa-utensils',     link: 'recetteList.php' },
+    { name: 'Ajouter une recette',    icon: 'fa-plus',         link: 'addRecette.php' },
+    { name: 'Préparations',           icon: 'fa-list-ol',      link: 'preperationList.php' },
+    { name: 'Ajouter une préparation',icon: 'fa-plus',         link: 'addPreperation.php' },
+    // Événements
+    { name: 'Gestion Événements',     icon: 'fa-calendar-alt', link: 'evenementList.php' },
+    { name: 'Ajouter un événement',   icon: 'fa-plus',         link: 'addEvenement.php' },
+    { name: 'Participations',         icon: 'fa-users',        link: 'participationList.php' },
+    { name: 'Ajouter une participation',icon:'fa-user-plus',   link: 'addParticipation.php' },
+    // Autres
+    { name: 'Gestion Utilisateurs',   icon: 'fa-users',        link: '#' },
+    { name: 'Nutrition Smart',        icon: 'fa-apple-alt',    link: '#' },
+    { name: 'Gestion Produits',       icon: 'fa-boxes',        link: '#' },
+    { name: 'Salade Quinoa',          icon: 'fa-leaf',         link: 'recetteList.php' },
+    { name: 'Buddha Bowl',            icon: 'fa-leaf',         link: 'recetteList.php' },
+];
+
+searchInput?.addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase();
+    if (query.length < 2) { suggestionsDiv.classList.remove('show'); return; }
+
+    const filtered = searchItems.filter(item =>
+        item.name.toLowerCase().includes(query)
+    );
+
+    if (filtered.length > 0) {
+        suggestionsDiv.innerHTML = filtered.map(item => `
+            <div class="suggestion-item" data-link="${item.link}">
+                <i class="fas ${item.icon}"></i>
+                <span>${item.name}</span>
+            </div>
+        `).join('');
+        suggestionsDiv.classList.add('show');
+
+        document.querySelectorAll('.suggestion-item').forEach(sugg => {
+            sugg.addEventListener('click', () => {
+                const link = sugg.getAttribute('data-link');
+                if (link && link !== '#') {
+                    loadModule(link);
+                    searchInput.value = sugg.querySelector('span')?.innerText || '';
+                }
+                suggestionsDiv.classList.remove('show');
+            });
+        });
+    } else {
+        suggestionsDiv.classList.remove('show');
+    }
+});
+
+document.addEventListener('click', (e) => {
+    if (!searchInput?.contains(e.target) && !suggestionsDiv?.contains(e.target)) {
+        suggestionsDiv.classList.remove('show');
+    }
+});
+
+// ========== NAVIGATION ==========
+const navItems     = document.querySelectorAll('.nav-item');
+const contentFrame = document.getElementById('contentFrame');
+const defaultContent = document.getElementById('defaultContent');
+
+function loadDashboard() {
+    contentFrame.style.display = 'none';
+    defaultContent.style.display = 'block';
+    renderDashboard();
+    navItems.forEach(n => n.classList.remove('active'));
+    document.querySelector('.nav-item[data-module="dashboard"]').classList.add('active');
+}
+
+function loadModule(page) {
+    defaultContent.style.display = 'none';
+    contentFrame.style.display   = 'block';
+    contentFrame.src              = page;
+}
+
+function toggleSubMenu(subId, navItem) {
+    const sub = document.getElementById(subId);
+    if (!sub) return;
+    const isOpen = sub.classList.contains('open');
+    // Fermer tous les sous-menus
+    document.querySelectorAll('.nav-sub-menu').forEach(s => s.classList.remove('open'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('open'));
+    // Ouvrir si était fermé
+    if (!isOpen) {
+        sub.classList.add('open');
+        navItem.classList.add('open');
+    }
+}
+
+navItems.forEach(item => {
+    item.addEventListener('click', () => {
+        const module   = item.getAttribute('data-module');
+        const hasToggle = item.getAttribute('data-toggle') === 'true';
+
+        // Retirer active sur tous
+        navItems.forEach(n => n.classList.remove('active'));
+        item.classList.add('active');
+
+        if (module === 'dashboard') {
+            // Fermer sous-menus et afficher dashboard
+            document.querySelectorAll('.nav-sub-menu').forEach(s => s.classList.remove('open'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('open'));
+            loadDashboard();
+            return;
+        }
+
+        if (module === 'recette' && hasToggle) {
+            toggleSubMenu('subRecette', item);
+            // Charger la liste recettes par défaut
+            loadModule('recetteList.php');
+            return;
+        }
+
+        if (module === 'events' && hasToggle) {
+            toggleSubMenu('subEvents', item);
+            // Charger la liste événements par défaut
+            loadModule('evenementList.php');
+            return;
+        }
+
+        // Modules non encore développés
+        document.querySelectorAll('.nav-sub-menu').forEach(s => s.classList.remove('open'));
+        document.querySelectorAll('.nav-item[data-toggle]').forEach(n => n.classList.remove('open'));
+
+        defaultContent.style.display = 'block';
+        contentFrame.style.display   = 'none';
+        defaultContent.innerHTML = `
+            <div class="data-table" style="text-align:center;padding:60px">
+                <i class="fas fa-cogs" style="font-size:4rem;color:#4CAF50;margin-bottom:20px"></i>
+                <h2>Module ${item.querySelector('span')?.innerText || module}</h2>
+                <p>Ce module sera bientôt disponible...</p>
+                <div class="stats-grid" style="margin-top:30px">
+                    <div class="stat-card"><div class="stat-title">En développement</div><div class="stat-number">🚀</div></div>
+                    <div class="stat-card"><div class="stat-title">Prochainement</div><div class="stat-number">⚡</div></div>
+                </div>
+            </div>
+        `;
+    });
+});
+
+// ========== INIT ==========
+loadDashboard();
+</script>
+</body>
+</html>

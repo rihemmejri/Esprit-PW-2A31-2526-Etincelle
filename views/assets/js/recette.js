@@ -10,8 +10,15 @@ class RecetteFormValidator {
     init() {
         if (!this.form) return;
         
+<<<<<<< HEAD
+        // Ajouter les écouteurs d'événements
         this.form.addEventListener('submit', (e) => this.validateForm(e));
         
+        // Validation en temps réel
+=======
+        this.form.addEventListener('submit', (e) => this.validateForm(e));
+        
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
         const inputs = this.form.querySelectorAll('input, textarea, select');
         inputs.forEach(input => {
             input.addEventListener('blur', () => this.validateField(input));
@@ -27,6 +34,15 @@ class RecetteFormValidator {
         switch(name) {
             case 'nom':
                 if (!value) {
+<<<<<<< HEAD
+                    error = 'Le nom de la recette est obligatoire';
+                } else if (value.length < 3) {
+                    error = 'Le nom doit contenir au moins 3 caractères';
+                } else if (value.length > 100) {
+                    error = 'Le nom ne doit pas dépasser 100 caractères';
+                } else if (!/^[a-zA-ZÀ-ÿ\s\-']+$/.test(value)) {
+                    error = 'Le nom ne doit contenir que des lettres, espaces, tirets et apostrophes';
+=======
                     error = '❌ Le nom de la recette est obligatoire';
                 } else if (value.length < 3) {
                     error = '❌ Le nom doit contenir au moins 3 caractères';
@@ -34,44 +50,71 @@ class RecetteFormValidator {
                     error = '❌ Le nom ne doit pas dépasser 100 caractères';
                 } else if (!/^[a-zA-ZÀ-ÿ\s\-']+$/.test(value)) {
                     error = '❌ Le nom ne doit contenir que des lettres, espaces, tirets et apostrophes';
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
                 }
                 break;
 
             case 'description':
                 if (!value) {
+<<<<<<< HEAD
+                    error = 'La description est obligatoire';
+                } else if (value.length < 20) {
+                    error = 'La description doit contenir au moins 20 caractères';
+                } else if (value.length > 1000) {
+                    error = 'La description ne doit pas dépasser 1000 caractères';
+=======
                     error = '❌ La description est obligatoire';
                 } else if (value.length < 20) {
                     error = '❌ La description doit contenir au moins 20 caractères';
                 } else if (value.length > 1000) {
                     error = '❌ La description ne doit pas dépasser 1000 caractères';
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
                 }
                 break;
 
             case 'temps_preparation':
                 const temps = parseInt(value);
+<<<<<<< HEAD
+                if (isNaN(temps) || temps < 0) {
+                    error = 'Le temps doit être un nombre positif';
+                } else if (temps > 1440) {
+                    error = 'Le temps ne doit pas dépasser 1440 minutes (24 heures)';
+=======
                 if (isNaN(temps) || temps < 1) {
                     error = '⏱️ Le temps doit être un nombre supérieur à 0';
                 } else if (temps > 1440) {
                     error = '⏱️ Le temps ne doit pas dépasser 1440 minutes (24 heures)';
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
                 }
                 break;
 
             case 'nb_personne':
                 const personnes = parseInt(value);
                 if (isNaN(personnes) || personnes < 1) {
+<<<<<<< HEAD
+                    error = 'Le nombre de personnes doit être au moins 1';
+                } else if (personnes > 100) {
+                    error = 'Le nombre de personnes ne doit pas dépasser 100';
+=======
                     error = '👥 Le nombre de personnes doit être au moins 1';
                 } else if (personnes > 100) {
                     error = '👥 Le nombre de personnes ne doit pas dépasser 100';
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
                 }
                 break;
 
             case 'origine':
+<<<<<<< HEAD
+                if (value && !/^[a-zA-ZÀ-ÿ\s\-']+$/.test(value)) {
+                    error = "L'origine ne doit contenir que des lettres, espaces, tirets et apostrophes";
+=======
                 if (!value) {
                     error = "❌ L'origine est obligatoire";
                 } else if (value.length > 50) {
                     error = "❌ L'origine ne doit pas dépasser 50 caractères";
                 } else if (!/^[a-zA-ZÀ-ÿ\s\-']+$/.test(value)) {
                     error = "❌ L'origine ne doit contenir que des lettres, espaces, tirets et apostrophes";
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
                 }
                 break;
         }
@@ -88,6 +131,13 @@ class RecetteFormValidator {
             if (radio.checked) isChecked = true;
         });
         
+<<<<<<< HEAD
+        if (!isChecked) {
+            const error = `Veuillez sélectionner une option pour ${this.getFieldLabel(name)}`;
+            const firstRadio = radios[0];
+            if (firstRadio) {
+                this.showError(firstRadio.parentElement, error);
+=======
         let errorMessage = '';
         if (name === 'type_repas') {
             errorMessage = '❌ Veuillez sélectionner un type de repas (Petit déjeuner, Déjeuner, Dîner ou Dessert)';
@@ -101,15 +151,23 @@ class RecetteFormValidator {
                 let parent = firstRadio.closest('.difficulte-group') || firstRadio.closest('.type-repas-group');
                 if (!parent) parent = firstRadio.parentElement.parentElement;
                 this.showError(parent, errorMessage);
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
             }
             return false;
         }
         
+<<<<<<< HEAD
+        // Supprimer l'erreur si tout va bien
+        const firstRadio = radios[0];
+        if (firstRadio) {
+            this.showError(firstRadio.parentElement, '');
+=======
         const firstRadio = radios[0];
         if (firstRadio) {
             let parent = firstRadio.closest('.difficulte-group') || firstRadio.closest('.type-repas-group');
             if (!parent) parent = firstRadio.parentElement.parentElement;
             this.showError(parent, '');
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
         }
         return true;
     }
@@ -123,6 +181,10 @@ class RecetteFormValidator {
     }
 
     showError(field, message) {
+<<<<<<< HEAD
+        // Supprimer l'ancien message d'erreur
+=======
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
         const parent = field.parentElement;
         let errorDiv = parent.querySelector('.field-error');
         
@@ -130,6 +192,10 @@ class RecetteFormValidator {
             errorDiv.remove();
         }
         
+<<<<<<< HEAD
+        // Ajouter/supprimer les classes CSS
+=======
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
         if (message) {
             field.classList.add('error');
             field.classList.remove('valid');
@@ -148,6 +214,10 @@ class RecetteFormValidator {
         
         let isValid = true;
         
+<<<<<<< HEAD
+        // Valider les champs texte
+=======
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
         const textFields = ['nom', 'description', 'temps_preparation', 'nb_personne', 'origine'];
         textFields.forEach(fieldName => {
             const field = this.form.querySelector(`[name="${fieldName}"]`);
@@ -156,6 +226,10 @@ class RecetteFormValidator {
             }
         });
         
+<<<<<<< HEAD
+        // Valider les groupes radio
+=======
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
         if (!this.validateRadioGroup('difficulte')) isValid = false;
         if (!this.validateRadioGroup('type_repas')) isValid = false;
         
@@ -163,7 +237,12 @@ class RecetteFormValidator {
             this.showSuccessMessage();
             this.form.submit();
         } else {
+<<<<<<< HEAD
+            this.showErrorMessage('Veuillez corriger les erreurs dans le formulaire');
+            // Faire défiler jusqu'au premier champ en erreur
+=======
             this.showErrorMessage('⚠️ Veuillez corriger les erreurs dans le formulaire');
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
             const firstError = this.form.querySelector('.error');
             if (firstError) {
                 firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -173,6 +252,10 @@ class RecetteFormValidator {
     }
 
     showSuccessMessage() {
+<<<<<<< HEAD
+        // Supprimer les anciens messages
+=======
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
         this.removeMessages();
         
         const successDiv = document.createElement('div');
@@ -180,11 +263,20 @@ class RecetteFormValidator {
         successDiv.id = 'tempMessage';
         successDiv.innerHTML = `
             <i class="fas fa-check-circle"></i>
+<<<<<<< HEAD
+            <span>Formulaire valide ! Redirection en cours...</span>
+        `;
+        
+        const formCard = document.querySelector('.form-card');
+        const header = document.querySelector('.header');
+        header.insertAdjacentElement('afterend', successDiv);
+=======
             <span>✅ Formulaire valide ! Redirection en cours...</span>
         `;
         
         const header = document.querySelector('.header');
         if (header) header.insertAdjacentElement('afterend', successDiv);
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
         
         setTimeout(() => {
             const msg = document.getElementById('tempMessage');
@@ -193,6 +285,10 @@ class RecetteFormValidator {
     }
 
     showErrorMessage(message) {
+<<<<<<< HEAD
+        // Supprimer les anciens messages
+=======
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
         this.removeMessages();
         
         const errorDiv = document.createElement('div');
@@ -203,8 +299,14 @@ class RecetteFormValidator {
             <span>${message}</span>
         `;
         
+<<<<<<< HEAD
+        const formCard = document.querySelector('.form-card');
+        const header = document.querySelector('.header');
+        header.insertAdjacentElement('afterend', errorDiv);
+=======
         const header = document.querySelector('.header');
         if (header) header.insertAdjacentElement('afterend', errorDiv);
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
         
         setTimeout(() => {
             const msg = document.getElementById('tempMessage');
@@ -218,8 +320,12 @@ class RecetteFormValidator {
     }
 }
 
+<<<<<<< HEAD
+// Fonctions utilitaires globales
+=======
 // ========== FONCTIONS UTILITAIRES GLOBALES ==========
 
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
 function updateTemps(delta) {
     const input = document.getElementById('temps_preparation');
     if (input) {
@@ -227,6 +333,10 @@ function updateTemps(delta) {
         if (value < 0) value = 0;
         if (value > 1440) value = 1440;
         input.value = value;
+<<<<<<< HEAD
+        // Déclencher la validation
+=======
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
         const event = new Event('blur');
         input.dispatchEvent(event);
     }
@@ -239,15 +349,27 @@ function updatePersonnes(delta) {
         if (value < 1) value = 1;
         if (value > 100) value = 100;
         input.value = value;
+<<<<<<< HEAD
+        // Déclencher la validation
+=======
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
         const event = new Event('blur');
         input.dispatchEvent(event);
     }
 }
 
+<<<<<<< HEAD
+// Initialisation au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+    new RecetteFormValidator('addRecetteForm');
+    
+    // Animation des champs
+=======
 // ========== INITIALISATION PAGE AJOUT ==========
 document.addEventListener('DOMContentLoaded', function() {
     new RecetteFormValidator('addRecetteForm');
     
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
     document.querySelectorAll('input, select, textarea').forEach(field => {
         field.addEventListener('focus', function() {
             this.parentElement.classList.add('focused');
@@ -257,8 +379,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+<<<<<<< HEAD
+// Fonctions pour la liste des recettes (ajouter à la fin du fichier)
+=======
 
 // ========== FONCTIONS POUR LA LISTE DES RECETTES ==========
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
 
 let currentPage = 1;
 const rowsPerPage = 10;
@@ -295,9 +421,12 @@ function searchTable() {
             row.style.display = 'none';
         }
     }
+<<<<<<< HEAD
+=======
     
     currentPage = 1;
     updatePagination();
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
 }
 
 function exportTable() {
@@ -337,6 +466,10 @@ function updatePagination() {
         }
     });
     
+<<<<<<< HEAD
+    // Update active page button
+=======
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
     const pageBtns = document.querySelectorAll('.page-btn');
     pageBtns.forEach(btn => {
         btn.classList.remove('active');
@@ -346,6 +479,10 @@ function updatePagination() {
     });
 }
 
+<<<<<<< HEAD
+// Animation des lignes pour la liste
+=======
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
 function animateTableRows() {
     const rows = document.querySelectorAll('tbody tr');
     rows.forEach((row, index) => {
@@ -353,12 +490,22 @@ function animateTableRows() {
     });
 }
 
+<<<<<<< HEAD
+// Initialisation pour la page de liste
+document.addEventListener('DOMContentLoaded', function() {
+    animateTableRows();
+});
+// ========== FONCTIONS POUR LA PAGE DE SUPPRESSION ==========
+document.addEventListener('DOMContentLoaded', function() {
+    // Animation pour le bouton de suppression
+=======
 document.addEventListener('DOMContentLoaded', function() {
     animateTableRows();
 });
 
 // ========== FONCTIONS POUR LA PAGE DE SUPPRESSION ==========
 document.addEventListener('DOMContentLoaded', function() {
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
     const deleteBtn = document.querySelector('.btn-danger');
     if (deleteBtn) {
         deleteBtn.addEventListener('mouseenter', function() {
@@ -369,14 +516,26 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+<<<<<<< HEAD
+    // Animation pour la carte de confirmation
+=======
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
     const card = document.querySelector('.confirmation-card');
     if (card) {
         card.style.animation = 'slideIn 0.5s ease-out';
     }
     
+<<<<<<< HEAD
+    // Confirmation supplémentaire avant suppression
+    const confirmDelete = document.querySelector('.btn-danger');
+    if (confirmDelete) {
+        confirmDelete.addEventListener('click', function(e) {
+            // Animation de clic
+=======
     const confirmDeleteBtn = document.querySelector('.btn-danger');
     if (confirmDeleteBtn) {
         confirmDeleteBtn.addEventListener('click', function(e) {
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
             this.style.transform = 'scale(0.98)';
             setTimeout(() => {
                 this.style.transform = 'translateY(-2px) scale(1)';
@@ -384,13 +543,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+<<<<<<< HEAD
+=======
 
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
 function confirmDelete(id) {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette recette ? Cette action est irréversible.')) {
         window.location.href = 'deleteRecette.php?id=' + id + '&confirm=yes';
     }
 }
+<<<<<<< HEAD
+=======
 
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
 // ========== FONCTIONS POUR LA PAGE D'AFFICHAGE CLIENT ==========
 
 let allRecettes = [];
@@ -427,7 +592,10 @@ function filterRecettes() {
         noResults.style.display = visibleCount === 0 ? 'block' : 'none';
     }
 }
+<<<<<<< HEAD
+=======
 
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
 function openModal(id) {
     fetch(`afficherRecette.php?ajax=details&id=${id}`)
         .then(response => response.json())
@@ -461,19 +629,31 @@ function openModal(id) {
             alert('Erreur de chargement');
         });
 }
+<<<<<<< HEAD
+function closeModal() {
+    const modal = document.getElementById('recipeModal');
+    modal.classList.remove('active');
+}
+
+// Fermer le modal en cliquant en dehors
+=======
 
 function closeModal() {
     const modal = document.getElementById('recipeModal');
     if (modal) modal.classList.remove('active');
 }
 
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
 document.addEventListener('click', function(event) {
     const modal = document.getElementById('recipeModal');
     if (event.target === modal) {
         closeModal();
     }
 });
+<<<<<<< HEAD
+=======
 
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
 function showDetails(recette) {
     let typeText = '';
     switch(recette.type_repas) {
@@ -495,6 +675,48 @@ function showDetails(recette) {
     
     alert(message);
 }
+<<<<<<< HEAD
+// Fonctions pour editRecette.php
+function updateTemps(delta) {
+    const input = document.getElementById('temps_preparation');
+    if (input) {
+        let value = parseInt(input.value) + delta;
+        if (value < 0) value = 0;
+        input.value = value;
+    }
+}
+
+function updatePersonnes(delta) {
+    const input = document.getElementById('nb_personne');
+    if (input) {
+        let value = parseInt(input.value) + delta;
+        if (value < 1) value = 1;
+        input.value = value;
+    }
+}
+
+// Validation du formulaire d'édition
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('editRecetteForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const nom = document.querySelector('input[name="nom"]').value.trim();
+            const description = document.querySelector('textarea[name="description"]').value.trim();
+            const typeRepas = document.querySelector('input[name="type_repas"]:checked');
+            
+            if (!nom || !description || !typeRepas) {
+                e.preventDefault();
+                alert('Veuillez remplir tous les champs obligatoires.');
+            }
+        });
+    }
+    
+    // Confirmation avant de quitter sans sauvegarder
+    let formChanged = false;
+    const inputs = document.querySelectorAll('#editRecetteForm input, #editRecetteForm textarea, #editRecetteForm select');
+    inputs.forEach(field => {
+        field.addEventListener('change', function() {
+=======
 
 // ========== VALIDATION POUR LA PAGE MODIFICATION (editRecette.php) ==========
 
@@ -791,10 +1013,25 @@ function setupBeforeUnload() {
             formChanged = true;
         });
         field.addEventListener('input', () => {
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
             formChanged = true;
         });
     });
     
+<<<<<<< HEAD
+    window.addEventListener('beforeunload', function(e) {
+        if (formChanged) {
+            e.preventDefault();
+            e.returnValue = 'Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir quitter ?';
+        }
+    });
+});
+function confirmDelete(id) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette recette ? Cette action est irréversible.')) {
+        window.location.href = 'deleteRecette.php?id=' + id + '&confirm=yes';
+    }
+}
+=======
     window.addEventListener('beforeunload', (e) => {
         if (formChanged) {
             e.preventDefault();
@@ -829,3 +1066,4 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b

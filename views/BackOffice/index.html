@@ -781,6 +781,16 @@
                     <i class="fas fa-lock"></i>
                     <span>Comptes verrouillés</span>
                 </li>
+                <li class="nav-item" data-module="tracking">
+                    <i class="fas fa-chart-simple"></i>
+                    <span>Suivi & Objectifs</span>
+                    <span class="badge">Module 5</span>
+                </li>
+                <li class="nav-item" data-module="events">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Gestion Événements</span>
+                    <span class="badge">Module 6</span>
+                </li>
             </ul>
         </nav>
     </aside>
@@ -790,7 +800,6 @@
             <div class="welcome-text">
                 <i class="fas fa-chart-line"></i> Dashboard <span>Administrateur</span>
             </div>
-            
             
             <!-- NOTIFICATIONS POUR ADMIN SEULEMENT -->
             <div class="notification-bell" id="notificationBell">
@@ -924,74 +933,70 @@
     }
 
     function updateNotificationUI() {
-    const badge = document.getElementById('notificationBadge');
-    if (unreadCount > 0) {
-        badge.style.display = 'flex';
-        badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-    } else {
-        badge.style.display = 'none';
-    }
-    
-    const listContainer = document.getElementById('notificationList');
-    if (!notifications || notifications.length === 0) {
-        listContainer.innerHTML = `
-            <div class="notification-empty">
-                <i class="fas fa-bell-slash"></i>
-                <p>Aucune notification</p>
-                <small style="font-size: 0.7rem;">Les alertes de sécurité apparaîtront ici</small>
-            </div>
-        `;
-        return;
-    }
-    
-    let html = '';
-    notifications.forEach(notif => {
-        const timeAgo = getTimeAgo(notif.created_at);
-        const unreadClass = notif.is_read == 0 ? 'unread' : '';
-        const bgColor = notif.color + '20';
+        const badge = document.getElementById('notificationBadge');
+        if (unreadCount > 0) {
+            badge.style.display = 'flex';
+            badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+        } else {
+            badge.style.display = 'none';
+        }
         
-        // Vérifier si la notification a un lien
-        const hasLien = notif.lien && notif.lien.trim() !== '';
-        const onclickAction = hasLien ? `onclick="handleNotificationClick('${notif.lien}', ${notif.id_notification})"` : `onclick="markAsRead(${notif.id_notification})"`;
+        const listContainer = document.getElementById('notificationList');
+        if (!notifications || notifications.length === 0) {
+            listContainer.innerHTML = `
+                <div class="notification-empty">
+                    <i class="fas fa-bell-slash"></i>
+                    <p>Aucune notification</p>
+                    <small style="font-size: 0.7rem;">Les alertes de sécurité apparaîtront ici</small>
+                </div>
+            `;
+            return;
+        }
         
-        html += `
-            <div class="notification-item ${unreadClass}" data-id="${notif.id_notification}" ${onclickAction}>
-                <div class="notification-icon" style="background: ${bgColor}; color: ${notif.color}">
-                    <i class="fas ${notif.icon}"></i>
+        let html = '';
+        notifications.forEach(notif => {
+            const timeAgo = getTimeAgo(notif.created_at);
+            const unreadClass = notif.is_read == 0 ? 'unread' : '';
+            const bgColor = notif.color + '20';
+            
+            const hasLien = notif.lien && notif.lien.trim() !== '';
+            const onclickAction = hasLien ? `onclick="handleNotificationClick('${notif.lien}', ${notif.id_notification})"` : `onclick="markAsRead(${notif.id_notification})"`;
+            
+            html += `
+                <div class="notification-item ${unreadClass}" data-id="${notif.id_notification}" ${onclickAction}>
+                    <div class="notification-icon" style="background: ${bgColor}; color: ${notif.color}">
+                        <i class="fas ${notif.icon}"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">${escapeHtml(notif.title)}</div>
+                        <div class="notification-message">${escapeHtml(notif.message)}</div>
+                        <div class="notification-time"><i class="far fa-clock"></i> ${timeAgo}</div>
+                    </div>
+                    ${notif.is_read == 0 ? '<div class="notification-unread-dot"></div>' : ''}
                 </div>
-                <div class="notification-content">
-                    <div class="notification-title">${escapeHtml(notif.title)}</div>
-                    <div class="notification-message">${escapeHtml(notif.message)}</div>
-                    <div class="notification-time"><i class="far fa-clock"></i> ${timeAgo}</div>
-                </div>
-                ${notif.is_read == 0 ? '<div class="notification-unread-dot"></div>' : ''}
-            </div>
-        `;
-    });
-    listContainer.innerHTML = html;
-}
+            `;
+        });
+        listContainer.innerHTML = html;
+    }
 
-// Fonction pour gérer le clic sur une notification avec lien
-async function handleNotificationClick(lien, notificationId) {
-    // Marquer comme lue
-    await markAsRead(notificationId);
-    
-    // Afficher une fenêtre de confirmation
-    const confirmUnlock = confirm(
-        "🔒 ALERTE SÉCURITÉ\n\n" +
-        "Un utilisateur a verrouillé son compte après 3 tentatives échouées.\n\n" +
-        "Voulez-vous déverrouiller ce compte maintenant ?\n\n" +
-        "✅ Cliquez sur OK pour déverrouiller\n" +
-        "❌ Cliquez sur Annuler pour ignorer"
-    );
-    
-    if (confirmUnlock) {
-        window.location.href = lien;
-    } else {
-        // Juste fermer la notification
-        document.getElementById('notificationBell').classList.remove('active');
+    async function handleNotificationClick(lien, notificationId) {
+        await markAsRead(notificationId);
+        
+        const confirmUnlock = confirm(
+            "🔒 ALERTE SÉCURITÉ\n\n" +
+            "Un utilisateur a verrouillé son compte après 3 tentatives échouées.\n\n" +
+            "Voulez-vous déverrouiller ce compte maintenant ?\n\n" +
+            "✅ Cliquez sur OK pour déverrouiller\n" +
+            "❌ Cliquez sur Annuler pour ignorer"
+        );
+        
+        if (confirmUnlock) {
+            window.location.href = lien;
+        } else {
+            document.getElementById('notificationBell').classList.remove('active');
+        }
     }
-}
+
     function getTimeAgo(dateString) {
         const date = new Date(dateString);
         const now = new Date();
@@ -1305,35 +1310,17 @@ async function handleNotificationClick(lien, notificationId) {
         const contentDiv = document.getElementById('pageContent');
         
         if (page === 'dashboard') {
-            contentDiv.innerHTML = `
-                <div class="dashboard-home" id="dashboardHome">
-                    <div class="stats-grid" id="statsCards">
-                        <div class="stat-card" onclick="window.location.href='stats.php'"><i class="fas fa-sign-in-alt"></i><h3>Total connexions (30j)</h3><div class="value" id="totalConnexions">---</div><div class="sub">connexions au total</div></div>
-                        <div class="stat-card" onclick="window.location.href='stats.php'"><i class="fas fa-users"></i><h3>Utilisateurs actifs</h3><div class="value" id="activeUsers">---</div><div class="sub">ont au moins 1 connexion</div></div>
-                        <div class="stat-card" onclick="window.location.href='stats.php'"><i class="fas fa-chart-simple"></i><h3>Moyenne/jour</h3><div class="value" id="avgConnexions">---</div><div class="sub">connexions par jour</div></div>
-                        <div class="stat-card" onclick="window.location.href='stats.php'"><i class="fas fa-calendar-week"></i><h3>Période analysée</h3><div class="value">30</div><div class="sub">derniers jours</div></div>
-                    </div>
-                    <div class="chart-card"><h3><i class="fas fa-chart-line"></i> Évolution des connexions (30 derniers jours)</h3><canvas id="connexionsChart"></canvas></div>
-                    <div class="top-users-card"><h3><i class="fas fa-trophy"></i> Top 5 des utilisateurs les plus actifs</h3>
-                        <table id="topUsersTable"><thead><tr><th>#</th><th>Utilisateur</th><th>Rôle</th><th>Connexions</th><th>Jours</th><th>Moyenne/j</th></tr></thead><tbody><tr><td colspan="6" style="text-align:center;">Chargement...</td></tr></tbody></table>
-                    </div>
-                </div>
-            `;
             loadStats();
         } else {
-            contentDiv.innerHTML = `<iframe src="${page}" style="width:100%;height:100%;border:none;"></iframe>`;
+            contentDiv.innerHTML = `<iframe src="${page}" style="width:100%;height:100%;border:none;background:var(--iframe-bg);"></iframe>`;
         }
         
         document.querySelectorAll('.nav-item').forEach(nav => {
             nav.classList.remove('active');
-            if (nav.getAttribute('data-page') === page) {
+            if (nav.getAttribute('data-page') === page || nav.getAttribute('data-module') === page) {
                 nav.classList.add('active');
             }
         });
-    }
-
-    function exportToPDF() {
-        alert('📄 Export PDF - Fonctionnalité à implémenter avec jsPDF');
     }
 
     function logout() {
@@ -1346,7 +1333,12 @@ async function handleNotificationClick(lien, notificationId) {
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', () => {
             const page = item.getAttribute('data-page');
-            if (page) loadPageInContent(page);
+            const module = item.getAttribute('data-module');
+            if (page) {
+                loadPageInContent(page);
+            } else if (module) {
+                loadPageInContent(module);
+            }
         });
     });
 
