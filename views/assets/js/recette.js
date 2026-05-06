@@ -10,8 +10,10 @@ class RecetteFormValidator {
     init() {
         if (!this.form) return;
         
+        // Ajouter les écouteurs d'événements
         this.form.addEventListener('submit', (e) => this.validateForm(e));
         
+        // Validation en temps réel
         const inputs = this.form.querySelectorAll('input, textarea, select');
         inputs.forEach(input => {
             input.addEventListener('blur', () => this.validateField(input));
@@ -27,51 +29,47 @@ class RecetteFormValidator {
         switch(name) {
             case 'nom':
                 if (!value) {
-                    error = '❌ Le nom de la recette est obligatoire';
+                    error = 'Le nom de la recette est obligatoire';
                 } else if (value.length < 3) {
-                    error = '❌ Le nom doit contenir au moins 3 caractères';
+                    error = 'Le nom doit contenir au moins 3 caractères';
                 } else if (value.length > 100) {
-                    error = '❌ Le nom ne doit pas dépasser 100 caractères';
+                    error = 'Le nom ne doit pas dépasser 100 caractères';
                 } else if (!/^[a-zA-ZÀ-ÿ\s\-']+$/.test(value)) {
-                    error = '❌ Le nom ne doit contenir que des lettres, espaces, tirets et apostrophes';
+                    error = 'Le nom ne doit contenir que des lettres, espaces, tirets et apostrophes';
                 }
                 break;
 
             case 'description':
                 if (!value) {
-                    error = '❌ La description est obligatoire';
+                    error = 'La description est obligatoire';
                 } else if (value.length < 20) {
-                    error = '❌ La description doit contenir au moins 20 caractères';
+                    error = 'La description doit contenir au moins 20 caractères';
                 } else if (value.length > 1000) {
-                    error = '❌ La description ne doit pas dépasser 1000 caractères';
+                    error = 'La description ne doit pas dépasser 1000 caractères';
                 }
                 break;
 
             case 'temps_preparation':
                 const temps = parseInt(value);
-                if (isNaN(temps) || temps < 1) {
-                    error = '⏱️ Le temps doit être un nombre supérieur à 0';
+                if (isNaN(temps) || temps < 0) {
+                    error = 'Le temps doit être un nombre positif';
                 } else if (temps > 1440) {
-                    error = '⏱️ Le temps ne doit pas dépasser 1440 minutes (24 heures)';
+                    error = 'Le temps ne doit pas dépasser 1440 minutes (24 heures)';
                 }
                 break;
 
             case 'nb_personne':
                 const personnes = parseInt(value);
                 if (isNaN(personnes) || personnes < 1) {
-                    error = '👥 Le nombre de personnes doit être au moins 1';
+                    error = 'Le nombre de personnes doit être au moins 1';
                 } else if (personnes > 100) {
-                    error = '👥 Le nombre de personnes ne doit pas dépasser 100';
+                    error = 'Le nombre de personnes ne doit pas dépasser 100';
                 }
                 break;
 
             case 'origine':
-                if (!value) {
-                    error = "❌ L'origine est obligatoire";
-                } else if (value.length > 50) {
-                    error = "❌ L'origine ne doit pas dépasser 50 caractères";
-                } else if (!/^[a-zA-ZÀ-ÿ\s\-']+$/.test(value)) {
-                    error = "❌ L'origine ne doit contenir que des lettres, espaces, tirets et apostrophes";
+                if (value && !/^[a-zA-ZÀ-ÿ\s\-']+$/.test(value)) {
+                    error = "L'origine ne doit contenir que des lettres, espaces, tirets et apostrophes";
                 }
                 break;
         }
@@ -88,28 +86,19 @@ class RecetteFormValidator {
             if (radio.checked) isChecked = true;
         });
         
-        let errorMessage = '';
-        if (name === 'type_repas') {
-            errorMessage = '❌ Veuillez sélectionner un type de repas (Petit déjeuner, Déjeuner, Dîner ou Dessert)';
-        } else if (name === 'difficulte') {
-            errorMessage = '❌ Veuillez sélectionner un niveau de difficulté (Facile, Moyen ou Difficile)';
-        }
-        
         if (!isChecked) {
+            const error = `Veuillez sélectionner une option pour ${this.getFieldLabel(name)}`;
             const firstRadio = radios[0];
             if (firstRadio) {
-                let parent = firstRadio.closest('.difficulte-group') || firstRadio.closest('.type-repas-group');
-                if (!parent) parent = firstRadio.parentElement.parentElement;
-                this.showError(parent, errorMessage);
+                this.showError(firstRadio.parentElement, error);
             }
             return false;
         }
         
+        // Supprimer l'erreur si tout va bien
         const firstRadio = radios[0];
         if (firstRadio) {
-            let parent = firstRadio.closest('.difficulte-group') || firstRadio.closest('.type-repas-group');
-            if (!parent) parent = firstRadio.parentElement.parentElement;
-            this.showError(parent, '');
+            this.showError(firstRadio.parentElement, '');
         }
         return true;
     }
@@ -123,6 +112,7 @@ class RecetteFormValidator {
     }
 
     showError(field, message) {
+        // Supprimer l'ancien message d'erreur
         const parent = field.parentElement;
         let errorDiv = parent.querySelector('.field-error');
         
@@ -130,6 +120,7 @@ class RecetteFormValidator {
             errorDiv.remove();
         }
         
+        // Ajouter/supprimer les classes CSS
         if (message) {
             field.classList.add('error');
             field.classList.remove('valid');
@@ -148,6 +139,7 @@ class RecetteFormValidator {
         
         let isValid = true;
         
+        // Valider les champs texte
         const textFields = ['nom', 'description', 'temps_preparation', 'nb_personne', 'origine'];
         textFields.forEach(fieldName => {
             const field = this.form.querySelector(`[name="${fieldName}"]`);
@@ -156,6 +148,7 @@ class RecetteFormValidator {
             }
         });
         
+        // Valider les groupes radio
         if (!this.validateRadioGroup('difficulte')) isValid = false;
         if (!this.validateRadioGroup('type_repas')) isValid = false;
         
@@ -163,7 +156,8 @@ class RecetteFormValidator {
             this.showSuccessMessage();
             this.form.submit();
         } else {
-            this.showErrorMessage('⚠️ Veuillez corriger les erreurs dans le formulaire');
+            this.showErrorMessage('Veuillez corriger les erreurs dans le formulaire');
+            // Faire défiler jusqu'au premier champ en erreur
             const firstError = this.form.querySelector('.error');
             if (firstError) {
                 firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -173,6 +167,7 @@ class RecetteFormValidator {
     }
 
     showSuccessMessage() {
+        // Supprimer les anciens messages
         this.removeMessages();
         
         const successDiv = document.createElement('div');
@@ -180,11 +175,12 @@ class RecetteFormValidator {
         successDiv.id = 'tempMessage';
         successDiv.innerHTML = `
             <i class="fas fa-check-circle"></i>
-            <span>✅ Formulaire valide ! Redirection en cours...</span>
+            <span>Formulaire valide ! Redirection en cours...</span>
         `;
         
+        const formCard = document.querySelector('.form-card');
         const header = document.querySelector('.header');
-        if (header) header.insertAdjacentElement('afterend', successDiv);
+        header.insertAdjacentElement('afterend', successDiv);
         
         setTimeout(() => {
             const msg = document.getElementById('tempMessage');
@@ -193,6 +189,7 @@ class RecetteFormValidator {
     }
 
     showErrorMessage(message) {
+        // Supprimer les anciens messages
         this.removeMessages();
         
         const errorDiv = document.createElement('div');
@@ -203,8 +200,9 @@ class RecetteFormValidator {
             <span>${message}</span>
         `;
         
+        const formCard = document.querySelector('.form-card');
         const header = document.querySelector('.header');
-        if (header) header.insertAdjacentElement('afterend', errorDiv);
+        header.insertAdjacentElement('afterend', errorDiv);
         
         setTimeout(() => {
             const msg = document.getElementById('tempMessage');
@@ -218,8 +216,7 @@ class RecetteFormValidator {
     }
 }
 
-// ========== FONCTIONS UTILITAIRES GLOBALES ==========
-
+// Fonctions utilitaires globales
 function updateTemps(delta) {
     const input = document.getElementById('temps_preparation');
     if (input) {
@@ -227,6 +224,7 @@ function updateTemps(delta) {
         if (value < 0) value = 0;
         if (value > 1440) value = 1440;
         input.value = value;
+        // Déclencher la validation
         const event = new Event('blur');
         input.dispatchEvent(event);
     }
@@ -239,15 +237,17 @@ function updatePersonnes(delta) {
         if (value < 1) value = 1;
         if (value > 100) value = 100;
         input.value = value;
+        // Déclencher la validation
         const event = new Event('blur');
         input.dispatchEvent(event);
     }
 }
 
-// ========== INITIALISATION PAGE AJOUT ==========
+// Initialisation au chargement de la page
 document.addEventListener('DOMContentLoaded', function() {
     new RecetteFormValidator('addRecetteForm');
     
+    // Animation des champs
     document.querySelectorAll('input, select, textarea').forEach(field => {
         field.addEventListener('focus', function() {
             this.parentElement.classList.add('focused');
@@ -257,8 +257,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-
-// ========== FONCTIONS POUR LA LISTE DES RECETTES ==========
+// Fonctions pour la liste des recettes (ajouter à la fin du fichier)
 
 let currentPage = 1;
 const rowsPerPage = 10;
@@ -295,9 +294,6 @@ function searchTable() {
             row.style.display = 'none';
         }
     }
-    
-    currentPage = 1;
-    updatePagination();
 }
 
 function exportTable() {
@@ -337,6 +333,7 @@ function updatePagination() {
         }
     });
     
+    // Update active page button
     const pageBtns = document.querySelectorAll('.page-btn');
     pageBtns.forEach(btn => {
         btn.classList.remove('active');
@@ -346,6 +343,7 @@ function updatePagination() {
     });
 }
 
+// Animation des lignes pour la liste
 function animateTableRows() {
     const rows = document.querySelectorAll('tbody tr');
     rows.forEach((row, index) => {
@@ -353,12 +351,13 @@ function animateTableRows() {
     });
 }
 
+// Initialisation pour la page de liste
 document.addEventListener('DOMContentLoaded', function() {
     animateTableRows();
 });
-
 // ========== FONCTIONS POUR LA PAGE DE SUPPRESSION ==========
 document.addEventListener('DOMContentLoaded', function() {
+    // Animation pour le bouton de suppression
     const deleteBtn = document.querySelector('.btn-danger');
     if (deleteBtn) {
         deleteBtn.addEventListener('mouseenter', function() {
@@ -369,14 +368,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Animation pour la carte de confirmation
     const card = document.querySelector('.confirmation-card');
     if (card) {
         card.style.animation = 'slideIn 0.5s ease-out';
     }
     
-    const confirmDeleteBtn = document.querySelector('.btn-danger');
-    if (confirmDeleteBtn) {
-        confirmDeleteBtn.addEventListener('click', function(e) {
+    // Confirmation supplémentaire avant suppression
+    const confirmDelete = document.querySelector('.btn-danger');
+    if (confirmDelete) {
+        confirmDelete.addEventListener('click', function(e) {
+            // Animation de clic
             this.style.transform = 'scale(0.98)';
             setTimeout(() => {
                 this.style.transform = 'translateY(-2px) scale(1)';
@@ -384,13 +386,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-
 function confirmDelete(id) {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette recette ? Cette action est irréversible.')) {
         window.location.href = 'deleteRecette.php?id=' + id + '&confirm=yes';
     }
 }
-
 // ========== FONCTIONS POUR LA PAGE D'AFFICHAGE CLIENT ==========
 
 let allRecettes = [];
@@ -427,7 +427,6 @@ function filterRecettes() {
         noResults.style.display = visibleCount === 0 ? 'block' : 'none';
     }
 }
-
 function openModal(id) {
     fetch(`afficherRecette.php?ajax=details&id=${id}`)
         .then(response => response.json())
@@ -461,19 +460,18 @@ function openModal(id) {
             alert('Erreur de chargement');
         });
 }
-
 function closeModal() {
     const modal = document.getElementById('recipeModal');
-    if (modal) modal.classList.remove('active');
+    modal.classList.remove('active');
 }
 
+// Fermer le modal en cliquant en dehors
 document.addEventListener('click', function(event) {
     const modal = document.getElementById('recipeModal');
     if (event.target === modal) {
         closeModal();
     }
 });
-
 function showDetails(recette) {
     let typeText = '';
     switch(recette.type_repas) {
@@ -495,337 +493,59 @@ function showDetails(recette) {
     
     alert(message);
 }
-
-// ========== VALIDATION POUR LA PAGE MODIFICATION (editRecette.php) ==========
-
-class EditRecetteValidator {
-    constructor(formId) {
-        this.form = document.getElementById(formId);
-        this.errors = {};
-        this.init();
-    }
-
-    init() {
-        if (!this.form) return;
-        
-        this.form.addEventListener('submit', (e) => this.validateForm(e));
-        
-        const inputs = this.form.querySelectorAll('input, textarea, select');
-        inputs.forEach(input => {
-            input.addEventListener('blur', () => this.validateField(input));
-            input.addEventListener('input', () => this.validateField(input));
-        });
-    }
-
-    validateField(field) {
-        const name = field.name;
-        const value = field.value?.trim() || '';
-        let error = '';
-
-        switch(name) {
-            case 'nom':
-                if (!value) {
-                    error = '❌ Le nom de la recette est obligatoire';
-                } else if (value.length < 3) {
-                    error = '❌ Le nom doit contenir au moins 3 caractères';
-                } else if (value.length > 10) {
-                    error = '❌ Le nom ne doit pas dépasser 100 caractères';
-                } else if (!/^[a-zA-ZÀ-ÿ0-9\s\-']+$/.test(value)) {
-                    error = '❌ Le nom ne doit contenir que des lettres, chiffres, espaces, tirets et apostrophes';
-                }
-                break;
-
-            case 'description':
-                if (!value) {
-                    error = '❌ La description est obligatoire';
-                } else if (value.length < 20) {
-                    error = `❌ La description doit contenir au moins 20 caractères (actuellement: ${value.length})`;
-                } else if (value.length > 200) {
-                    error = '❌ La description ne doit pas dépasser 2000 caractères';
-                }
-                break;
-
-            case 'temps_preparation':
-                const temps = parseInt(value);
-                if (isNaN(temps)) {
-                    error = '❌ Le temps doit être un nombre valide';
-                } else if (temps < 1) {
-                    error = '❌ Le temps doit être supérieur à 0';
-                } else if (temps > 1440) {
-                    error = '❌ Le temps ne doit pas dépasser 1440 minutes (24 heures)';
-                }
-                break;
-
-            case 'nb_personne':
-                const personnes = parseInt(value);
-                if (isNaN(personnes)) {
-                    error = '❌ Le nombre de personnes doit être un nombre valide';
-                } else if (personnes < 1) {
-                    error = '❌ Le nombre de personnes doit être au moins 1';
-                } else if (personnes > 10) {
-                    error = '❌ Le nombre de personnes ne doit pas dépasser 100';
-                }
-                break;
-
-            case 'origine':
-                if (!value) {
-                    error = "❌ L'origine est obligatoire";
-                } else if (value.length > 50) {
-                    error = "❌ L'origine ne doit pas dépasser 50 caractères";
-                } else if (!/^[a-zA-ZÀ-ÿ\s\-']+$/.test(value)) {
-                    error = "❌ L'origine ne doit contenir que des lettres, espaces, tirets et apostrophes";
-                }
-                break;
-        }
-
-        this.showError(field, error);
-        return !error;
-    }
-
-    validateRadioGroup(name) {
-        const radios = this.form.querySelectorAll(`input[name="${name}"]`);
-        let isChecked = false;
-        
-        radios.forEach(radio => {
-            if (radio.checked) isChecked = true;
-        });
-        
-        let errorMessage = '';
-        if (name === 'type_repas') {
-            errorMessage = '❌ Veuillez sélectionner un type de repas (Petit déjeuner, Déjeuner, Dîner ou Dessert)';
-        } else if (name === 'difficulte') {
-            errorMessage = '❌ Veuillez sélectionner un niveau de difficulté (Facile, Moyen ou Difficile)';
-        }
-        
-        if (!isChecked) {
-            const firstRadio = radios[0];
-            if (firstRadio) {
-                let parent = firstRadio.closest('.difficulte-group') || firstRadio.closest('.type-repas-group');
-                if (!parent) parent = firstRadio.parentElement.parentElement;
-                this.showError(parent, errorMessage);
-            }
-            return false;
-        }
-        
-        const firstRadio = radios[0];
-        if (firstRadio) {
-            let parent = firstRadio.closest('.difficulte-group') || firstRadio.closest('.type-repas-group');
-            if (!parent) parent = firstRadio.parentElement.parentElement;
-            this.showError(parent, '');
-        }
-        return true;
-    }
-
-    getFieldLabel(name) {
-        const labels = {
-            'difficulte': 'la difficulté',
-            'type_repas': 'le type de repas'
-        };
-        return labels[name] || name;
-    }
-
-    showError(element, message) {
-        let parent = element.parentElement;
-        if (parent.classList.contains('input-icon')) {
-            parent = parent.parentElement;
-        }
-        
-        let errorDiv = parent.querySelector('.field-error-edit');
-        if (errorDiv) {
-            errorDiv.remove();
-        }
-        
-        if (message) {
-            element.classList.add('error-edit');
-            element.classList.remove('valid-edit');
-            errorDiv = document.createElement('span');
-            errorDiv.className = 'field-error-edit';
-            errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
-            errorDiv.style.cssText = 'display: block; color: #dc3545; font-size: 0.75rem; margin-top: 5px;';
-            parent.appendChild(errorDiv);
-        } else {
-            element.classList.remove('error-edit');
-            element.classList.add('valid-edit');
-        }
-    }
-
-    validateForm(e) {
-        e.preventDefault();
-        
-        let isValid = true;
-        
-        const textFields = ['nom', 'description', 'temps_preparation', 'nb_personne', 'origine'];
-        textFields.forEach(fieldName => {
-            const field = this.form.querySelector(`[name="${fieldName}"]`);
-            if (field && !this.validateField(field)) {
-                isValid = false;
-            }
-        });
-        
-        if (!this.validateRadioGroup('difficulte')) isValid = false;
-        if (!this.validateRadioGroup('type_repas')) isValid = false;
-        
-        if (isValid) {
-            this.showSuccessMessage();
-            setTimeout(() => {
-                this.form.submit();
-            }, 500);
-        } else {
-            this.showErrorMessage('⚠️ Veuillez corriger les erreurs dans le formulaire');
-            const firstError = this.form.querySelector('.error-edit');
-            if (firstError) {
-                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                firstError.focus();
-            }
-        }
-    }
-
-    showSuccessMessage() {
-        this.removeMessages();
-        
-        const successDiv = document.createElement('div');
-        successDiv.className = 'success-message-edit';
-        successDiv.id = 'tempMessageEdit';
-        successDiv.innerHTML = `
-            <i class="fas fa-check-circle"></i>
-            <span>✅ Formulaire valide ! Enregistrement en cours...</span>
-        `;
-        successDiv.style.cssText = `
-            background: #d1fae5;
-            color: #065f46;
-            padding: 12px 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: slideIn 0.3s ease;
-        `;
-        
-        const header = document.querySelector('.header');
-        if (header) header.insertAdjacentElement('afterend', successDiv);
-        
-        setTimeout(() => {
-            const msg = document.getElementById('tempMessageEdit');
-            if (msg) msg.remove();
-        }, 3000);
-    }
-
-    showErrorMessage(message) {
-        this.removeMessages();
-        
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message-edit';
-        errorDiv.id = 'tempMessageEdit';
-        errorDiv.innerHTML = `
-            <i class="fas fa-exclamation-circle"></i>
-            <span>${message}</span>
-        `;
-        errorDiv.style.cssText = `
-            background: #fee2e2;
-            color: #991b1b;
-            padding: 12px 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: slideIn 0.3s ease;
-        `;
-        
-        const header = document.querySelector('.header');
-        if (header) header.insertAdjacentElement('afterend', errorDiv);
-        
-        setTimeout(() => {
-            const msg = document.getElementById('tempMessageEdit');
-            if (msg) msg.remove();
-        }, 5000);
-    }
-
-    removeMessages() {
-        const tempMsg = document.getElementById('tempMessageEdit');
-        if (tempMsg) tempMsg.remove();
-    }
-}
-
-// ========== FONCTIONS POUR LES BOUTONS + ET - (PAGE EDIT) ==========
-
-function updateTempsEdit(delta) {
+// Fonctions pour editRecette.php
+function updateTemps(delta) {
     const input = document.getElementById('temps_preparation');
     if (input) {
         let value = parseInt(input.value) + delta;
-        if (isNaN(value)) value = 0;
         if (value < 0) value = 0;
-        if (value > 1440) value = 1440;
         input.value = value;
-        
-        const blurEvent = new Event('blur');
-        input.dispatchEvent(blurEvent);
     }
 }
 
-function updatePersonnesEdit(delta) {
+function updatePersonnes(delta) {
     const input = document.getElementById('nb_personne');
     if (input) {
         let value = parseInt(input.value) + delta;
-        if (isNaN(value)) value = 1;
         if (value < 1) value = 1;
-        if (value > 100) value = 100;
         input.value = value;
-        
-        const blurEvent = new Event('blur');
-        input.dispatchEvent(blurEvent);
     }
 }
 
-// ========== CONFIRMATION DE SORTIE SANS SAUVEGARDE ==========
-
-function setupBeforeUnload() {
-    let formChanged = false;
+// Validation du formulaire d'édition
+document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('editRecetteForm');
-    if (!form) return;
-    
-    const inputs = form.querySelectorAll('input, textarea, select');
-    inputs.forEach(field => {
-        field.addEventListener('change', () => {
-            formChanged = true;
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const nom = document.querySelector('input[name="nom"]').value.trim();
+            const description = document.querySelector('textarea[name="description"]').value.trim();
+            const typeRepas = document.querySelector('input[name="type_repas"]:checked');
+            
+            if (!nom || !description || !typeRepas) {
+                e.preventDefault();
+                alert('Veuillez remplir tous les champs obligatoires.');
+            }
         });
-        field.addEventListener('input', () => {
+    }
+    
+    // Confirmation avant de quitter sans sauvegarder
+    let formChanged = false;
+    const inputs = document.querySelectorAll('#editRecetteForm input, #editRecetteForm textarea, #editRecetteForm select');
+    inputs.forEach(field => {
+        field.addEventListener('change', function() {
             formChanged = true;
         });
     });
     
-    window.addEventListener('beforeunload', (e) => {
+    window.addEventListener('beforeunload', function(e) {
         if (formChanged) {
             e.preventDefault();
-            e.returnValue = '⚠️ Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir quitter ?';
-            return e.returnValue;
+            e.returnValue = 'Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir quitter ?';
         }
     });
-    
-    form.addEventListener('submit', () => {
-        formChanged = false;
-    });
-}
-
-// ========== INITIALISATION POUR LA PAGE EDIT ==========
-
-document.addEventListener('DOMContentLoaded', function() {
-    const editForm = document.getElementById('editRecetteForm');
-    if (editForm) {
-        new EditRecetteValidator('editRecetteForm');
-        setupBeforeUnload();
-        
-        window.updateTemps = updateTempsEdit;
-        window.updatePersonnes = updatePersonnesEdit;
-    }
-    
-    document.querySelectorAll('input, select, textarea').forEach(field => {
-        field.addEventListener('focus', function() {
-            this.parentElement.classList.add('focused');
-        });
-        field.addEventListener('blur', function() {
-            this.parentElement.classList.remove('focused');
-        });
-    });
 });
+function confirmDelete(id) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette recette ? Cette action est irréversible.')) {
+        window.location.href = 'deleteRecette.php?id=' + id + '&confirm=yes';
+    }
+}

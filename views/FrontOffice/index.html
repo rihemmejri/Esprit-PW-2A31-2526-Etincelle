@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Espace - NutriLoop AI</title>
+    <title>NutriLoop AI | Accueil</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -13,61 +13,26 @@
             box-sizing: border-box;
         }
 
-        /* Variables pour les thèmes */
-        :root {
-            --bg-body: #f5f7fa;
-            --bg-header: white;
-            --text-primary: #333;
-            --text-secondary: #666;
-            --card-bg: white;
-            --card-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            --border-color: #f0f0f0;
-            --profile-bg: #f0f2f5;
-            --profile-hover: #e4e6e9;
-            --input-bg: #f0f2f5;
-            --notification-bg: white;
-            --notification-hover: #f5f5f5;
-        }
-
-        body.dark {
-            --bg-body: #121212;
-            --bg-header: #1e1e2a;
-            --text-primary: #e8e8e8;
-            --text-secondary: #aaa;
-            --card-bg: #1e1e2a;
-            --card-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            --border-color: #2a2a35;
-            --profile-bg: #2a2a35;
-            --profile-hover: #3a3a45;
-            --input-bg: #2a2a35;
-            --notification-bg: #1e1e2a;
-            --notification-hover: #2a2a35;
-        }
-
         body {
             font-family: 'Poppins', sans-serif;
-            background: var(--bg-body);
-            transition: background 0.3s ease, color 0.3s ease;
+            background: #f5f7fa;
         }
 
+        /* Header */
         .header {
-            background: var(--bg-header);
+            background: white;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            position: sticky;
+            position: fixed;
+            width: 100%;
             top: 0;
             z-index: 1000;
-            transition: background 0.3s ease;
-        }
-
-        body.dark .header {
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
 
         .navbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 40px;
+            padding: 1rem 5%;
             max-width: 1400px;
             margin: 0 auto;
         }
@@ -75,7 +40,7 @@
         .logo {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .logo-img {
@@ -86,945 +51,690 @@
         }
 
         .logo-text {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 700;
-            color: #2e7d32;
+            color: #003366;
         }
 
         .nav-menu {
             display: flex;
             list-style: none;
-            gap: 30px;
+            gap: 2rem;
         }
 
-        .nav-menu li a {
+        .nav-menu a {
             text-decoration: none;
-            color: var(--text-primary);
+            color: #333;
             font-weight: 500;
             transition: 0.3s;
         }
 
-        .nav-menu li a:hover {
+        .nav-menu a:hover, .nav-menu a.active {
             color: #4CAF50;
         }
 
         .btn-dashboard {
-            background: #003366;
+            background: #4CAF50;
             color: white !important;
             padding: 8px 20px;
             border-radius: 25px;
         }
 
         .btn-dashboard:hover {
-            background: #4CAF50;
-        }
-
-        .right-section {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        /* ===== STYLES NOTIFICATIONS ===== */
-        .notification-bell {
-            position: relative;
-            cursor: pointer;
-        }
-
-        .notification-bell i {
-            font-size: 1.3rem;
-            color: var(--text-primary);
-            transition: 0.3s;
-        }
-
-        .notification-bell:hover i {
-            color: #4CAF50;
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: -8px;
-            right: -10px;
-            background: #dc2626;
-            color: white;
-            font-size: 0.65rem;
-            font-weight: bold;
-            min-width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 4px;
-        }
-
-        .notification-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            width: 380px;
-            max-width: calc(100vw - 20px);
-            background: var(--notification-bg);
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-            z-index: 1000;
-            display: none;
-            margin-top: 10px;
-            overflow: hidden;
-        }
-
-        .notification-bell.active .notification-dropdown {
-            display: block;
-        }
-
-        .notification-header {
-            padding: 15px 20px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .notification-header h4 {
-            margin: 0;
-            font-size: 1rem;
-            color: var(--text-primary);
-        }
-
-        .mark-all-read {
-            font-size: 0.7rem;
-            color: #4CAF50;
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        .notification-list {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .notification-item {
-            padding: 12px 20px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            gap: 12px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .notification-item:hover {
-            background: var(--notification-hover);
-        }
-
-        .notification-item.unread {
-            background: rgba(76, 175, 80, 0.08);
-            border-left: 3px solid #4CAF50;
-        }
-
-        .notification-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .notification-icon i {
-            font-size: 1.2rem;
-        }
-
-        .notification-content {
-            flex: 1;
-        }
-
-        .notification-title {
-            font-weight: 600;
-            font-size: 0.85rem;
-            margin-bottom: 4px;
-            color: var(--text-primary);
-        }
-
-        .notification-message {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            line-height: 1.4;
-        }
-
-        .notification-time {
-            font-size: 0.65rem;
-            color: var(--text-secondary);
-            margin-top: 5px;
-        }
-
-        .notification-empty {
-            padding: 40px;
-            text-align: center;
-            color: var(--text-secondary);
-        }
-
-        .notification-empty i {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            opacity: 0.5;
-        }
-
-        /* Toast notification */
-        .toast-notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--notification-bg);
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 20px;
-            z-index: 2000;
-            animation: slideInRight 0.3s ease;
-            max-width: 350px;
-            border-left: 4px solid;
-        }
-
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        .toast-notification.fade-out {
-            animation: fadeOut 0.3s ease forwards;
-        }
-
-        @keyframes fadeOut {
-            to { opacity: 0; transform: translateX(100%); }
-        }
-
-        /* ===== FIN STYLES NOTIFICATIONS ===== */
-
-        .profile-dropdown {
-            position: relative;
-            cursor: pointer;
-        }
-
-        .profile-trigger {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 8px 16px;
-            background: var(--profile-bg);
-            border-radius: 40px;
-            transition: 0.3s;
-        }
-
-        .profile-trigger:hover {
-            background: var(--profile-hover);
-        }
-
-        .profile-avatar {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #4CAF50, #003366);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-        }
-
-        .profile-name {
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        .dropdown-menu {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 10px;
-            background: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-            width: 320px;
-            overflow: hidden;
-            display: none;
-            z-index: 1000;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .profile-dropdown.active .dropdown-menu {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .dropdown-header {
-            padding: 20px;
-            background: linear-gradient(135deg, #4CAF50, #003366);
-            color: white;
-            text-align: center;
-        }
-
-        .dropdown-header .big-avatar {
-            width: 60px;
-            height: 60px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin: 0 auto 10px;
-        }
-
-        .dropdown-header h4 {
-            margin-bottom: 5px;
-        }
-
-        .dropdown-header p {
-            font-size: 0.8rem;
-            opacity: 0.9;
-        }
-
-        .dropdown-info {
-            padding: 15px 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            font-size: 0.85rem;
-        }
-
-        .info-label {
-            color: var(--text-secondary);
-        }
-
-        .info-value {
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        .dropdown-theme {
-            padding: 10px 20px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .dropdown-theme span {
-            font-size: 0.85rem;
-            color: var(--text-primary);
-        }
-
-        .theme-switch {
-            width: 50px;
-            height: 24px;
-            background: #ccc;
-            border-radius: 30px;
-            position: relative;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        body.dark .theme-switch {
-            background: #4CAF50;
-        }
-
-        .theme-switch::after {
-            content: '';
-            width: 20px;
-            height: 20px;
-            background: white;
-            border-radius: 50%;
-            position: absolute;
-            top: 2px;
-            left: 3px;
-            transition: 0.3s;
-        }
-
-        body.dark .theme-switch::after {
-            left: 27px;
-        }
-
-        .dropdown-footer {
-            padding: 15px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .btn-backoffice {
-            width: 100%;
-            padding: 12px;
             background: #003366;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: 0.3s;
-            text-decoration: none;
+            color: white !important;
         }
 
-        .btn-backoffice:hover {
-            background: #002244;
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
         }
 
-        .btn-logout {
-            width: 100%;
-            padding: 12px;
-            background: #dc2626;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: #333;
+            margin: 3px 0;
             transition: 0.3s;
         }
 
-        .btn-logout:hover {
-            background: #b91c1c;
-        }
-
-        .main-content {
-            margin-top: 20px;
-            padding: 2rem 5%;
-            min-height: calc(100vh - 80px);
-        }
-
-        .welcome-card {
+        /* Hero */
+        .hero {
             background: linear-gradient(135deg, #003366 0%, #4CAF50 100%);
-            border-radius: 24px;
-            padding: 40px;
             color: white;
-            margin-bottom: 30px;
-        }
-
-        .welcome-card h1 {
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 1.5rem;
-            box-shadow: var(--card-shadow);
-            transition: 0.3s;
+            padding: 120px 5% 80px;
             text-align: center;
         }
 
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-
-        body.dark .stat-card:hover {
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-        }
-
-        .stat-icon {
-            font-size: 2.5rem;
-            color: #4CAF50;
+        .hero-content h1 {
+            font-size: 3rem;
             margin-bottom: 1rem;
         }
 
-        .stat-title {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin-bottom: 5px;
+        .highlight {
+            color: #ffd700;
         }
 
-        .stat-number {
-            font-size: 1.8rem;
-            font-weight: 700;
+        .hero-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+            display: inline-block;
+        }
+
+        .btn-primary:hover {
+            background: #003366;
+            transform: translateY(-3px);
+        }
+
+        .btn-outline {
+            border: 2px solid white;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-outline:hover {
+            background: white;
             color: #003366;
         }
 
-        body.dark .stat-number {
-            color: #4CAF50;
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            margin-top: 4rem;
         }
 
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .feature-card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 1.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.3s;
-            box-shadow: var(--card-shadow);
-            text-decoration: none;
-            display: block;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-
-        body.dark .feature-card:hover {
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-        }
-
-        .feature-icon {
+        .stat h3 {
             font-size: 2rem;
+        }
+
+        /* Features */
+        .features, .modules {
+            padding: 5rem 5%;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            color: #003366;
+            margin-bottom: 1rem;
+        }
+
+        .features-grid, .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card, .module-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .feature-card:hover, .module-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+        }
+
+        .feature-icon, .module-icon {
+            font-size: 3rem;
             color: #4CAF50;
             margin-bottom: 1rem;
         }
 
-        .feature-card h3 {
+        .module-card h3 {
             color: #003366;
             margin-bottom: 0.5rem;
         }
 
-        body.dark .feature-card h3 {
+        .module-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            margin-top: 1rem;
+        }
+
+        .click-hint {
+            display: block;
+            margin-top: 1rem;
+            font-size: 0.7rem;
+            color: #999;
+        }
+
+        /* Testimonials */
+        .testimonials {
+            padding: 5rem 5%;
+            background: #f0f4f8;
+        }
+
+        .testimonial {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .testimonial-content i {
+            font-size: 2rem;
+            color: #4CAF50;
+            margin-bottom: 1rem;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .testimonial-author img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Contact */
+        .contact {
+            padding: 5rem 5%;
+            background: white;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3rem;
+        }
+
+        .contact-info {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 20px;
+        }
+
+        .contact-info i {
+            font-size: 2rem;
+            color: #4CAF50;
+            margin-bottom: 1rem;
+        }
+
+        .contact-info h3 {
+            color: #003366;
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-form {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 20px;
+        }
+
+        .contact-form input, .contact-form textarea {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .contact-form button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        .contact-form button:hover {
+            background: #003366;
+        }
+
+        /* Newsletter */
+        .newsletter {
+            background: linear-gradient(135deg, #003366, #4CAF50);
+            color: white;
+            text-align: center;
+            padding: 5rem 5%;
+        }
+
+        .newsletter-form {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .newsletter-form input {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 30px;
+            width: 300px;
+        }
+
+        .newsletter-form button {
+            background: #ffd700;
+            color: #003366;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Footer */
+        .footer {
+            background: #001a33;
+            color: white;
+            padding: 3rem 5% 1rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-section h3, .footer-section h4 {
+            margin-bottom: 1rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section a {
+            color: #ccc;
+            text-decoration: none;
+        }
+
+        .footer-section a:hover {
             color: #4CAF50;
         }
 
-        .feature-card p {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-links a {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
 
         @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                gap: 15px;
-                padding: 15px 20px;
-            }
             .nav-menu {
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 15px;
-            }
-            .right-section {
-                margin-top: 10px;
-            }
-            .profile-name {
                 display: none;
             }
-            .notification-dropdown {
-                width: 320px;
-                right: -50px;
+            .hamburger {
+                display: flex;
+            }
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+            .hero-stats {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .newsletter-form {
+                flex-direction: column;
+                align-items: center;
             }
         }
     </style>
 </head>
 <body>
 
-<header class="header">
-    <nav class="navbar">
-        <div class="logo">
-            <img src="image/logo.PNG" alt="Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/45x45?text=🌱'">
-            <span class="logo-text">NutriLoop</span>
-        </div>
-        
-        <ul class="nav-menu">
-            <li><a href="index.html">Accueil</a></li>
-            <li><a href="about.html">À propos</a></li>
-            <li><a href="contact.html">Contact</a></li>
-        </ul>
-        
-        <div class="right-section">
-            <!-- NOTIFICATIONS -->
-            <div class="notification-bell" id="notificationBell">
-                <i class="fas fa-bell"></i>
-                <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
-                <div class="notification-dropdown" id="notificationDropdown">
-                    <div class="notification-header">
-                        <h4><i class="fas fa-bell"></i> Notifications</h4>
-                        <a href="#" class="mark-all-read" id="markAllReadBtn">Tout marquer comme lu</a>
-                    </div>
-                    <div class="notification-list" id="notificationList">
-                        <div class="notification-empty">
-                            <i class="fas fa-bell-slash"></i>
-                            <p>Aucune notification</p>
-                        </div>
-                    </div>
-                </div>
+    <header class="header">
+        <nav class="navbar">
+            <div class="logo">
+                <img src="image/logo.PNG" alt="Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/45x45?text=🌱'">
+                <span class="logo-text">NutriLoop</span>
             </div>
-            
-            <div class="profile-dropdown" id="profileDropdown">
-                <div class="profile-trigger" onclick="toggleDropdown(event)">
-                    <div class="profile-avatar" id="userAvatar">JD</div>
-                    <span class="profile-name" id="userName">Chargement...</span>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="dropdown-menu" id="dropdownMenu">
-                    <div class="dropdown-header">
-                        <div class="big-avatar" id="bigAvatar">JD</div>
-                        <h4 id="fullName">Jean Dupont</h4>
-                        <p id="userRole">Membre</p>
-                    </div>
-                    <div class="dropdown-info">
-                        <div class="info-row">
-                            <span class="info-label"><i class="fas fa-envelope"></i> Email</span>
-                            <span class="info-value" id="userEmail">jean@email.com</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label"><i class="fas fa-calendar"></i> Membre depuis</span>
-                            <span class="info-value" id="memberSince">01/01/2024</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label"><i class="fas fa-user-tag"></i> Statut</span>
-                            <span class="info-value" id="userStatus">Actif</span>
-                        </div>
-                    </div>
-                    <div class="dropdown-theme">
-                        <span><i class="fas fa-moon"></i> Mode sombre</span>
-                        <div class="theme-switch" onclick="toggleTheme(event)"></div>
-                    </div>
-                    <div class="dropdown-footer">
-                        <button class="btn-logout" onclick="logout()">
-                            <i class="fas fa-sign-out-alt"></i> Se déconnecter
-                        </button>
-                    </div>
-                </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="active">Accueil</a></li>
+                <li><a href="#features">Fonctionnalités</a></li>
+                <li><a href="#modules">Modules</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="../BackOffice/index.html" class="btn-dashboard">Dashboard</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Bienvenue sur <span class="highlight">NutriLoop AI</span></h1>
+            <p>L'intelligence artificielle au service de votre alimentation pour une santé optimale et un avenir durable.</p>
+            <div class="hero-buttons">
+                <a href="../BackOffice/index.html" class="btn-primary">Accéder au Dashboard</a>
+                <a href="#modules" class="btn-outline">Découvrir les modules</a>
             </div>
         </div>
-    </nav>
-</header>
-
-<div class="main-content">
-    <div class="welcome-card">
-        <h1 id="welcomeMessage">Bonjour, Jean ! 👋</h1>
-        <p>Bienvenue sur votre espace personnel NutriLoop AI. Découvrez nos fonctionnalités pour une alimentation saine et équilibrée.</p>
-    </div>
-
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-utensils"></i></div>
-            <div class="stat-title">Recettes consultées</div>
-            <div class="stat-number">24</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-fire"></i></div>
-            <div class="stat-title">Calories économisées</div>
-            <div class="stat-number">1,280</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-leaf"></i></div>
-            <div class="stat-title">Impact CO₂ réduit</div>
-            <div class="stat-number">5.2kg</div>
-        </div>
-    </div>
-
-    <div id="features" class="features-grid">
-        <div class="feature-card" onclick="alert('Module Nutrition Smart - Bientôt disponible')">
-            <div class="feature-icon"><i class="fas fa-apple-alt"></i></div>
-            <h3>Nutrition Smart</h3>
-            <p>Recommandations personnalisées basées sur vos habitudes</p>
-        </div>
-        
-        <a href="afficherRecette.php" class="feature-card">
-            <div class="feature-icon"><i class="fas fa-book-open"></i></div>
-            <h3>Recettes Anti-Gaspi</h3>
-            <p>Découvrez des recettes intelligentes</p>
-        </a>
-        
-        <div class="feature-card" onclick="alert('Module Suivi & Objectifs - Bientôt disponible')">
-            <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
-            <h3>Suivi & Objectifs</h3>
-            <p>Suivez vos progrès et atteignez vos objectifs</p>
-        </div>
-    </div>
-</div>
-
-<script>
-    let currentUser = null;
-    let notifications = [];
-    let unreadCount = 0;
-    let lastCheckTime = new Date();
-    
-    // ===== NOTIFICATIONS FUNCTIONS =====
-    async function loadNotifications() {
-        try {
-            const response = await fetch('../../controleurs/notification_api.php?action=get');
-            const data = await response.json();
-            
-            if (data.success) {
-                notifications = data.notifications;
-                unreadCount = data.unread_count;
-                updateNotificationUI();
-            }
-        } catch (error) {
-            console.error('Erreur chargement notifications:', error);
-        }
-    }
-    
-    function updateNotificationUI() {
-        const badge = document.getElementById('notificationBadge');
-        if (unreadCount > 0) {
-            badge.style.display = 'flex';
-            badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-        } else {
-            badge.style.display = 'none';
-        }
-        
-        const listContainer = document.getElementById('notificationList');
-        if (!notifications || notifications.length === 0) {
-            listContainer.innerHTML = `
-                <div class="notification-empty">
-                    <i class="fas fa-bell-slash"></i>
-                    <p>Aucune notification</p>
-                </div>
-            `;
-            return;
-        }
-        
-        let html = '';
-        notifications.forEach(notif => {
-            const timeAgo = getTimeAgo(notif.created_at);
-            const unreadClass = notif.is_read == 0 ? 'unread' : '';
-            
-            html += `
-                <div class="notification-item ${unreadClass}" data-id="${notif.id_notification}" onclick="markAsRead(${notif.id_notification})">
-                    <div class="notification-icon" style="background: ${notif.color}20; color: ${notif.color}">
-                        <i class="fas ${notif.icon}"></i>
-                    </div>
-                    <div class="notification-content">
-                        <div class="notification-title">${escapeHtml(notif.title)}</div>
-                        <div class="notification-message">${escapeHtml(notif.message)}</div>
-                        <div class="notification-time">${timeAgo}</div>
-                    </div>
-                </div>
-            `;
-        });
-        listContainer.innerHTML = html;
-    }
-    
-    function getTimeAgo(dateString) {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffMs = now - date;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
-        
-        if (diffMins < 1) return 'À l\'instant';
-        if (diffMins < 60) return `Il y a ${diffMins} min`;
-        if (diffHours < 24) return `Il y a ${diffHours} h`;
-        if (diffDays === 1) return 'Hier';
-        return `Il y a ${diffDays} jours`;
-    }
-    
-    async function markAsRead(id) {
-        try {
-            const response = await fetch('../../controleurs/notification_api.php?action=mark_read', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id_notification: id })
-            });
-            const data = await response.json();
-            if (data.success) {
-                loadNotifications();
-            }
-        } catch (error) {
-            console.error('Erreur:', error);
-        }
-    }
-    
-    async function markAllAsRead() {
-        try {
-            const response = await fetch('../../controleurs/notification_api.php?action=mark_all_read', {
-                method: 'POST'
-            });
-            const data = await response.json();
-            if (data.success) {
-                loadNotifications();
-            }
-        } catch (error) {
-            console.error('Erreur:', error);
-        }
-    }
-    
-    function showToastNotification(title, message, color = '#4CAF50') {
-        const toast = document.createElement('div');
-        toast.className = 'toast-notification';
-        toast.style.borderLeftColor = color;
-        toast.innerHTML = `
-            <i class="fas fa-bell" style="color: ${color}"></i>
-            <div>
-                <strong style="font-size: 0.85rem;">${escapeHtml(title)}</strong>
-                <p style="font-size: 0.75rem; margin: 0;">${escapeHtml(message)}</p>
+        <div class="hero-stats">
+            <div class="stat">
+                <h3>5000+</h3>
+                <p>Utilisateurs actifs</p>
             </div>
-        `;
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.classList.add('fade-out');
-            setTimeout(() => toast.remove(), 300);
-        }, 5000);
-    }
-    
-    async function checkNewNotifications() {
-        try {
-            const response = await fetch('../../controleurs/notification_api.php?action=get');
-            const data = await response.json();
-            
-            if (data.success && data.notifications) {
-                const newUnreadCount = data.unread_count;
+            <div class="stat">
+                <h3>1000+</h3>
+                <p>Recettes IA</p>
+            </div>
+            <div class="stat">
+                <h3>98%</h3>
+                <p>Satisfaction</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Pourquoi choisir NutriLoop AI ?</h2>
+                <p>Une solution complète pour une nutrition intelligente et personnalisée</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-robot"></i></div>
+                    <h3>IA Avancée</h3>
+                    <p>Recommandations personnalisées basées sur vos habitudes alimentaires.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-leaf"></i></div>
+                    <h3>Eco-Score</h3>
+                    <p>Évaluez l'impact environnemental de vos repas.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                    <h3>Suivi en temps réel</h3>
+                    <p>Suivez vos progrès et atteignez vos objectifs.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-utensils"></i></div>
+                    <h3>Anti-Gaspi</h3>
+                    <p>Recettes intelligentes pour réduire le gaspillage.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="modules" class="modules">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Nos 6 Modules</h2>
+                <p>Cliquez sur un module pour y accéder directement</p>
+            </div>
+            <div class="modules-grid">
+                <div class="module-card" data-url="index.php">
+                    <div class="module-icon"><i class="fas fa-users"></i></div>
+                    <h3>Gestion Utilisateurs</h3>
+                    <p>Consultez la liste des utilisateurs actifs.</p>
+                    <span class="module-badge">Module 1 ✓</span>
+                    <span class="click-hint"><i class="fas fa-arrow-right"></i> Cliquez</span>
+                </div>
                 
-                if (newUnreadCount > unreadCount && notifications.length > 0) {
-                    const newNotifs = data.notifications.filter(n => !notifications.find(old => old.id_notification === n.id_notification));
-                    if (newNotifs.length > 0) {
-                        const latest = newNotifs[0];
-                        showToastNotification(latest.title, latest.message, latest.color);
-                    }
+                <div class="module-card" data-url="#">
+                    <div class="module-icon"><i class="fas fa-apple-alt"></i></div>
+                    <h3>Nutrition Smart</h3>
+                    <p>Analyse nutritionnelle et recommandations IA.</p>
+                    <span class="module-badge">Module 2</span>
+                    <span class="click-hint"><i class="fas fa-arrow-right"></i> Cliquez</span>
+                </div>
+                
+                <div class="module-card" data-url="#">
+                    <div class="module-icon"><i class="fas fa-boxes"></i></div>
+                    <h3>Gestion Produits</h3>
+                    <p>Base de données des aliments et catégories.</p>
+                    <span class="module-badge">Module 3</span>
+                    <span class="click-hint"><i class="fas fa-arrow-right"></i> Cliquez</span>
+                </div>
+                
+                <div class="module-card" data-url="afficherRecette.php">
+                    <div class="module-icon"><i class="fas fa-book-open"></i></div>
+                    <h3>Recettes Anti-Gaspi</h3>
+                    <p>Créez et gérez des recettes intelligentes.</p>
+                    <span class="module-badge">Module 4 ✓</span>
+                    <span class="click-hint"><i class="fas fa-arrow-right"></i> Cliquez</span>
+                </div>
+                
+                <div class="module-card" data-url="#">
+                    <div class="module-icon"><i class="fas fa-chart-simple"></i></div>
+                    <h3>Suivi & Objectifs</h3>
+                    <p>Tableau de bord personnalisé des progrès.</p>
+                    <span class="module-badge">Module 5</span>
+                    <span class="click-hint"><i class="fas fa-arrow-right"></i> Cliquez</span>
+                </div>
+                
+                <div class="module-card" data-url="#">
+                    <div class="module-icon"><i class="fas fa-calendar-alt"></i></div>
+                    <h3>Gestion Événements</h3>
+                    <p>Organisez des ateliers et challenges nutritionnels.</p>
+                    <span class="module-badge">Module 6</span>
+                    <span class="click-hint"><i class="fas fa-arrow-right"></i> Cliquez</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="testimonials">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Ce que disent nos utilisateurs</h2>
+            </div>
+            <div class="testimonial">
+                <div class="testimonial-content">
+                    <i class="fas fa-quote-left"></i>
+                    <p>NutriLoop AI a transformé ma façon de manger. Les recommandations sont précises et adaptées à mon mode de vie.</p>
+                </div>
+                <div class="testimonial-author">
+                    <img src="https://randomuser.me/api/portraits/women/1.jpg" alt="Sarah">
+                    <div>
+                        <h4>Sarah M.</h4>
+                        <p>Utilisatrice premium</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="contact">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Contactez-nous</h2>
+                <p>Nous sommes là pour répondre à vos questions</p>
+            </div>
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <h3>Notre adresse</h3>
+                    <p>123 Avenue Habib Bourguiba<br>Tunis, Tunisie</p>
+                    
+                    <i class="fas fa-phone" style="margin-top: 1.5rem;"></i>
+                    <h3>Téléphone</h3>
+                    <p>+216 70 000 000</p>
+                    
+                    <i class="fas fa-envelope" style="margin-top: 1.5rem;"></i>
+                    <h3>Email</h3>
+                    <p>contact@nutriloop.ai</p>
+                </div>
+                <div class="contact-form">
+                    <form id="contactForm">
+                        <input type="text" placeholder="Votre nom" required>
+                        <input type="email" placeholder="Votre email" required>
+                        <input type="text" placeholder="Sujet">
+                        <textarea placeholder="Votre message" rows="5" required></textarea>
+                        <button type="submit">Envoyer le message</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="newsletter">
+        <div class="newsletter-content">
+            <h3>Restez informé</h3>
+            <p>Recevez nos dernières actualités et conseils nutritionnels</p>
+            <form class="newsletter-form">
+                <input type="email" placeholder="Votre email">
+                <button type="submit">S'abonner</button>
+            </form>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>NutriLoop AI</h3>
+                <p>L'intelligence artificielle au service de votre assiette.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h4>Liens rapides</h4>
+                <ul>
+                    <li><a href="index.html">Accueil</a></li>
+                    <li><a href="#features">Fonctionnalités</a></li>
+                    <li><a href="#modules">Modules</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Modules</h4>
+                <ul>
+                    <li><a href="index.php">Utilisateurs</a></li>
+                    <li><a href="afficherRecette.php">Recettes</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contact</h4>
+                <ul>
+                    <li><i class="fas fa-envelope"></i> contact@nutriloop.ai</li>
+                    <li><i class="fas fa-phone"></i> +216 70 000 000</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 NutriLoop AI - Tous droits réservés | Projet étudiant</p>
+        </div>
+    </footer>
+
+    <script>
+        // Cartes cliquables
+        document.querySelectorAll('.module-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const url = this.getAttribute('data-url');
+                if(url && url !== '#') {
+                    window.location.href = url;
+                } else {
+                    alert('Ce module sera bientôt disponible !');
                 }
-                
-                notifications = data.notifications;
-                unreadCount = newUnreadCount;
-                updateNotificationUI();
-            }
-        } catch (error) {
-            console.error('Erreur check notifications:', error);
-        }
-    }
-    
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
+            });
         });
-    }
-    
-    // ===== DARK MODE FUNCTIONS =====
-    function loadTheme() {
-        const savedTheme = localStorage.getItem('nutriloop_theme');
-        if (savedTheme === 'dark') {
-            document.body.classList.add('dark');
-        } else {
-            document.body.classList.remove('dark');
-        }
-    }
 
-    function toggleTheme(event) {
-        if (event) event.stopPropagation();
-        
-        if (document.body.classList.contains('dark')) {
-            document.body.classList.remove('dark');
-            localStorage.setItem('nutriloop_theme', 'light');
-        } else {
-            document.body.classList.add('dark');
-            localStorage.setItem('nutriloop_theme', 'dark');
+        // Formulaire contact
+        document.getElementById('contactForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Merci pour votre message ! Nous vous contacterons bientôt.');
+            this.reset();
+        });
+
+        // Formulaire newsletter
+        document.querySelector('.newsletter-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Merci pour votre abonnement !');
+            this.reset();
+        });
+
+        // Menu mobile
+        const hamburger = document.querySelector('.hamburger');
+        const navMenu = document.querySelector('.nav-menu');
+        if(hamburger) {
+            hamburger.addEventListener('click', () => {
+                navMenu.classList.toggle('active');
+                if(navMenu.style.display === 'flex') {
+                    navMenu.style.display = 'none';
+                } else {
+                    navMenu.style.display = 'flex';
+                    navMenu.style.flexDirection = 'column';
+                    navMenu.style.position = 'absolute';
+                    navMenu.style.top = '70px';
+                    navMenu.style.left = '0';
+                    navMenu.style.right = '0';
+                    navMenu.style.backgroundColor = 'white';
+                    navMenu.style.padding = '1rem';
+                    navMenu.style.gap = '1rem';
+                }
+            });
         }
-    }
-    
-    // ===== USER SESSION FUNCTIONS =====
-    async function loadUserData() {
-        try {
-            const response = await fetch('get_user_session.php');
-            const data = await response.json();
-            if (data.user) {
-                currentUser = data.user;
-                updateProfileUI();
-                loadNotifications();
-            } else {
-                window.location.href = 'login.php';
-            }
-        } catch (error) {
-            console.error('Erreur:', error);
-            window.location.href = 'login.php';
-        }
-    }
-    
-    function updateProfileUI() {
-        if (!currentUser) return;
-        const initial = (currentUser.prenom.charAt(0) + currentUser.nom.charAt(0)).toUpperCase();
-        const fullName = `${currentUser.prenom} ${currentUser.nom}`;
-        document.getElementById('userAvatar').textContent = initial;
-        document.getElementById('bigAvatar').textContent = initial;
-        document.getElementById('userName').textContent = currentUser.prenom;
-        document.getElementById('fullName').textContent = fullName;
-        document.getElementById('welcomeMessage').textContent = `Bonjour, ${currentUser.prenom} ! 👋`;
-        document.getElementById('userEmail').textContent = currentUser.email;
-        document.getElementById('memberSince').textContent = new Date(currentUser.date_inscription).toLocaleDateString('fr-FR');
-        document.getElementById('userRole').textContent = currentUser.role === 'ADMIN' ? 'Administrateur' : 'Membre';
-        document.getElementById('userStatus').innerHTML = currentUser.statut === 'actif' ? '✅ Actif' : '⭕ Inactif';
-    }
-    
-    function toggleDropdown(event) {
-        if (event) event.stopPropagation();
-        document.getElementById('profileDropdown').classList.toggle('active');
-    }
-    
-    function logout() {
-        if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
-            window.location.href = 'logout.php';
-        }
-    }
-    
-    // ===== EVENT LISTENERS =====
-    document.addEventListener('click', function(event) {
-        const dropdown = document.getElementById('profileDropdown');
-        if (dropdown && !dropdown.contains(event.target)) {
-            dropdown.classList.remove('active');
-        }
-        const notificationBell = document.getElementById('notificationBell');
-        if (notificationBell && !notificationBell.contains(event.target)) {
-            notificationBell.classList.remove('active');
-        }
-    });
-    
-    document.getElementById('notificationBell')?.addEventListener('click', function(e) {
-        e.stopPropagation();
-        this.classList.toggle('active');
-    });
-    
-    document.getElementById('markAllReadBtn')?.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        markAllAsRead();
-    });
-    
-    document.querySelector('.dropdown-theme')?.addEventListener('click', function(e) {
-        e.stopPropagation();
-    });
-    
-    // ===== INITIALISATION =====
-    loadTheme();
-    loadUserData();
-    setInterval(checkNewNotifications, 30000);
-</script>
+    </script>
 </body>
 </html>

@@ -2,12 +2,10 @@
 session_start();
 require_once '../../controleurs/UserController.php';
 
-// ===== VÉRIFICATION SESSION ADMIN =====
 if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'ADMIN') {
     header('Location: ../FrontOffice/login.php');
     exit();
 }
-// =====================================
 
 if (isset($_GET['id'])) {
     $userController = new UserController();

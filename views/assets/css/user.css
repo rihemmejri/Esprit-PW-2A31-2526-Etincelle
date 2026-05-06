@@ -461,38 +461,3 @@ footer {
     padding: 20px;
     color: white;
 }
-/* Password strength indicator */
-.password-strength-container {
-    margin-top: 5px;
-}
-
-.strength-bar {
-    height: 4px;
-    background-color: #e0e0e0;
-    border-radius: 4px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-}
-
-.strength-progress {
-    width: 0%;
-    height: 100%;
-    transition: width 0.3s ease, background-color 0.3s ease;
-    border-radius: 4px;
-}
-
-.strength-text {
-    font-size: 12px;
-    margin-top: 5px;
-    display: block;
-    transition: color 0.3s ease;
-}
-
-/* Strength levels */
-.strength-faible { background-color: #f44336; }
-.strength-moyen { background-color: #ff9800; }
-.strength-fort { background-color: #4caf50; }
-
-.text-faible { color: #f44336; }
-.text-moyen { color: #ff9800; }
-.text-fort { color: #4caf50; }
