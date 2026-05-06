@@ -96,7 +96,7 @@ if (!$preperation) {
                 <div class="detail-row">
                     <div class="detail-label">Recette associée :</div>
                     <div class="detail-value">
-                        <a href="../recette/recetteList.php?id=<?= $preperation->getIdRecette() ?>">
+                        <a href="recetteList.php?id=<?= $preperation->getIdRecette() ?>">
                             <?= htmlspecialchars($preperation->getRecetteNom()) ?>
                         </a>
                     </div>

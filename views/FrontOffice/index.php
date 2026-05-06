@@ -1,52 +1,79 @@
 <?php
-session_start();
-require_once '../../controleurs/UserController.php';
-
-$userController = new UserController();
-$users = $userController->listUsers();
+require_once '../../config.php';
 ?>
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NutriLoop | Utilisateurs</title>
+    <title>NutriLoop AI | Accueil</title>
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* Style additionnel pour les cartes cliquables */
+        .module-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: #f5f7fa;
+        
+        .module-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
         }
-
-        .header {
-            background: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            padding: 1rem 5%;
+        
+        .module-card:active {
+            transform: translateY(-2px);
         }
-
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
+        
+        .module-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(76, 175, 80, 0);
+            transition: 0.3s;
+            pointer-events: none;
+            border-radius: 20px;
         }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        
+        .module-card:hover::after {
+            background: rgba(76, 175, 80, 0.05);
         }
-
+        
+        /* Indicateur cliquable */
+        .click-hint {
+            position: absolute;
+            bottom: 15px;
+            right: 20px;
+            font-size: 0.7rem;
+            color: #4CAF50;
+            opacity: 0;
+            transition: 0.3s;
+        }
+        
+        .module-card:hover .click-hint {
+            opacity: 1;
+            transform: translateX(-5px);
+        }
+        
+        /* Badge module */
+        .module-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+                
+        /* Logo image */
         .logo-img {
             width: 45px;
             height: 45px;
@@ -54,244 +81,116 @@ $users = $userController->listUsers();
             object-fit: cover;
         }
 
-        .logo-text {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #003366;
-        }
-
-        .nav-menu {
+        /* ========== IFRAME CONTAINER ========== */
+        .main-wrapper {
             display: flex;
-            list-style: none;
-            gap: 2rem;
+            flex-direction: column;
+            height: calc(100vh - 80px);
         }
 
-        .nav-menu a {
-            text-decoration: none;
-            color: #333;
-            font-weight: 500;
-        }
-
-        .nav-menu a:hover {
-            color: #4CAF50;
-        }
-
-        .btn-back {
-            background: #4CAF50;
-            color: white;
-            padding: 8px 20px;
-            border-radius: 25px;
-            text-decoration: none;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-        }
-
-        h1 {
-            color: #003366;
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        .user-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 2rem;
-        }
-
-        .user-card {
-            background: white;
-            border-radius: 20px;
+        .iframe-container {
+            flex: 1;
             overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-            transition: 0.3s;
+            background: var(--gray-light);
         }
 
-        .user-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
-        }
-
-        .user-card-header {
-            background: linear-gradient(135deg, #003366, #4CAF50);
-            color: white;
-            padding: 1.5rem;
-            text-align: center;
-        }
-
-        .user-card-header h3 {
-            font-size: 1.3rem;
-            margin-bottom: 0.3rem;
-        }
-
-        .role-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-
-        .role-admin {
-            background: #ff9800;
-            color: white;
-        }
-
-        .role-user {
-            background: rgba(255,255,255,0.3);
-            color: white;
-        }
-
-        .user-card-body {
-            padding: 1.5rem;
-        }
-
-        .user-info {
-            margin-bottom: 0.8rem;
-            padding-bottom: 0.8rem;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .user-info strong {
-            color: #003366;
-            display: inline-block;
-            width: 100px;
-        }
-
-        .statut-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-
-        .statut-actif {
-            background: #4CAF50;
-            color: white;
-        }
-
-        .user-card-footer {
-            background: #f9f9f9;
-            padding: 1rem;
-            text-align: center;
-        }
-
-        .btn-retour {
-            display: inline-block;
-            margin-top: 2rem;
-            padding: 12px 30px;
-            background: #003366;
-            color: white;
-            text-decoration: none;
-            border-radius: 30px;
-            text-align: center;
-        }
-
-        .btn-retour:hover {
-            background: #4CAF50;
-        }
-
-        .no-users {
-            text-align: center;
-            padding: 3rem;
+        .content-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
             background: white;
-            border-radius: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .user-grid {
-                grid-template-columns: 1fr;
-            }
-            .nav-menu {
-                display: none;
-            }
         }
     </style>
 </head>
 <body>
 
+    <!-- ========== HEADER ========== -->
 <header class="header">
-    <nav class="navbar">
-        <div class="logo">
-            <img src="image/logo.PNG" alt="Logo" class="logo-img">
-            <span class="logo-text">NutriLoop</span>
-        </div>
-        <ul class="nav-menu">
-            <li><a href="index.html">Accueil</a></li>
-            <li><a href="index.php" class="active">Utilisateurs</a></li>
-            <li><a href="../BackOffice/index.html" class="btn-back">Dashboard</a></li>
-        </ul>
-    </nav>
-</header>
-
-<div class="container">
-    <h1><i class="fas fa-users"></i> Nos utilisateurs</h1>
-    
-    <?php if (isset($_SESSION['user'])): ?>
-        <div style="text-align: right; margin-bottom: 20px;">
-            <span>👋 Bienvenue, <?= htmlspecialchars($_SESSION['user']['prenom']) ?> !</span>
-            <a href="logout.php" style="margin-left: 15px; color: #f44336;">Déconnexion</a>
-            <?php if ($_SESSION['user']['role'] === 'ADMIN'): ?>
-                <a href="../BackOffice/list.php" style="margin-left: 15px; color: #4CAF50;">Backoffice</a>
-            <?php endif; ?>
-        </div>
-    <?php else: ?>
-        <div style="text-align: right; margin-bottom: 20px;">
-            <a href="login.php" style="margin-right: 15px;">Connexion</a>
-            <a href="register.php">Inscription</a>
-        </div>
-    <?php endif; ?>
-    
-    <div class="user-grid">
-        <?php 
-        $hasUsers = false;
-        while($user = $users->fetch(PDO::FETCH_ASSOC)): 
-            if($user['statut'] === 'actif' || $user['statut'] === 'ACTIF'):
-                $hasUsers = true;
-        ?>
-            <div class="user-card">
-                <div class="user-card-header">
-                    <h3><?= htmlspecialchars($user['prenom']) ?> <?= htmlspecialchars($user['nom']) ?></h3>
-                    <span class="role-badge <?= $user['role'] === 'ADMIN' ? 'role-admin' : 'role-user' ?>">
-                        <?= $user['role'] === 'ADMIN' ? 'Administrateur' : 'Membre' ?>
-                    </span>
-                </div>
-                <div class="user-card-body">
-                    <div class="user-info">
-                        <strong>Email:</strong> <?= htmlspecialchars($user['email']) ?>
-                    </div>
-                    <div class="user-info">
-                        <strong>Inscrit depuis:</strong> <?= date('d/m/Y', strtotime($user['date_inscription'])) ?>
-                    </div>
-                </div>
-                <div class="user-card-footer">
-                    <span class="statut-badge statut-actif">
-                        <i class="fas fa-check-circle"></i> Compte actif
-                    </span>
-                </div>
+        <nav class="navbar">
+            <div class="logo">
+                <img src="image/logo.PNG" alt="NutriLoop Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/45x45?text=🌱'">
+                <span class="logo-text">NutriLoop </span>
             </div>
-        <?php 
-            endif;
-        endwhile; 
-        ?>
-        
-        <?php if (!$hasUsers): ?>
-            <div class="no-users">
-                <i class="fas fa-user-slash" style="font-size: 3rem; color: #ccc;"></i>
-                <p>Aucun utilisateur actif pour le moment.</p>
-                <a href="register.php" class="btn-back" style="margin-top: 1rem; display: inline-block;">Créer un compte</a>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="home.php" class="nav-link active" data-page="home">Accueil</a></li>
+                <li><a href="home.php#features" class="nav-link" data-page="features">Fonctionnalités</a></li>
+                <li><a href="home.php#modules" class="nav-link" data-page="modules">Modules</a></li>
+                <li><a href="about.html" class="nav-link" data-page="about">À propos</a></li>
+                <li><a href="contact.html" class="nav-link" data-page="contact">Contact</a></li>
+                <li><a href="/NutriLoop_PWW/views/BackOffice/index.html" class="btn-dashboard">Dashboard</a></li>
+            </ul>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
-        <?php endif; ?>
-    </div>
-    
-    <div style="text-align: center;">
-        <a href="index.html" class="btn-retour"><i class="fas fa-arrow-left"></i> Retour à l'accueil</a>
-    </div>
-</div>
+        </nav>
+    </header>
 
+    <!-- ========== MAIN IFRAME CONTAINER ========== -->
+    <div class="iframe-container">
+        <iframe id="contentIframe" class="content-iframe" src="home.php"></iframe>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+        (function() {
+            const contentIframe = document.getElementById('contentIframe');
+            const navMenuEl = document.getElementById('navMenu');
+            const hamburgerEl = document.getElementById('hamburger');
+
+            navMenuEl.addEventListener('click', function(e) {
+                const link = e.target.closest('a.nav-link');
+                if (!link) return;
+                
+                e.preventDefault();
+                const href = link.getAttribute('href');
+                
+                if (href && href !== '#') {
+                    const parts = href.split('#');
+                    const page = parts[0];
+                    const hash = parts[1];
+                    
+                    let currentSrc = contentIframe.src || '';
+                    let currentPage = currentSrc.substring(currentSrc.lastIndexOf('/') + 1).split('#')[0];
+                    if (!currentPage) currentPage = 'home.php';
+                    
+                    const targetPage = page || currentPage;
+
+                    if (targetPage === currentPage && hash) {
+                        try {
+                            const targetElement = contentIframe.contentWindow.document.getElementById(hash);
+                            if (targetElement) {
+                                targetElement.scrollIntoView({ behavior: 'smooth' });
+                            } else {
+                                contentIframe.src = href;
+                            }
+                        } catch(err) {
+                            contentIframe.src = href;
+                        }
+                    } else {
+                        contentIframe.src = href;
+                    }
+                    
+                    navMenuEl.querySelectorAll('a.nav-link').forEach(a => a.classList.remove('active'));
+                    link.classList.add('active');
+                    navMenuEl.classList.remove('active');
+                    hamburgerEl.classList.remove('active');
+                }
+            });
+
+            hamburgerEl.addEventListener('click', function() {
+                navMenuEl.classList.toggle('active');
+                hamburgerEl.classList.toggle('active');
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.navbar')) {
+                    navMenuEl.classList.remove('active');
+                    hamburgerEl.classList.remove('active');
+                }
+            });
+        })();
+    </script>
 </body>
 </html>

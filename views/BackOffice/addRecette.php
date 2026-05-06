@@ -1,119 +1,222 @@
 <?php
-session_start();
+include '../../controleurs/RecetteController.php';
+require_once __DIR__ . '/../../models/recette.php';
 
-// Vérification Admin uniquement
-if(!isset($_SESSION['user_id']) || $_SESSION['role'] != 'ADMIN') {
-    header('Location: ../FrontOffice/login.php');
-    exit();
-}
+$error = "";
+$success = "";
+$recetteController = new RecetteController();
 
-require_once __DIR__ . '/../../controleurs/UserController.php';
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $user = new User(
-        null,
-        $_POST['nom'],
-        $_POST['prenom'],
-        $_POST['email'],
-        $_POST['mot_de_passe'],
-        date('Y-m-d'),
-        $_POST['role'],
-        $_POST['statut']
-    );
-    
-    $userController = new UserController();
-    $userController->addUser($user);
-    header('Location: list.php');
-    exit();
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST["nom"]) && isset($_POST["description"]) && isset($_POST["type_repas"])) {
+        if (!empty($_POST["nom"]) && !empty($_POST["description"]) && !empty($_POST["type_repas"])) {
+            
+            $recette = new recette(
+                htmlspecialchars($_POST['nom']),
+                htmlspecialchars($_POST['description']),
+                intval($_POST['temps_preparation'] ?? 0),
+                htmlspecialchars($_POST['difficulte'] ?? 'MOYEN'),
+                htmlspecialchars($_POST['type_repas']),
+                htmlspecialchars($_POST['origine'] ?? ''),
+                intval($_POST['nb_personne'] ?? 1)
+            );
+            
+            $recetteController->addRecette($recette);
+            header('Location: recetteList.php');
+            exit;
+        } else {
+            $error = "Tous les champs obligatoires doivent être remplis.";
+        }
+    }
 }
 ?>
+
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Ajouter utilisateur - NutriLoop</title>
-    <link rel="stylesheet" href="../assets/css/user.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajouter une Recette - Nutrition</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/nutrition-style.css">
 </head>
 <body>
-    <div class="sidebar">
-        <div class="logo">
-            <div class="logo-icon">🍽️</div>
-            NutriLoop
-        </div>
-        <div class="admin-badge">Admin</div>
-        
-        <div class="menu-title">DASHBOARD</div>
-        <a href="dashboard.php">📊 Dashboard</a>
-        
-        <div class="menu-title">UTILISATEURS (MODULE 1)</div>
-        <a href="list.php">👥 Gestion Utilisateurs</a>
-        
-        <div class="menu-title">NUTRITION SMART</div>
-        <a href="#">🥗 Gestion Produits</a>
-        <a href="#">🍳 Recettes Anti-Gaspi</a>
-        <a href="#">📈 Suivi & Objectifs</a>
-        <a href="#">🎉 Gestion Événements</a>
-        
-        <div style="margin-top: 30px;">
-            <a href="../../logout.php">🚪 Déconnexion</a>
-        </div>
-    </div>
-    
-    <div class="main-content">
-        <div class="backoffice-header">
-            <h2>Backoffice</h2>
-            <div class="backoffice-nav">
-                <a href="dashboard.php">Dashboard</a>
-                <a href="list.php">Utilisateurs</a>
-                <a href="addUser.php">Ajouter</a>
-                <a href="../../logout.php">Déconnexion</a>
+    <div class="container-form">
+        <div class="form-card">
+            <div class="header">
+                <h1>
+                    <i class="fas fa-plus-circle"></i>
+                    Ajouter une recette
+                </h1>
+                <p>Remplissez les informations ci-dessous pour ajouter une nouvelle recette</p>
+            </div>
+
+            <?php if ($error): ?>
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <?= htmlspecialchars($error) ?>
+                </div>
+            <?php endif; ?>
+
+            <div class="form-content">
+                <form action="" method="POST" id="addRecetteForm">
+                    <div class="form-grid">
+                        <!-- Nom de la recette -->
+                        <div class="form-group full-width">
+                            <label>
+                                <i class="fas fa-utensils"></i>
+                                Nom de la recette <span class="required">*</span>
+                            </label>
+                            <div class="input-icon">
+                                <i class="fas fa-book"></i>
+                                <input type="text" name="nom" placeholder="Ex: Tajine Marocain" required>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="form-group full-width">
+                            <label>
+                                <i class="fas fa-align-left"></i>
+                                Description <span class="required">*</span>
+                            </label>
+                            <div class="input-icon">
+                                <i class="fas fa-pen"></i>
+                                <textarea name="description" placeholder="Décrivez la recette (ingrédients, étapes...) - minimum 20 caractères" required></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Temps de préparation -->
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-clock"></i>
+                                Temps de préparation (minutes)
+                            </label>
+                            <div class="personne-input">
+                                <button type="button" onclick="updateTemps(-5)">-</button>
+                                <input type="number" name="temps_preparation" id="temps_preparation" min="0" max="1440" value="30">
+                                <button type="button" onclick="updateTemps(5)">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Nombre de personnes -->
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-users"></i>
+                                Nombre de personnes
+                            </label>
+                            <div class="personne-input">
+                                <button type="button" onclick="updatePersonnes(-1)">-</button>
+                                <input type="number" name="nb_personne" id="nb_personne" min="1" max="100" value="4">
+                                <button type="button" onclick="updatePersonnes(1)">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Difficulté -->
+                        <div class="form-group full-width">
+                            <label>
+                                <i class="fas fa-chart-line"></i>
+                                Difficulté
+                            </label>
+                            <div class="difficulte-group">
+                                <div class="difficulte-option">
+                                    <input type="radio" name="difficulte" id="difficulte_facile" value="FACILE">
+                                    <label for="difficulte_facile">
+                                        <i class="fas fa-smile"></i>
+                                        Facile
+                                    </label>
+                                </div>
+                                <div class="difficulte-option">
+                                    <input type="radio" name="difficulte" id="difficulte_moyen" value="MOYEN" checked>
+                                    <label for="difficulte_moyen">
+                                        <i class="fas fa-meh"></i>
+                                        Moyen
+                                    </label>
+                                </div>
+                                <div class="difficulte-option">
+                                    <input type="radio" name="difficulte" id="difficulte_difficile" value="DIFFICILE">
+                                    <label for="difficulte_difficile">
+                                        <i class="fas fa-frown"></i>
+                                        Difficile
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Type de repas -->
+                        <div class="form-group full-width">
+                            <label>
+                                <i class="fas fa-mug-hot"></i>
+                                Type de repas <span class="required">*</span>
+                            </label>
+                            <div class="type-repas-group">
+                                <div class="type-repas-option">
+                                    <input type="radio" name="type_repas" id="type_petitdejeuner" value="PETIT_DEJEUNER" required>
+                                    <label for="type_petitdejeuner">
+                                        <i class="fas fa-coffee"></i>
+                                        Petit déjeuner
+                                    </label>
+                                </div>
+                                <div class="type-repas-option">
+                                    <input type="radio" name="type_repas" id="type_dejeuner" value="DEJEUNER">
+                                    <label for="type_dejeuner">
+                                        <i class="fas fa-utensils"></i>
+                                        Déjeuner
+                                    </label>
+                                </div>
+                                <div class="type-repas-option">
+                                    <input type="radio" name="type_repas" id="type_diner" value="DINER">
+                                    <label for="type_diner">
+                                        <i class="fas fa-moon"></i>
+                                        Dîner
+                                    </label>
+                                </div>
+                                <div class="type-repas-option">
+                                    <input type="radio" name="type_repas" id="type_dessert" value="DESSERT">
+                                    <label for="type_dessert">
+                                        <i class="fas fa-cake-candles"></i>
+                                        Dessert
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Origine -->
+                        <div class="form-group full-width">
+                            <label>
+                                <i class="fas fa-globe"></i>
+                                Origine
+                            </label>
+                            <div class="input-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <input type="text" name="origine" placeholder="Ex: Marocaine, Italienne, Française...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            Ajouter la recette
+                        </button>
+                        <button type="reset" class="btn btn-secondary">
+                            <i class="fas fa-undo"></i>
+                            Réinitialiser
+                        </button>
+                        <a href="recetteList.php" class="btn btn-secondary">
+                            <i class="fas fa-times"></i>
+                            Annuler
+                        </a>
+                    </div>
+                </form>
+                
+                <div class="help-text">
+                    <i class="fas fa-info-circle"></i>
+                    Les champs marqués d'un <span class="required">*</span> sont obligatoires.<br>
+                    <i class="fas fa-check-circle"></i> La description doit contenir au moins 20 caractères.
+                </div>
             </div>
         </div>
-        
-        <div class="form-container">
-            <h2>Ajouter un utilisateur</h2>
-            <form method="POST">
-                <div class="form-group">
-                    <label>Nom:</label>
-                    <input type="text" name="nom" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Prénom:</label>
-                    <input type="text" name="prenom" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Email:</label>
-                    <input type="email" name="email" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Mot de passe:</label>
-                    <input type="password" name="mot_de_passe" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Rôle:</label>
-                    <select name="role">
-                        <option value="USER">Client</option>
-                        <option value="ADMIN">Admin</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Statut:</label>
-                    <select name="statut">
-                        <option value="ACTIF">Actif</option>
-                        <option value="INACTIF">Bloqué</option>
-                    </select>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="submit" class="btn-success">✅ Ajouter</button>
-                    <a href="list.php" class="btn-secondary">❌ Annuler</a>
-                </div>
-            </form>
-        </div>
     </div>
+
+    <script src="../assets/js/recette.js"></script>
 </body>
 </html>

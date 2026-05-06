@@ -2,7 +2,7 @@ CREATE DATABASE Nutriloop;
 USE Nutriloop;
 
 -- =========================
--- USER (moemen)
+-- USER (moomen)
 -- =========================
 CREATE TABLE user (
     id_user INT AUTO_INCREMENT PRIMARY KEY,
