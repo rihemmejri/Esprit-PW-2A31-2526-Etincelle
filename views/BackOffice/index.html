@@ -161,7 +161,6 @@
             flex-wrap: wrap;
         }
 
-        /* ===== STYLES NOTIFICATIONS ADMIN ===== */
         .notification-bell {
             position: relative;
             cursor: pointer;
@@ -329,7 +328,6 @@
             top: 18px;
         }
 
-        /* Admin Alert Popup */
         .admin-alert {
             position: fixed;
             top: 80px;
@@ -348,8 +346,6 @@
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-
-        /* ===== FIN STYLES NOTIFICATIONS ===== */
 
         .profile-info {
             display: flex;
@@ -801,7 +797,6 @@
                 <i class="fas fa-chart-line"></i> Dashboard <span>Administrateur</span>
             </div>
             
-            <!-- NOTIFICATIONS POUR ADMIN SEULEMENT -->
             <div class="notification-bell" id="notificationBell">
                 <i class="fas fa-bell"></i>
                 <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
@@ -915,8 +910,6 @@
     let notifications = [];
     let unreadCount = 0;
 
-    // ========== NOTIFICATIONS POUR ADMIN ==========
-    
     async function loadAdminNotifications() {
         try {
             const response = await fetch('../../controleurs/notification_api.php?action=get');
@@ -1136,7 +1129,6 @@
         });
     }
 
-    // ========== DARK MODE ==========
     function loadTheme() {
         const savedTheme = localStorage.getItem('nutriloop_admin_theme');
         if (savedTheme === 'dark') {
@@ -1157,7 +1149,6 @@
         }
     }
 
-    // ========== SESSION & STATS ==========
     async function checkSession() {
         try {
             const response = await fetch('../FrontOffice/get_user_session.php');
@@ -1216,7 +1207,7 @@
         
         const tbody = document.querySelector('#topUsersTable tbody');
         if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">⚠️ Aucune donnée disponible</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">⚠️ Aucune donnée disponible</td><tr>';
         }
     }
 
@@ -1329,7 +1320,6 @@
         }
     }
 
-    // ========== EVENT LISTENERS ==========
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', () => {
             const page = item.getAttribute('data-page');
@@ -1368,7 +1358,6 @@
         markAllNotificationsAsRead();
     });
 
-    // ========== INITIALISATION ==========
     loadTheme();
     loadAdminData();
     setInterval(checkNewAdminNotifications, 15000);
