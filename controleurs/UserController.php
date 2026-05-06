@@ -30,8 +30,8 @@ class UserController {
     }
 
     public function addUser(User $user) {
-        $sql = "INSERT INTO user (nom, prenom, email, mot_de_passe, date_inscription, role, statut, failed_attempts, is_locked) 
-                VALUES (:nom, :prenom, :email, :mot_de_passe, :date_inscription, :role, :statut, 0, 0)";
+        $sql = "INSERT INTO user (nom, prenom, email, mot_de_passe, date_inscription, role, statut, failed_attempts, is_locked, is_banned) 
+                VALUES (:nom, :prenom, :email, :mot_de_passe, :date_inscription, :role, :statut, 0, 0, 0)";
         $db = config::getConnexion();
         try {
             $query = $db->prepare($sql);
@@ -157,6 +157,80 @@ class UserController {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
+    // ========== FONCTIONS DE BANNISSEMENT ==========
+    
+    public function banUserByEmail($email, $adminName, $reason = null) {
+        $user = $this->findUserByEmail($email);
+        if (!$user) return false;
+        
+        $reasonText = $reason ?: "Violation des conditions d'utilisation";
+        
+        $sql = "UPDATE user SET is_banned = 1, banned_at = NOW(), banned_reason = :reason, banned_by = :admin WHERE email = :email";
+        $db = config::getConnexion();
+        $stmt = $db->prepare($sql);
+        $result = $stmt->execute([
+            ':reason' => $reasonText,
+            ':admin' => $adminName,
+            ':email' => $email
+        ]);
+        
+        if ($result) {
+            $this->createNotification(
+                $user['id_user'],
+                'user_banned',
+                '🚫 Compte banni',
+                "Votre compte a été banni par l'administrateur {$adminName}. Raison : {$reasonText}\n\nContactez l'administration pour plus d'informations."
+            );
+            $this->notifyAllAdmins(
+                'user_banned',
+                '🚫 Utilisateur banni',
+                "L'administrateur {$adminName} a banni l'utilisateur {$user['prenom']} {$user['nom']} ({$email}) pour : {$reasonText}"
+            );
+        }
+        
+        return $result;
+    }
+    
+    public function unbanUserByEmail($email, $adminName) {
+        $user = $this->findUserByEmail($email);
+        if (!$user) return false;
+        
+        $sql = "UPDATE user SET is_banned = 0, banned_at = NULL, banned_reason = NULL, banned_by = NULL WHERE email = :email";
+        $db = config::getConnexion();
+        $stmt = $db->prepare($sql);
+        $result = $stmt->execute([':email' => $email]);
+        
+        if ($result) {
+            $this->createNotification(
+                $user['id_user'],
+                'user_unbanned',
+                '✅ Compte débanni',
+                "Votre compte a été débanni par l'administrateur {$adminName}. Vous pouvez maintenant vous reconnecter."
+            );
+            $this->notifyAllAdmins(
+                'user_unbanned',
+                '✅ Utilisateur débanni',
+                "L'administrateur {$adminName} a débanni l'utilisateur {$user['prenom']} {$user['nom']} ({$email})"
+            );
+        }
+        
+        return $result;
+    }
+    
+    public function isUserBanned($email) {
+        $user = $this->findUserByEmail($email);
+        if (!$user) return false;
+        return isset($user['is_banned']) && $user['is_banned'] == 1;
+    }
+    
+    public function getBannedUsers() {
+        $sql = "SELECT * FROM user WHERE is_banned = 1 ORDER BY banned_at DESC";
+        $db = config::getConnexion();
+        $stmt = $db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
     // ========== FONCTIONS DE NOTIFICATION ==========
     
     private function createNotification($id_user, $type, $title, $message, $lien = null) {
@@ -193,7 +267,6 @@ class UserController {
             $currentAttempts = $user['failed_attempts'] ?? 0;
             $failedAttempts = $currentAttempts + 1;
             
-            // Mettre à jour le nombre de tentatives
             $sql = "UPDATE user SET failed_attempts = :failed_attempts WHERE email = :email";
             $db = config::getConnexion();
             $stmt = $db->prepare($sql);
@@ -202,13 +275,9 @@ class UserController {
                 ':email' => $email
             ]);
             
-            // Si 3 tentatives -> verrouillage + notification avec LIEN
             if ($failedAttempts >= 3) {
                 $this->lockAccountByEmail($email);
-                
-                // 🔴 LIEN VERS LA PAGE DES COMPTES VERROUILLÉS
-                $lien = '../BackOffice/index.html';
-                
+                $lien = '../BackOffice/locked_accounts.php';
                 $this->notifyAllAdmins(
                     'account_locked',
                     '🔒 COMPTE VERROUILLÉ',
@@ -218,7 +287,6 @@ class UserController {
             }
         }
         
-        // Logger
         $sql = "INSERT INTO connexion_logs (email, success, ip_address, attempt_time) VALUES (:email, 0, :ip, NOW())";
         $db = config::getConnexion();
         $stmt = $db->prepare($sql);
@@ -232,28 +300,31 @@ class UserController {
         $stmt->execute([':email' => $email]);
     }
 
-    // ========== LOGIN PRINCIPAL (par EMAIL) ==========
+    // ========== LOGIN PRINCIPAL ==========
     
     public function login($email, $password) {
         $user = $this->findUserByEmail($email);
         
         $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
         
-        // Vérifier si l'utilisateur existe
         if (!$user) {
             $_SESSION['login_error'] = "Email ou mot de passe incorrect";
             return false;
         }
         
-        // Vérifier si le compte est verrouillé
+        // Vérifier si l'utilisateur est banni
+        if ($this->isUserBanned($email)) {
+            $reason = $user['banned_reason'] ?? "Violation des conditions d'utilisation";
+            $_SESSION['login_error'] = "🚫 COMPTE BANNI !\n\nVotre compte a été banni.\nRaison : {$reason}\n\nContactez l'administration pour plus d'informations.";
+            return false;
+        }
+        
         if ($this->isAccountLocked($email)) {
             $_SESSION['login_error'] = "🔒 COMPTE VERROUILLE !\n\nContactez un administrateur pour débloquer votre compte.";
             return false;
         }
         
-        // Vérifier mot de passe
         if (password_verify($password, $user['mot_de_passe'])) {
-            // Succès
             $this->resetFailedAttempts($email);
             
             $stats = new ConnexionStats();
@@ -261,7 +332,6 @@ class UserController {
             
             return $user;
         } else {
-            // Échec
             $currentAttempts = $user['failed_attempts'] ?? 0;
             $newAttempts = $currentAttempts + 1;
             $remaining = 3 - $newAttempts;
@@ -278,32 +348,6 @@ class UserController {
         }
     }
     
-    // ========== ADMIN : DÉVERROUILLER PAR EMAIL ==========
-    
-    public function adminUnlockAccountByEmail($email, $adminName) {
-        $user = $this->findUserByEmail($email);
-        if (!$user) return false;
-        
-        $this->unlockAccountByEmail($email);
-        
-        // Notifier l'utilisateur
-        $this->createNotification(
-            $user['id_user'],
-            'account_unlocked',
-            '🔓 Compte déverrouillé',
-            "L'administrateur {$adminName} a déverrouillé votre compte. Vous pouvez maintenant vous reconnecter."
-        );
-        
-        // Notifier les autres admins
-        $this->notifyAllAdmins(
-            'account_unlocked',
-            '🔓 Compte déverrouillé par admin',
-            "L'administrateur {$adminName} a déverrouillé le compte de {$user['prenom']} {$user['nom']} ({$email})"
-        );
-        
-        return true;
-    }
-
     public function countUsers() {
         $sql = "SELECT COUNT(*) as total FROM user";
         $db = config::getConnexion();
@@ -329,6 +373,28 @@ class UserController {
         $db = config::getConnexion();
         $query = $db->prepare($sql);
         $query->execute(['id_user' => $id_user, 'statut' => $statut]);
+        return true;
+    }
+    
+    public function adminUnlockAccountByEmail($email, $adminName) {
+        $user = $this->findUserByEmail($email);
+        if (!$user) return false;
+        
+        $this->unlockAccountByEmail($email);
+        
+        $this->createNotification(
+            $user['id_user'],
+            'account_unlocked',
+            '🔓 Compte déverrouillé',
+            "L'administrateur {$adminName} a déverrouillé votre compte. Vous pouvez maintenant vous reconnecter."
+        );
+        
+        $this->notifyAllAdmins(
+            'account_unlocked',
+            '🔓 Compte déverrouillé par admin',
+            "L'administrateur {$adminName} a déverrouillé le compte de {$user['prenom']} {$user['nom']} ({$email})"
+        );
+        
         return true;
     }
 }
