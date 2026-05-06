@@ -221,7 +221,11 @@
                     <span>Suivi & Objectifs</span>
                     <span class="badge">Module 5</span>
                 </li>
+<<<<<<< HEAD
                 <li class="nav-item event-module" data-module="event">
+=======
+                <li class="nav-item" data-module="events">
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
                     <i class="fas fa-calendar-alt"></i>
                     <span>Gestion Événements</span>
                     <span class="badge">Module 6</span>
@@ -479,6 +483,7 @@
         contentFrame.src = page;
     }
 
+<<<<<<< HEAD
 navItems.forEach(item => {
     item.addEventListener('click', () => {
         navItems.forEach(nav => nav.classList.remove('active'));
@@ -512,6 +517,38 @@ navItems.forEach(item => {
         }
     });
 });
+=======
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            navItems.forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+            
+            const module = item.getAttribute('data-module');
+            
+            if (module === 'dashboard') {
+                loadDashboard();
+            }
+            else if (module === 'recette') {
+                loadModule('recetteList.php');
+            }
+            else {
+                defaultContent.style.display = 'block';
+                contentFrame.style.display = 'none';
+                defaultContent.innerHTML = `
+                    <div class="data-table" style="text-align: center; padding: 60px;">
+                        <i class="fas fa-cogs" style="font-size: 4rem; color: #4CAF50; margin-bottom: 20px;"></i>
+                        <h2>Module ${item.querySelector('span')?.innerText || module}</h2>
+                        <p>Ce module sera bientôt disponible...</p>
+                        <div class="stats-grid" style="margin-top: 30px;">
+                            <div class="stat-card"><div class="stat-title">En développement</div><div class="stat-number">🚀</div></div>
+                            <div class="stat-card"><div class="stat-title">Prochainement</div><div class="stat-number">⚡</div></div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+    });
+>>>>>>> 3436f683f6a659abdcd5eda0101b7da490a2f65b
 
     loadDashboard();
 </script>
