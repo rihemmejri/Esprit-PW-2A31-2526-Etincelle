@@ -1,0 +1,34 @@
+2026-05-05 12:51:33: <br />
+<b>Warning</b>:  file_put_contents(C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\cache\frame_11.dat): Failed to open stream: No such file or directory in <b>C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\qrspec.php</b> on line <b>568</b><br />
+<br />
+<b>Warning</b>:  mkdir(): No such file or directory in <b>C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\qrmask.php</b> on line <b>154</b><br />
+<br />
+<b>Warning</b>:  file_put_contents(C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\cache\mask_0\mask_61_0.dat): Failed to open stream: No such file or directory in <b>C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\qrmask.php</b> on line <b>155</b><br />
+<br />
+<b>Warning</b>:  mkdir(): No such file or directory in <b>C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\qrmask.php</b> on line <b>154</b><br />
+<br />
+<b>Warning</b>:  file_put_contents(C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\cache\mask_1\mask_61_1.dat): Failed to open stream: No such file or directory in <b>C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\qrmask.php</b> on line <b>155</b><br />
+<br />
+<b>Warning</b>:  mkdir(): No such file or directory in <b>C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\qrmask.php</b> on line <b>154</b><br />
+<br />
+<b>Warning</b>:  file_put_contents(C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\cache\mask_2\mask_61_2.dat): Failed to open stream: No such file or directory in <b>C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\qrmask.php</b> on line <b>155</b><br />
+<br />
+<b>Warning</b>:  mkdir(): No such file or directory in <b>C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\qrmask.php</b> on line <b>154</b><br />
+<br />
+<b>Warning</b>:  file_put_contents(C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\cache\mask_3\mask_61_3.dat): Failed to open stream: No such file or directory in <b>C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\qrmask.php</b> on line <b>155</b><br />
+<br />
+<b>Warning</b>:  mkdir(): No such file or directory in <b>C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\qrmask.php</b> on line <b>154</b><br />
+<br />
+<b>Warning</b>:  file_put_contents(C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\cache\mask_4\mask_61_4.dat): Failed to open stream: No such file or directory in <b>C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\qrmask.php</b> on line <b>155</b><br />
+<br />
+<b>Warning</b>:  mkdir(): No such file or directory in <b>C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\qrmask.php</b> on line <b>154</b><br />
+<br />
+<b>Warning</b>:  file_put_contents(C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\cache\mask_5\mask_61_5.dat): Failed to open stream: No such file or directory in <b>C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\qrmask.php</b> on line <b>155</b><br />
+<br />
+<b>Warning</b>:  mkdir(): No such file or directory in <b>C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\qrmask.php</b> on line <b>154</b><br />
+<br />
+<b>Warning</b>:  file_put_contents(C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\cache\mask_6\mask_61_6.dat): Failed to open stream: No such file or directory in <b>C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\qrmask.php</b> on line <b>155</b><br />
+<br />
+<b>Warning</b>:  mkdir(): No such file or directory in <b>C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\qrmask.php</b> on line <b>154</b><br />
+<br />
+<b>Warning</b>:  file_put_contents(C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\cache\mask_7\mask_61_7.dat): Failed to open stream: No such file or directory in <b>C:\Users\z\Downloads\crud_event\crud_event\lib\phpqrcode\qrmask.php</b> on line <b>155</b><br />

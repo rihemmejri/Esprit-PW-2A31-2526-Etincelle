@@ -1,19 +1,19 @@
 <?php
-include '../../controleurs/RecetteController.php';
-require_once __DIR__ . '/../../models/recette.php';
+// views/BackOffice/evenement/deleteEvenement.php
+include '../../controleurs/EvenementController.php';
+require_once __DIR__ . '/../../models/Evenement.php';
 
-$recetteController = new RecetteController();
+$evenementController = new EvenementController();
 $id = $_GET['id'] ?? null;
 
 if ($id) {
-    // Vérifier si la confirmation est donnée
     if (isset($_GET['confirm']) && $_GET['confirm'] == 'yes') {
-        $recetteController->deleteRecette($id);
-        header('Location: recetteList.php');
+        $evenementController->deleteEvenement($id);
+        header('Location: evenementList.php');
         exit;
     }
 } else {
-    header('Location: recetteList.php');
+    header('Location: evenementList.php');
     exit;
 }
 ?>
@@ -23,9 +23,9 @@ if ($id) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirmation de suppression - Recette</title>
+    <title>Confirmation de suppression - Événement</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="../assets/css/nutrition-style.css">
+    <link rel="stylesheet" href="../assets/css/evenement.css">
     <style>
         body {
             display: flex;
@@ -46,35 +46,35 @@ if ($id) {
             <div class="warning-icon">
                 <i class="fas fa-exclamation-triangle"></i>
             </div>
-            
+
             <div class="content">
                 <h2>⚠️ Confirmation</h2>
-                <p>Êtes-vous sûr de vouloir supprimer cette recette ?</p>
-                
+                <p>Êtes-vous sûr de vouloir supprimer cet événement ?</p>
+
                 <div class="warning-text">
                     <i class="fas fa-exclamation-circle"></i>
-                    <span>Cette action est irréversible. Toutes les données associées à cette recette seront définitivement supprimées.</span>
+                    <span>Cette action est irréversible. Toutes les données associées à cet événement (participations incluses) seront définitivement supprimées.</span>
                 </div>
-                
+
                 <div class="actions">
-                    <a href="deleteRecette.php?id=<?= $id ?>&confirm=yes" class="btn btn-danger">
+                    <a href="deleteEvenement.php?id=<?= $id ?>&confirm=yes" class="btn btn-danger">
                         <i class="fas fa-trash-alt"></i>
                         Oui, supprimer
                     </a>
-                    <a href="recetteList.php" class="btn btn-secondary">
+                    <a href="evenementList.php" class="btn btn-secondary">
                         <i class="fas fa-times"></i>
                         Non, annuler
                     </a>
                 </div>
-                
+
                 <div class="footer-note">
                     <i class="fas fa-info-circle"></i>
-                    Vous serez redirigé vers la liste des recettes après l'action
+                    Vous serez redirigé vers la liste des événements après l'action
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="../assets/js/recette.js"></script>
+    <script src="../assets/js/evenement.js"></script>
 </body>
 </html>
