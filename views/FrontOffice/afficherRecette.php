@@ -142,7 +142,7 @@ function getVideoEmbedUrl($nom, $idRecette) {
         return 'https://www.youtube-nocookie.com/embed/njJ8FQXZmcE';
     }
     if (strpos($nomLower, 'burger') !== false) {
-        return 'https://www.youtube-nocookie.com/embed/1WEJKNSHD4s';
+        return 'https://www.youtube-nocookie.com/embed/3KzrBUGLI0w';
     }
     if (strpos($nomLower, 'crepe') !== false) {
         return 'https://www.youtube-nocookie.com/embed/UzzB0wlF-Dc';
@@ -231,7 +231,8 @@ function getImageUrl($nom) {
     } elseif (strpos($nom, 'burger') !== false) {
         return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&h=500&fit=crop';
     } elseif (strpos($nom, 'crepe') !== false || strpos($nom, 'crêpe') !== false) {
-        return 'https://images.unsplash.com/photo-1519676867248-6e4f6f4f0a1c?w=800&h=500&fit=crop';
+        // هاد هي الصورة ديال الكريب - تقدر تبدلها بأي صورة من فوق
+        return 'https://cdn.beyondthebayoublog.com/wp-content/uploads/2024/05/Crepes-Recipe-500x375.png';
     } elseif (strpos($nom, 'couscous') !== false) {
         return 'https://images.unsplash.com/photo-1617098900591-3f4c9b9f5a1a?w=800&h=500&fit=crop';
     } else {
@@ -812,7 +813,7 @@ function showToast(message) {
     if(oldToast) oldToast.remove();
     const toast = document.createElement('div');
     toast.className = 'toast-message';
-    toast.innerHTML = '✅ ' + message;
+    toast.innerHTML = ' ' + message;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
@@ -826,7 +827,7 @@ async function shareToInstagram(recetteId, recetteNom, recetteDesc, recetteTemps
         const file = new File([blob], `NutriLoop_${recetteNom}.jpg`, { type: 'image/jpeg' });
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
             await navigator.share({ title: recetteNom, text: caption, files: [file] });
-            showToast("Partage effectué ! 🎉");
+            showToast("");
         } else {
             const link = document.createElement('a');
             link.download = `NutriLoop_${recetteNom}.jpg`;
