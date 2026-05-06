@@ -7,6 +7,29 @@ $programmeController = new ProgrammeController();
 $repasController = new RepasController();
 
 $programmes = $programmeController->listProgrammes();
+
+// Count programs by objectif type
+$programmesMaintenir = 0;
+$programmesEquilibre = 0;
+$programmesPerdrePoids = 0;
+$programmesPrendreMuscle = 0;
+
+foreach ($programmes as $programme) {
+    switch ($programme->getObjectif()) {
+        case 'MAINTENIR':
+            $programmesMaintenir++;
+            break;
+        case 'EQUILIBRE':
+            $programmesEquilibre++;
+            break;
+        case 'PERDRE_POIDS':
+            $programmesPerdrePoids++;
+            break;
+        case 'PRENDRE_MUSCLE':
+            $programmesPrendreMuscle++;
+            break;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -1331,25 +1354,63 @@ $programmes = $programmeController->listProgrammes();
         }
 
         function checkNewPrograms() {
+            console.log('Checking for new programs, lastProgramId:', lastProgramId);
             fetch('../BackOffice/api/check_new_programs.php?last_id=' + lastProgramId)
                 .then(res => res.json())
                 .then(data => {
+                    console.log('Notification API response:', data);
                     if (data.status === 'success') {
                         if (lastProgramId === 0) {
+                            console.log('Initializing lastProgramId to:', data.last_id);
                             lastProgramId = data.last_id;
                         } else if (data.new_programs && data.new_programs.length > 0) {
+                            console.log('Found new programs:', data.new_programs.length);
                             lastProgramId = data.last_id;
                             data.new_programs.forEach(prog => {
                                 showToast(`Un nouveau programme a été généré avec succès !`);
                             });
+                        } else {
+                            console.log('No new programs found');
                         }
+                    } else {
+                        console.error('API returned error:', data);
                     }
                 })
                 .catch(err => console.error("Erreur de notification:", err));
         }
 
+        // Debug button for testing notifications
+        function testNotification() {
+            console.log('Manual notification test triggered');
+            showToast('Test notification - this is a manual test!');
+        }
+        
+        // Debug button for testing API
+        function testAPI() {
+            console.log('Manual API test triggered');
+            fetch('../BackOffice/api/check_new_programs.php?last_id=0')
+                .then(res => res.json())
+                .then(data => {
+                    console.log('Manual API test response:', data);
+                    showToast('API Test: Check console for details');
+                })
+                .catch(err => {
+                    console.error('Manual API test error:', err);
+                    showToast('API Test Failed - check console');
+                });
+        }
+
         setInterval(checkNewPrograms, 5000); // Check every 5 seconds
         checkNewPrograms();
+
+        function openStats() {
+            document.getElementById('statsModal').style.display = 'flex';
+        }
+
+        function closeStats() {
+            document.getElementById('statsModal').style.display = 'none';
+        }
     </script>
-</body>
+
+    </body>
 </html>

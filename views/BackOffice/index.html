@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* Styles supplémentaires pour les images et améliorations */
         .logo-img {
             width: 45px;
             height: 45px;
@@ -55,6 +56,7 @@
             opacity: 0.7;
         }
         
+        /* Style pour la recherche */
         .search-bar {
             position: relative;
         }
@@ -95,6 +97,7 @@
             width: 20px;
         }
         
+        /* User profile image */
         .user-profile img {
             width: 45px;
             height: 45px;
@@ -103,6 +106,7 @@
             border: 2px solid #4CAF50;
         }
         
+        /* Nutrition tips section */
         .nutrition-tips {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -140,6 +144,7 @@
             color: #666;
         }
         
+        /* Recent recipes */
         .recent-recipes {
             display: flex;
             gap: 1rem;
@@ -169,104 +174,16 @@
             margin-top: 0.5rem;
             color: #003366;
         }
-        
-        /* Toast Notifications */
-        .toast-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1050;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .toast {
-            background: white;
-            border-left: 4px solid #4CAF50;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            min-width: 250px;
-            animation: slideIn 0.3s ease forwards;
-            transition: opacity 0.3s;
-        }
-        .toast i {
-            color: #4CAF50;
-            font-size: 1.2rem;
-        }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        .program-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        
-        .program-stat-card {
-            background: white;
-            border-radius: 16px;
-            padding: 1.5rem;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            transition: 0.3s;
-            border-top: 4px solid var(--program-color, #4CAF50);
-        }
-        
-        .program-stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        }
-        
-        .program-stat-icon {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .program-stat-label {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 0.5rem;
-        }
-        
-        .program-stat-count {
-            font-size: 1.8rem;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 0.5rem;
-        }
-        
-        .program-stat-percentage {
-            font-size: 0.8rem;
-            color: #888;
-            margin-bottom: 0.3rem;
-        }
-        
-        .program-stat-details {
-            font-size: 0.7rem;
-            color: #999;
-        }
-        
-        .program-chart-container {
-            background: white;
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
     </style>
 </head>
 <body>
 
 <div class="dashboard-container">
+    <!-- ========== SIDEBAR ========== -->
     <aside class="sidebar">
         <div class="sidebar-header">
             <div class="logo">
+                <!-- Logo avec image personnalisée -->
                 <img src="../FrontOffice/image/logo.PNG" alt="Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/45x45?text=🌱'">
                 <span class="logo-text">NutriLoop<br><small>Admin</small></span>
             </div>
@@ -297,6 +214,7 @@
                     <i class="fas fa-utensils"></i>
                     <span>Recettes Anti-Gaspi</span>
                     <span class="badge module-badge">Module 4</span>
+                    <div class="module-hover-effect"></div>
                 </li>
                 <li class="nav-item" data-module="tracking">
                     <i class="fas fa-chart-simple"></i>
@@ -313,6 +231,7 @@
         
         <div class="sidebar-footer">
             <div class="user-info">
+                <!-- Photo Ryhem -->
                 <img src="../FrontOffice/image/ryhem.PNG" alt="Ryhem Mejri" onerror="this.src='https://randomuser.me/api/portraits/women/68.jpg'">
                 <div>
                     <h4>Ryhem Mejri</h4>
@@ -326,6 +245,7 @@
         </div>
     </aside>
 
+    <!-- ========== MAIN CONTENT ========== -->
     <main class="main-content">
         <header class="top-bar">
             <div class="menu-toggle">
@@ -336,11 +256,10 @@
                 <input type="text" id="searchInput" placeholder="Rechercher une recette, un utilisateur...">
                 <div class="search-suggestions" id="searchSuggestions"></div>
             </div>
-            <div class="top-actions" style="display: flex; align-items: center;">
-                <div id="google_translate_element" style="margin-right: 15px;"></div>
-                <div class="notification" id="notifBell">
+            <div class="top-actions">
+                <div class="notification">
                     <i class="fas fa-bell"></i>
-                    <span class="badge" id="notifBadge" style="display:none;">0</span>
+                    <span class="badge">3</span>
                 </div>
                 <div class="user-profile">
                     <img src="../FrontOffice/image/ryhem.PNG" alt="Profile" onerror="this.src='https://randomuser.me/api/portraits/women/68.jpg'">
@@ -351,18 +270,10 @@
         <div class="page-content" id="pageContent">
             <iframe id="contentFrame" src="" style="width: 100%; height: calc(100vh - 120px); border: none; background: #f5f7fa; display: none; border-radius: 16px;"></iframe>
             <div id="defaultContent">
+                <!-- Dashboard content -->
                 <div class="stats-grid" id="dashboardStats"></div>
                 
-                <div class="data-table" style="margin-bottom: 1.5rem;">
-                    <h3><i class="fas fa-chart-pie"></i> Statistiques par Programme</h3>
-                    <div id="programStatsContainer">
-                        <div class="program-stats-grid" id="programStatsGrid"></div>
-                        <div class="program-chart-container">
-                            <canvas id="programChart" height="100"></canvas>
-                        </div>
-                    </div>
-                </div>
-                
+                <!-- Section Nutrition Tips avec images -->
                 <div class="data-table" style="margin-bottom: 1.5rem;">
                     <h3><i class="fas fa-leaf"></i> Conseils Nutrition du jour</h3>
                     <div class="nutrition-tips">
@@ -389,11 +300,13 @@
                     </div>
                 </div>
                 
+                <!-- Activité récente -->
                 <div class="data-table">
                     <h3><i class="fas fa-chart-line"></i> Activité récente</h3>
                     <canvas id="activityChart" height="100"></canvas>
                 </div>
                 
+                <!-- Recettes populaires -->
                 <div class="data-table" style="margin-top: 1.5rem;">
                     <h3><i class="fas fa-star"></i> Recettes populaires cette semaine</h3>
                     <div class="recent-recipes">
@@ -424,17 +337,8 @@
     </main>
 </div>
 
-<div class="toast-container" id="toastContainer"></div>
-
-<!-- Google Translate -->
-<script type="text/javascript">
-function googleTranslateElementInit() {
-  new google.translate.TranslateElement({pageLanguage: 'fr', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
-}
-</script>
-<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-
 <script>
+    // ========== FONCTION RENDER DASHBOARD ==========
     function renderDashboard() {
         const statsHtml = document.getElementById('dashboardStats');
         if (statsHtml) {
@@ -466,11 +370,9 @@ function googleTranslateElementInit() {
             `;
         }
         
-        // Load program statistics
-        loadProgramStatistics();
-        
         const ctx = document.getElementById('activityChart')?.getContext('2d');
         if (ctx) {
+            // Détruire l'ancien graphique s'il existe
             if (window.myChart) window.myChart.destroy();
             window.myChart = new Chart(ctx, {
                 type: 'line',
@@ -503,90 +405,7 @@ function googleTranslateElementInit() {
         }
     }
 
-    function loadProgramStatistics() {
-        fetch('api/program_statistics.php')
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    renderProgramStats(data.data);
-                } else {
-                    console.error('Error loading program statistics:', data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching program statistics:', error);
-                // Show error message in the program stats container
-                const container = document.getElementById('programStatsGrid');
-                if (container) {
-                    container.innerHTML = '<p style="text-align: center; color: #666;">Impossible de charger les statistiques des programmes</p>';
-                }
-            });
-    }
-
-    function renderProgramStats(data) {
-        const gridContainer = document.getElementById('programStatsGrid');
-        const chartContainer = document.getElementById('programChart');
-        
-        // Render statistics cards
-        if (gridContainer) {
-            gridContainer.innerHTML = data.by_objectif.map(stat => `
-                <div class="program-stat-card" style="--program-color: ${stat.color};">
-                    <div class="program-stat-icon">${stat.icon}</div>
-                    <div class="program-stat-label">${stat.label}</div>
-                    <div class="program-stat-count">${stat.count}</div>
-                    <div class="program-stat-percentage">${stat.percentage}% des programmes</div>
-                    <div class="program-stat-details">
-                        ${stat.unique_users} utilisateur${stat.unique_users > 1 ? 's' : ''} • 
-                        Durée moyenne: ${stat.avg_duration} jours
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        // Render pie chart
-        if (chartContainer) {
-            const ctx = chartContainer.getContext('2d');
-            if (window.programChart) window.programChart.destroy();
-            
-            window.programChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: data.by_objectif.map(stat => stat.label),
-                    datasets: [{
-                        data: data.by_objectif.map(stat => stat.count),
-                        backgroundColor: data.by_objectif.map(stat => stat.color),
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                padding: 15,
-                                usePointStyle: true,
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const stat = data.by_objectif[context.dataIndex];
-                                    return `${stat.label}: ${stat.count} programmes (${stat.percentage}%)`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-    }
-
+    // ========== RECHERCHE AVEC SUGGESTIONS ==========
     const searchInput = document.getElementById('searchInput');
     const suggestionsDiv = document.getElementById('searchSuggestions');
     
@@ -595,9 +414,10 @@ function googleTranslateElementInit() {
         { name: 'Gestion Utilisateurs', icon: 'fa-users', link: '#' },
         { name: 'Nutrition Smart', icon: 'fa-apple-alt', link: 'repasList.php' },
         { name: 'Gestion Repas', icon: 'fa-utensil-spoon', link: 'repasList.php' },
-        { name: 'Gestion Programmes', icon: 'fa-calendar-alt', link: 'programmeList.php' },
         { name: 'Gestion Produits', icon: 'fa-boxes', link: '#' },
-        { name: 'Salade Quinoa', icon: 'fa-leaf', link: 'recetteList.php' }
+        { name: 'Salade Quinoa', icon: 'fa-leaf', link: 'recetteList.php' },
+        { name: 'Buddha Bowl', icon: 'fa-leaf', link: 'recetteList.php' },
+        { name: 'Smoothie Bowl', icon: 'fa-apple-alt', link: 'recetteList.php' }
     ];
     
     searchInput?.addEventListener('input', (e) => {
@@ -620,6 +440,7 @@ function googleTranslateElementInit() {
             `).join('');
             suggestionsDiv.classList.add('show');
             
+            // Ajouter événement clic
             document.querySelectorAll('.suggestion-item').forEach(sugg => {
                 sugg.addEventListener('click', () => {
                     const link = sugg.getAttribute('data-link');
@@ -635,12 +456,14 @@ function googleTranslateElementInit() {
         }
     });
     
+    // Cacher suggestions en cliquant ailleurs
     document.addEventListener('click', (e) => {
         if (!searchInput?.contains(e.target) && !suggestionsDiv?.contains(e.target)) {
             suggestionsDiv.classList.remove('show');
         }
     });
 
+    // ========== NAVIGATION ==========
     const navItems = document.querySelectorAll('.nav-item');
     const contentFrame = document.getElementById('contentFrame');
     const defaultContent = document.getElementById('defaultContent');
@@ -671,6 +494,7 @@ function googleTranslateElementInit() {
                 loadModule('recetteList.php');
             }
             else if (module === 'nutrition') {
+                // Charger repasList.php pour le module Nutrition Smart
                 loadModule('repasList.php');
             }
             else {
@@ -692,58 +516,6 @@ function googleTranslateElementInit() {
     });
 
     loadDashboard();
-
-    // Notification Polling System
-    let lastProgramId = 0;
-    let unreadCount = 0;
-
-    function showToast(message) {
-        const container = document.getElementById('toastContainer');
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.innerHTML = `<i class="fas fa-check-circle"></i> <div>${message}</div>`;
-        container.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => toast.remove(), 300);
-        }, 5000);
-    }
-
-    function checkNewPrograms() {
-        fetch(`api/check_new_programs.php?last_id=${lastProgramId}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    if (lastProgramId === 0) {
-                        // First load, just set the ID
-                        lastProgramId = data.last_id;
-                    } else if (data.new_programs && data.new_programs.length > 0) {
-                        lastProgramId = data.last_id;
-                        data.new_programs.forEach(prog => {
-                            showToast(`Nouveau programme (#${prog.id_programme}) ajouté par l'utilisateur ID: ${prog.id_user}`);
-                            unreadCount++;
-                        });
-                        
-                        const badge = document.getElementById('notifBadge');
-                        badge.textContent = unreadCount;
-                        badge.style.display = 'block';
-                    }
-                }
-            })
-            .catch(err => console.error("Error polling notifications:", err));
-    }
-
-    // Check every 10 seconds
-    setInterval(checkNewPrograms, 10000);
-    // Initial check
-    checkNewPrograms();
-
-    // Reset badge on click
-    document.getElementById('notifBell').addEventListener('click', () => {
-        unreadCount = 0;
-        document.getElementById('notifBadge').style.display = 'none';
-    });
 </script>
 </body>
 </html>
