@@ -9,7 +9,7 @@ class AIHealthController
 
     public function __construct()
     {
-        $this->apiKey = $_ENV['GROQ_API_KEY_HEALTH'] ?? '';
+        $this->apiKey = getenv('GROQ_API_KEY_HEALTH');
     }
 
     public function handleRequest()

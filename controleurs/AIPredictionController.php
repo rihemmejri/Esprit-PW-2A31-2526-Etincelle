@@ -11,7 +11,7 @@ if (!class_exists('AIPredictionController')) {
 
         public function __construct()
         {
-            $this->apiKey = $_ENV['GROQ_API_KEY_PREDICTION'] ?? '';
+            $this->apiKey = getenv('GROQ_API_KEY_PREDICTION');
         }
 
         /**

@@ -253,14 +253,14 @@ function sendOrderEmail($pdo, $id_commande, $location = '') {
     $mail = new PHPMailer(true);
     try {
         $mail->isSMTP();
-        $mail->Host       = $_ENV['SMTP_HOST'] ?? 'smtp-relay.brevo.com';
+        $mail->Host       = getenv('BREVO_SMTP_HOST') ?: 'smtp-relay.brevo.com';
         $mail->SMTPAuth   = true;
-        $mail->Username   = $_ENV['SMTP_USER'] ?? '';
-        $mail->Password   = $_ENV['SMTP_PASS'] ?? '';
+        $mail->Username   = getenv('BREVO_SMTP_USER');
+        $mail->Password   = getenv('BREVO_SMTP_PASS');
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = $_ENV['SMTP_PORT'] ?? 587;
+        $mail->Port       = (int)(getenv('BREVO_SMTP_PORT') ?: 587);
 
-        $mail->setFrom($_ENV['SMTP_FROM_EMAIL'] ?? 'noreply@nutriloop.com', $_ENV['SMTP_FROM_NAME'] ?? 'NutriLoop AI');
+        $mail->setFrom(getenv('BREVO_FROM_EMAIL'), getenv('BREVO_FROM_NAME') ?: 'NutriLoop AI');
         $mail->addAddress($order['email'], $order['prenom'] . ' ' . $order['user_nom']);
 
         $mail->isHTML(true);

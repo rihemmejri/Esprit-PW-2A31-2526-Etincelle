@@ -1,5 +1,12 @@
 <?php
-require_once __DIR__ . '/load_env.php';
+require_once __DIR__ . '/EnvLoader.php';
+
+try {
+    EnvLoader::load(__DIR__ . '/.env');
+    EnvLoader::validate(['DB_HOST', 'DB_NAME', 'DB_USER']);
+} catch (Exception $e) {
+    die("Configuration Error: " . $e->getMessage());
+}
 
 if (!class_exists('Config')) {
     class Config {
@@ -8,10 +15,10 @@ if (!class_exists('Config')) {
         public static function getConnexion() {
             if (self::$conn === null) {
                 try {
-                    $host = $_ENV['DB_HOST'] ?? 'localhost';
-                    $dbname = $_ENV['DB_NAME'] ?? 'nutriloop';
-                    $user = $_ENV['DB_USER'] ?? 'root';
-                    $pass = $_ENV['DB_PASS'] ?? '';
+                    $host = getenv('DB_HOST');
+                    $dbname = getenv('DB_NAME');
+                    $user = getenv('DB_USER');
+                    $pass = getenv('DB_PASS');
 
                     self::$conn = new PDO(
                         "mysql:host=$host;dbname=$dbname",
@@ -27,4 +34,4 @@ if (!class_exists('Config')) {
         }
     }
 }
-?>
+?>

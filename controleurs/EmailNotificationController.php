@@ -20,12 +20,12 @@ class EmailService
 
     public function __construct()
     {
-        $this->host = $_ENV['SMTP_HOST'] ?? 'smtp-relay.brevo.com';
-        $this->port = $_ENV['SMTP_PORT'] ?? 587;
-        $this->username = $_ENV['SMTP_USER'] ?? '';
-        $this->password = $_ENV['SMTP_PASS'] ?? '';
-        $this->fromEmail = $_ENV['SMTP_FROM_EMAIL'] ?? 'noreply@nutriloop.com';
-        $this->fromName = $_ENV['SMTP_FROM_NAME'] ?? 'NutriLoop AI';
+        $this->host = getenv('BREVO_SMTP_HOST') ?: 'smtp-relay.brevo.com';
+        $this->port = (int)(getenv('BREVO_SMTP_PORT') ?: 587);
+        $this->username = getenv('BREVO_SMTP_USER');
+        $this->password = getenv('BREVO_SMTP_PASS');
+        $this->fromEmail = getenv('BREVO_FROM_EMAIL');
+        $this->fromName = getenv('BREVO_FROM_NAME') ?: 'NutriLoop AI';
     }
 
     public function sendEmail($to, $subject, $message)
