@@ -1,32 +1,30 @@
 <?php
-// config.php
+require_once __DIR__ . '/load_env.php';
+
 if (!class_exists('Config')) {
-    class Config
-    {   
-        private static $pdo = null;
+    class Config {
+        private static $conn = null;
         
-        public static function getConnexion()
-        {
-            if (!isset(self::$pdo)) {
-                $servername = "localhost";
-                $username = "root";
-                $password = "";
-                $dbname = "nutriloop";
-                
+        public static function getConnexion() {
+            if (self::$conn === null) {
                 try {
-                    self::$pdo = new PDO(
-                        "mysql:host=$servername;dbname=$dbname",
-                        $username,
-                        $password
+                    $host = $_ENV['DB_HOST'] ?? 'localhost';
+                    $dbname = $_ENV['DB_NAME'] ?? 'nutriloop';
+                    $user = $_ENV['DB_USER'] ?? 'root';
+                    $pass = $_ENV['DB_PASS'] ?? '';
+
+                    self::$conn = new PDO(
+                        "mysql:host=$host;dbname=$dbname",
+                        $user,
+                        $pass,
+                        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
                     );
-                    self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                    self::$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-                } catch (Exception $e) {
-                    die('Erreur: ' . $e->getMessage());
+                } catch (PDOException $e) {
+                    die("Erreur de connexion: " . $e->getMessage());
                 }
             }
-            return self::$pdo;
+            return self::$conn;
         }
     }
 }
-?>
+?>
