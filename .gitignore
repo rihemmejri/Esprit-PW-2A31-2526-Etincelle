@@ -1,31 +1,6 @@
-# Environment variables
 .env
-.env.local
-.env.production
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Logs
 *.log
-logs/
-
-# Cache
-cache/
-tmp/
-
-# Composer
 vendor/
-composer.lock
-
-# Node modules (if any)
-node_modules/
-package-lock.json
+.vscode/
+C:\xampp\htdocs\NutriLoop_PWW\.env
+C:\xampp\htdocs\NutriLoop_PWW\.gitignore

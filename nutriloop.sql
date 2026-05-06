@@ -42,7 +42,57 @@ CREATE TABLE produit (
     FOREIGN KEY (id_categorie) REFERENCES categorie(id_categorie)
         ON DELETE SET NULL
 );
+ALTER TABLE produit 
+ADD prix DECIMAL(10,2) NOT NULL,
+ADD stock INT DEFAULT 0;
+CREATE TABLE panier (
+    id_panier INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
+CREATE TABLE panier_item (
+    id_item INT AUTO_INCREMENT PRIMARY KEY,
+    id_panier INT,
+    id_produit INT,
+    quantite INT,
+    prix_unitaire DECIMAL(10,2),
+    FOREIGN KEY (id_panier) REFERENCES panier(id_panier) ON DELETE CASCADE,
+    FOREIGN KEY (id_produit) REFERENCES produit(id_produit) ON DELETE CASCADE
+);
+CREATE TABLE commande (
+    id_commande INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    total DECIMAL(10,2),
+    statut ENUM('en_attente','paye','livre') DEFAULT 'en_attente',
+    date_commande TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE commande_item (
+    id_item INT AUTO_INCREMENT PRIMARY KEY,
+    id_commande INT,
+    id_produit INT,
+    quantite INT,
+    prix_unitaire DECIMAL(10,2),
+    FOREIGN KEY (id_commande) REFERENCES commande(id_commande) ON DELETE CASCADE
+);
+CREATE TABLE paiement (
+    id_paiement INT AUTO_INCREMENT PRIMARY KEY,
+    id_commande INT,
+    methode ENUM('cash','carte'),
+    statut ENUM('en_attente','valide') DEFAULT 'en_attente',
+    date_paiement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_commande) REFERENCES commande(id_commande)
+);
+ALTER TABLE produit ADD eco_score INT DEFAULT 0;
+CREATE INDEX idx_categorie ON produit(id_categorie);
+CREATE INDEX idx_origine ON produit(origine);
+ALTER TABLE produit 
+MODIFY id_categorie INT NULL;
+ALTER TABLE commande_item
+ADD FOREIGN KEY (id_produit) REFERENCES produit(id_produit);
+ALTER TABLE panier ADD UNIQUE (user_id);
+ALTER TABLE paiement ADD montant DE CIMAL(10,2);
 -- =========================
 -- RECETTE + PREPARATION (Ryhem)
 -- =========================
@@ -130,6 +180,66 @@ CREATE TABLE suivi (
         ON DELETE SET NULL
 );
 
+CREATE TABLE score_journalier (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    date DATE,
+    calories_consommees INT,
+    eau_bue FLOAT,
+    objectif_calories INT,
+    objectif_eau FLOAT,
+    score FLOAT,
+    FOREIGN KEY (user_id) REFERENCES user(id_user)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE alert (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    type ENUM('INFO','WARNING','CRITICAL','SUCCESS'),
+    categorie VARCHAR(50),
+    message TEXT,
+    date DATETIME,
+    lu BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (user_id) REFERENCES user(id_user)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE badge (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    type ENUM('GOLD','SILVER','BRONZE','PERFECT_DAY','STREAK','WARNING'),
+    titre VARCHAR(100),
+    description TEXT,
+    date_obtention DATE,
+    FOREIGN KEY (user_id) REFERENCES user(id_user)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE daily_status (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    date DATE,
+    calories INT,
+    eau FLOAT,
+    score FLOAT,
+    status ENUM('PERFECT','NORMAL','BAD','NO_DATA'),
+    message TEXT,
+    FOREIGN KEY (user_id) REFERENCES user(id_user)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE ai_prediction (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    date DATE,
+    input_data TEXT,
+    prediction TEXT,
+    risk_level ENUM('LOW','MEDIUM','HIGH'),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES user(id_user)
+        ON DELETE CASCADE
+);
 -- =========================
 -- EVENTS (Chaima)
 -- =========================
