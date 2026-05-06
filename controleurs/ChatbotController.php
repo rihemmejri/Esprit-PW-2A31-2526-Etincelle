@@ -4,12 +4,13 @@ require_once __DIR__ . '/../config.php';
 class ChatbotController
 {
     private $apiKey;
-
-    public function __construct() {
-        $this->apiKey = getenv('GROQ_API_KEY_CHATBOT');
-    }
     private $apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
     private $model = 'llama-3.1-8b-instant';
+
+    public function __construct()
+    {
+        $this->apiKey = getenv('GROQ_API_KEY_CHATBOT');
+    }
 
     public function handleRequest()
     {

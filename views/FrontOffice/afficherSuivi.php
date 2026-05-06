@@ -15,6 +15,11 @@ $current_user_id = 1; // Assuming user 1 for demo
 $alerts = $alertController->getAlertsByUser($current_user_id);
 $latestPrediction = $predictionController->getLatestPrediction($current_user_id);
 
+// Trigger Email Notification System for NO INPUT
+require_once __DIR__ . '/../../controleurs/EmailNotificationController.php';
+$emailController = new EmailNotificationController();
+$emailController->processNoInputTrigger($current_user_id);
+
 // Handle AJAX requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     header('Content-Type: application/json');
@@ -656,13 +661,30 @@ $alerts = $alertController->getAlertsByUser($current_user_id);
 
         <!-- AI Insight Section -->
         <?php if ($latestPrediction && !empty($_SESSION['new_ai_action'])): ?>
-        <div class="ai-insight-panel" style="margin-bottom: 30px; background: white; border-radius: 16px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-left: 6px solid <?= $latestPrediction['risk_level'] === 'ÉLEVÉ' ? '#ef4444' : ($latestPrediction['risk_level'] === 'MOYEN' ? '#f59e0b' : '#10b981') ?>;">
+        <?php 
+            $risk = strtoupper($latestPrediction['risk_level'] ?? 'MOYEN');
+            $riskColor = '#10b981'; // Green (BAS)
+            $riskBg = '#f0fdf4';
+            $riskLabel = 'BAS';
+
+            if (strpos($risk, 'ELE') !== false || strpos($risk, 'HIGH') !== false) {
+                $riskColor = '#ef4444'; // Red
+                $riskBg = '#fef2f2';
+                $riskLabel = 'ÉLEVÉ';
+            } elseif (strpos($risk, 'MOY') !== false || strpos($risk, 'MED') !== false) {
+                $riskColor = '#f59e0b'; // Orange
+                $riskBg = '#fffbeb';
+                $riskLabel = 'MOYEN';
+            }
+        ?>
+        <div class="ai-insight-panel" style="margin-bottom: 30px; background: white; border-radius: 16px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-left: 6px solid <?= $riskColor ?>;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
                 <h3 style="margin: 0; display: flex; align-items: center; gap: 10px; color: #1f2937;">
                     <i class="fas fa-robot" style="color: #6366f1;"></i>
                     Analyse de l'IA
-                <span style="padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; background: <?= $latestPrediction['risk_level'] === 'ÉLEVÉ' ? '#fef2f2' : ($latestPrediction['risk_level'] === 'MOYEN' ? '#fffbeb' : '#f0fdf4') ?>; color: <?= $latestPrediction['risk_level'] === 'ÉLEVÉ' ? '#ef4444' : ($latestPrediction['risk_level'] === 'MOYEN' ? '#f59e0b' : '#10b981') ?>;">
-                    Risque: <?= $latestPrediction['risk_level'] ?>
+                </h3>
+                <span style="padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; background: <?= $riskBg ?>; color: <?= $riskColor ?>;">
+                    Risque: <?= $riskLabel ?>
                 </span>
             </div>
             <p style="margin: 0; color: #4b5563; line-height: 1.6; font-size: 0.95rem;">
@@ -789,7 +811,7 @@ $alerts = $alertController->getAlertsByUser($current_user_id);
             <div class="form-content">
                 <form id="addSuiviForm">
                     <input type="hidden" name="id_suivi" value="">
-                    <input type="hidden" name="user_id" value="1">
+                    <input type="hidden" name="user_id" id="suivi_user_id" value="1">
 
                     <div class="form-row">
                         <div class="form-group">
@@ -801,7 +823,8 @@ $alerts = $alertController->getAlertsByUser($current_user_id);
                                 <?php foreach ($objectifs as $obj): ?>
                                     <option value="<?= $obj->getId() ?>" 
                                             data-calories="<?= $obj->getCaloriesObjectif() ?>" 
-                                            data-eau="<?= $obj->getEauObjectif() ?>">
+                                            data-eau="<?= $obj->getEauObjectif() ?>"
+                                            data-user-id="<?= $obj->getUserId() ?>">
                                         Objectif <?= $obj->getId() ?> (du <?= date('d/m/Y', strtotime($obj->getDateDebut())) ?>)
                                     </option>
                                 <?php endforeach; ?>
@@ -1074,7 +1097,7 @@ $alerts = $alertController->getAlertsByUser($current_user_id);
     }
     ?>
 
-    <script src="../assets/js/suivi.js"></script>
+    <script src="../assets/js/suivi.js?v=<?= time() ?>"></script>
     <script>
         // Auto-fill objectives
         document.getElementById('id_objectif').addEventListener('change', function() {
@@ -1082,6 +1105,16 @@ $alerts = $alertController->getAlertsByUser($current_user_id);
             if (selected.value) {
                 document.getElementById('calories_objectif').value = selected.dataset.calories;
                 document.getElementById('eau_objectif').value = selected.dataset.eau;
+                
+                // Dynamically update the user_id to match the owner of the objective
+                const userIdInput = document.getElementById('suivi_user_id');
+                if (userIdInput && selected.dataset.userId) {
+                    userIdInput.value = selected.dataset.userId;
+                }
+            } else {
+                // Default back to user 1 if no objective is selected
+                const userIdInput = document.getElementById('suivi_user_id');
+                if (userIdInput) userIdInput.value = '1';
             }
         });
 
@@ -1250,6 +1283,8 @@ $alerts = $alertController->getAlertsByUser($current_user_id);
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
+                        user_id: 1, // Assuming user 1 for now like the rest of the file
+                        date: dayData.date,
                         calories: dayData.calories, 
                         water: dayData.water,
                         targetCalories: dayData.targetCal,

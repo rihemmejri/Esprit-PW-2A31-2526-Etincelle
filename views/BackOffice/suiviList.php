@@ -719,18 +719,6 @@ $allUsers = $SuiviController->getUsers();
             </div>
         </div>
     </div>
-
-            <div class="chatbot-input-area">
-                <input type="text" id="chatbotInput" placeholder="Ex: 2 oeufs + café..." autocomplete="off">
-                <button id="chatbotSendBtn"><i class="fas fa-paper-plane"></i></button>
-            </div>
-        </div>
-        <div class="chatbot-button" id="openChatbot">
-            <div class="chatbot-icon">
-                <i class="fas fa-robot"></i>
-            </div>
-            <span class="chatbot-label">Calcul de calories</span>
-        </div>
     </div>
     </div>
     <script>
@@ -813,69 +801,7 @@ $allUsers = $SuiviController->getUsers();
             html2pdf().set(opt).from(element).save();
         }
 
-        // --- AI Chatbot Widget Logic ---
-        const chatbotPopup = document.getElementById('chatbotPopup');
-        const openChatbotBtn = document.getElementById('openChatbot');
-        const closeChatbotBtn = document.getElementById('closeChatbot');
-        const chatbotInput = document.getElementById('chatbotInput');
-        const chatbotSendBtn = document.getElementById('chatbotSendBtn');
-        const chatbotMessages = document.getElementById('chatbotMessages');
-
-        openChatbotBtn.onclick = () => {
-            chatbotPopup.classList.add('show');
-            openChatbotBtn.style.opacity = '0';
-            openChatbotBtn.style.pointerEvents = 'none';
-        };
-
-        closeChatbotBtn.onclick = () => {
-            chatbotPopup.classList.remove('show');
-            openChatbotBtn.style.opacity = '1';
-            openChatbotBtn.style.pointerEvents = 'auto';
-        };
-
-        async function sendChatbotMessage() {
-            const message = chatbotInput.value.trim();
-            if (!message) return;
-
-            chatbotInput.value = '';
-            
-            // Add user message
-            const userMsgDiv = document.createElement('div');
-            userMsgDiv.className = 'chat-msg user';
-            userMsgDiv.textContent = message;
-            chatbotMessages.appendChild(userMsgDiv);
-            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-
-            // Add typing indicator (simple)
-            const typingDiv = document.createElement('div');
-            typingDiv.className = 'chat-msg ai';
-            typingDiv.innerHTML = '<i class="fas fa-ellipsis-h fa-beat"></i>';
-            chatbotMessages.appendChild(typingDiv);
-            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-
-            try {
-                const response = await fetch('../../controleurs/ChatbotController.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: message })
-                });
-
-                const data = await response.json();
-                chatbotMessages.removeChild(typingDiv);
-
-                const aiMsgDiv = document.createElement('div');
-                aiMsgDiv.className = 'chat-msg ai';
-                aiMsgDiv.innerHTML = (data.response || 'Désolé, une erreur est survenue.').replace(/\n/g, '<br>');
-                chatbotMessages.appendChild(aiMsgDiv);
-                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-            } catch (error) {
-                chatbotMessages.removeChild(typingDiv);
-                console.error('Chatbot error:', error);
-            }
-        }
-
-        chatbotSendBtn.onclick = sendChatbotMessage;
-        chatbotInput.onkeypress = (e) => { if (e.key === 'Enter') sendChatbotMessage(); };
+        
     </script>
 </body>
 </html>

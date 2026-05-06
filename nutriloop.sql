@@ -42,7 +42,57 @@ CREATE TABLE produit (
     FOREIGN KEY (id_categorie) REFERENCES categorie(id_categorie)
         ON DELETE SET NULL
 );
+ALTER TABLE produit 
+ADD prix DECIMAL(10,2) NOT NULL,
+ADD stock INT DEFAULT 0;
+CREATE TABLE panier (
+    id_panier INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
+CREATE TABLE panier_item (
+    id_item INT AUTO_INCREMENT PRIMARY KEY,
+    id_panier INT,
+    id_produit INT,
+    quantite INT,
+    prix_unitaire DECIMAL(10,2),
+    FOREIGN KEY (id_panier) REFERENCES panier(id_panier) ON DELETE CASCADE,
+    FOREIGN KEY (id_produit) REFERENCES produit(id_produit) ON DELETE CASCADE
+);
+CREATE TABLE commande (
+    id_commande INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    total DECIMAL(10,2),
+    statut ENUM('en_attente','paye','livre') DEFAULT 'en_attente',
+    date_commande TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE commande_item (
+    id_item INT AUTO_INCREMENT PRIMARY KEY,
+    id_commande INT,
+    id_produit INT,
+    quantite INT,
+    prix_unitaire DECIMAL(10,2),
+    FOREIGN KEY (id_commande) REFERENCES commande(id_commande) ON DELETE CASCADE
+);
+CREATE TABLE paiement (
+    id_paiement INT AUTO_INCREMENT PRIMARY KEY,
+    id_commande INT,
+    methode ENUM('cash','carte'),
+    statut ENUM('en_attente','valide') DEFAULT 'en_attente',
+    date_paiement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_commande) REFERENCES commande(id_commande)
+);
+ALTER TABLE produit ADD eco_score INT DEFAULT 0;
+CREATE INDEX idx_categorie ON produit(id_categorie);
+CREATE INDEX idx_origine ON produit(origine);
+ALTER TABLE produit 
+MODIFY id_categorie INT NULL;
+ALTER TABLE commande_item
+ADD FOREIGN KEY (id_produit) REFERENCES produit(id_produit);
+ALTER TABLE panier ADD UNIQUE (user_id);
+ALTER TABLE paiement ADD montant DECIMAL(10,2);
 -- =========================
 -- RECETTE + PREPARATION (Ryhem)
 -- =========================

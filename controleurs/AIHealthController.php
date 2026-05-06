@@ -4,12 +4,13 @@ require_once __DIR__ . '/../config.php';
 class AIHealthController
 {
     private $apiKey;
-
-    public function __construct() {
-        $this->apiKey = getenv('GROQ_API_KEY_HEALTH');
-    }
     private $apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
     private $model = 'llama-3.1-8b-instant';
+
+    public function __construct()
+    {
+        $this->apiKey = getenv('GROQ_API_KEY_HEALTH');
+    }
 
     public function handleRequest()
     {

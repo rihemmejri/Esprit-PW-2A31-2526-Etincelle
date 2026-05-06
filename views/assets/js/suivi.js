@@ -37,10 +37,16 @@ class SuiviFormValidator {
                 if (!value) {
                     error = 'La date est obligatoire';
                 } else {
-                    const now = new Date();
-                    now.setHours(0, 0, 0, 0);
-                    const selectedDate = new Date(value);
-                    if (selectedDate > now) {
+                    const [y, m, d] = value.split('-').map(Number);
+
+                    // build PURE local date (no timezone shift)
+                    const inputDate = new Date(y, m - 1, d);
+                    inputDate.setHours(0, 0, 0, 0);
+
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
+                    if (inputDate.getTime() > today.getTime()) {
                         error = 'La date ne peut pas être dans le futur';
                     }
                 }

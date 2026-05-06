@@ -39,6 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $produit->setEmballage(htmlspecialchars($_POST['emballage'] ?? 'carton'));
             $produit->setTransformation(htmlspecialchars($_POST['transformation'] ?? 'brut'));
             $produit->setSaison(htmlspecialchars($_POST['saison'] ?? ''));
+            $produit->setPrix(floatval($_POST['prix'] ?? 0));
+            $produit->setStock(intval($_POST['stock'] ?? 0));
             
             $produitController->updateProduit($produit);
             session_start();
@@ -208,6 +210,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <option value="toute l'année" <?= $produit->getSaison() === "toute l'année" ? 'selected' : '' ?>>Toute l'année</option>
                                 </select>
                                 <small class="error-text" id="saisonError"></small>
+                            </div>
+
+                            <!-- Prix -->
+                            <div class="form-group">
+                                <label>
+                                    <i class="fas fa-euro-sign"></i>
+                                    Prix (DT) <span class="required">*</span>
+                                </label>
+                                <input type="number" step="0.01" name="prix" id="prix" value="<?= htmlspecialchars($produit->getPrix()) ?>">
+                            </div>
+
+                            <!-- Stock -->
+                            <div class="form-group">
+                                <label>
+                                    <i class="fas fa-cubes"></i>
+                                    Stock <span class="required">*</span>
+                                </label>
+                                <input type="number" name="stock" id="stock" value="<?= htmlspecialchars($produit->getStock()) ?>">
                             </div>
                         </div>
 

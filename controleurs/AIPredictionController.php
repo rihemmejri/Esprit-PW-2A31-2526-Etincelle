@@ -6,12 +6,13 @@ if (!class_exists('AIPredictionController')) {
     class AIPredictionController
     {
         private $apiKey;
-
-        public function __construct() {
-            $this->apiKey = getenv('GROQ_API_KEY_PREDICTION');
-        }
         private $apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
         private $model = 'llama-3.1-8b-instant';
+
+        public function __construct()
+        {
+            $this->apiKey = getenv('GROQ_API_KEY_PREDICTION');
+        }
 
         /**
          * Generate a new AI prediction for the user based on last 5 days of data for a specific objective

@@ -15,11 +15,38 @@ $origine = $_GET['origine'] ?? '';
 // Fetch products with advanced search
 $produits = $produitController->advancedSearch($search, $sortBy, $sortOrder, $idCategorie, $origine);
 
-// Get stats
-$stats = $produitController->getStats($produits);
-
 // Get all categories for filter
 $allCategories = $produitController->getCategories();
+
+// Get stats (Restore this to fix PHP warnings)
+$stats = $produitController->getStats($produits);
+
+// Prepare Real Data for dual charts
+$ecoScoreData = [];
+$labels = [];
+foreach (array_slice($produits, 0, 8) as $p) {
+    $labels[] = $p->getNom();
+    $ecoScoreData[] = $p->getEcoScore();
+}
+
+$priceDist = ['Prix Bas' => 0, 'Prix Moyen' => 0, 'Prix Haut' => 0];
+foreach ($produits as $p) {
+    if ($p->getPrix() < 10) $priceDist['Prix Bas']++;
+    elseif ($p->getPrix() < 50) $priceDist['Prix Moyen']++;
+    else $priceDist['Prix Haut']++;
+}
+
+// Données pour "Produits les plus commandés" (Courbe)
+$db = Config::getConnexion();
+$sqlOrders = "SELECT p.nom, SUM(ci.quantite) as total_qty 
+              FROM commande_item ci 
+              JOIN produit p ON ci.id_produit = p.id_produit 
+              GROUP BY ci.id_produit 
+              ORDER BY total_qty DESC 
+              LIMIT 10";
+$orderStats = $db->query($sqlOrders)->fetchAll(PDO::FETCH_ASSOC);
+$orderLabels = array_column($orderStats, 'nom');
+$orderQtys = array_column($orderStats, 'total_qty');
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -174,14 +201,24 @@ $allCategories = $produitController->getCategories();
                     </div>
                 </div>
 
-                <div class="charts-section">
+                <div class="charts-section" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                     <div class="chart-box">
-                        <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fas fa-globe"></i> Répartition par Origine</h3>
-                        <canvas id="origineChart"></canvas>
+                        <h3 style="margin-bottom: 15px; font-size: 1rem; color: var(--primary-blue);"><i class="fas fa-leaf"></i> Tendance Eco-Score</h3>
+                        <div style="height: 250px;">
+                            <canvas id="ecoTrendChart"></canvas>
+                        </div>
                     </div>
                     <div class="chart-box">
-                        <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fas fa-calendar-alt"></i> Disponibilité par Saison</h3>
-                        <canvas id="saisonChart"></canvas>
+                        <h3 style="margin-bottom: 15px; font-size: 1rem; color: var(--primary-blue);"><i class="fas fa-chart-bar"></i> Segments de Prix</h3>
+                        <div style="height: 250px;">
+                            <canvas id="priceBarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-box">
+                    <h3 style="margin-bottom: 15px; font-size: 1rem; color: var(--primary-blue);"><i class="fas fa-shopping-cart"></i> Top Produits les plus commandés</h3>
+                    <div style="height: 300px;">
+                        <canvas id="orderVolumeChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -231,11 +268,12 @@ $allCategories = $produitController->getCategories();
                     <tr>
                         <th>ID</th>
                         <th>Nom</th>
-                        <th>Image</th>
+                        <th>Prix</th>
+                        <th>Stock</th>
+                        <th>Eco-Score</th>
                         <th>Origine</th>
                         <th>Distance</th>
                         <th>Saison</th>
-                        <th>Emballage</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -245,18 +283,35 @@ $allCategories = $produitController->getCategories();
                             <?php $isHighlighted = !empty($search) && (stripos($p->getNom(), $search) !== false) ? 'highlighted-row' : ''; ?>
                             <tr class="<?= $isHighlighted ?>">
                                 <td style="font-weight: 700; color: #999;">#<?= $p->getIdProduit() ?></td>
-                                <td style="font-weight: 600; color: var(--text-dark);"><?= htmlspecialchars($p->getNom()) ?></td>
+                                <td style="font-weight: 600; color: var(--text-dark);">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <?php if ($p->getImage()): ?>
+                                            <img src="../assets/images/<?= htmlspecialchars($p->getImage()) ?>" class="product-img">
+                                        <?php else: ?>
+                                            <div style="background: #f0f0f0; width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">🍎</div>
+                                        <?php endif; ?>
+                                        <?= htmlspecialchars($p->getNom()) ?>
+                                    </div>
+                                </td>
+                                <td style="font-weight: 600; color: var(--primary-blue);"><?= number_format($p->getPrix(), 2) ?> DT</td>
                                 <td>
-                                    <?php if ($p->getImage()): ?>
-                                        <img src="../assets/images/<?= htmlspecialchars($p->getImage()) ?>" class="product-img">
-                                    <?php else: ?>
-                                        <div style="background: #f0f0f0; width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">🍎</div>
-                                    <?php endif; ?>
+                                    <span class="badge" style="background: <?= $p->getStock() > 10 ? '#e3f2fd' : '#ffebee' ?>; color: <?= $p->getStock() > 10 ? '#1976d2' : '#c62828' ?>;">
+                                        <?= $p->getStock() ?> en stock
+                                    </span>
+                                </td>
+                                <td>
+                                    <?php 
+                                        $score = $p->getEcoScore();
+                                        $color = ($score >= 80) ? '#4CAF50' : (($score >= 50) ? '#FF9800' : '#F44336');
+                                    ?>
+                                    <div style="display: flex; align-items: center; gap: 5px;">
+                                        <div style="width: 12px; height: 12px; border-radius: 50%; background: <?= $color ?>"></div>
+                                        <span style="font-weight: 700; color: <?= $color ?>"><?= $score ?>/100</span>
+                                    </div>
                                 </td>
                                 <td><span class="badge badge-<?= strtolower($p->getOrigine()) ?>"><?= ucfirst($p->getOrigine()) ?></span></td>
                                 <td><?= htmlspecialchars($p->getDistanceTransport()) ?> km</td>
                                 <td><?= ucfirst(htmlspecialchars($p->getSaison())) ?></td>
-                                <td><?= htmlspecialchars($p->getEmballage()) ?></td>
                                 <td>
                                     <div class="actions">
                                         <a href="editProduit.php?id=<?= $p->getIdProduit() ?>" class="action-btn btn-edit" title="Modifier"><i class="fas fa-edit"></i></a>
@@ -296,41 +351,58 @@ $allCategories = $produitController->getCategories();
         window.onclick = (e) => { if (e.target == modal) { modal.classList.remove('show'); setTimeout(() => modal.style.display = "none", 300); } }
 
         function renderCharts() {
-            // Origine Chart
-            const ctxOrig = document.getElementById('origineChart').getContext('2d');
-            new Chart(ctxOrig, {
-                type: 'pie',
+            // 1. Tendance Eco-Score (Courbe)
+            const ctxEco = document.getElementById('ecoTrendChart').getContext('2d');
+            new Chart(ctxEco, {
+                type: 'line',
                 data: {
-                    labels: ['Local', 'Importé'],
+                    labels: <?= json_encode($labels) ?>,
                     datasets: [{
-                        data: [<?= $stats['origineDistribution']['local'] ?>, <?= $stats['origineDistribution']['importe'] ?>],
-                        backgroundColor: ['#4CAF50', '#FF9800'],
-                        borderWidth: 0
+                        label: 'Score Écologique',
+                        data: <?= json_encode($ecoScoreData) ?>,
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true
                     }]
                 },
-                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+                options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } } }
             });
 
-            // Saison Chart
-            const ctxSaison = document.getElementById('saisonChart').getContext('2d');
-            new Chart(ctxSaison, {
+            // 2. Segments de Prix (Barres)
+            const ctxPrice = document.getElementById('priceBarChart').getContext('2d');
+            new Chart(ctxPrice, {
                 type: 'bar',
                 data: {
-                    labels: ['Printemps', 'Été', 'Automne', 'Hiver', 'Année'],
+                    labels: <?= json_encode(array_keys($priceDist)) ?>,
                     datasets: [{
-                        label: 'Nombre de produits',
-                        data: [
-                            <?= $stats['saisonDistribution']['printemps'] ?>, 
-                            <?= $stats['saisonDistribution']['ete'] ?>, 
-                            <?= $stats['saisonDistribution']['automne'] ?>, 
-                            <?= $stats['saisonDistribution']['hiver'] ?>,
-                            <?= $stats['saisonDistribution']['toute l\'année'] ?>
-                        ],
-                        backgroundColor: '#2196F3',
+                        data: <?= json_encode(array_values($priceDist)) ?>,
+                        backgroundColor: ['#81C784', '#64B5F6', '#FFB74D'],
                         borderRadius: 8
                     }]
                 },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            // 3. Top Produits Commandés (Courbe)
+            const ctxOrder = document.getElementById('orderVolumeChart').getContext('2d');
+            new Chart(ctxOrder, {
+                type: 'line',
+                data: {
+                    labels: <?= json_encode($orderLabels) ?>,
+                    datasets: [{
+                        label: 'Volume de Commandes',
+                        data: <?= json_encode($orderQtys) ?>,
+                        borderColor: '#2196F3',
+                        backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#2196F3'
+                    }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
             });
         }
 

@@ -11,16 +11,22 @@ use PHPMailer\PHPMailer\Exception;
 
 class EmailService
 {
-    private $host = 'smtp-relay.brevo.com';
-    private $port = 587;
-    private $username = 'aa041c001@smtp-brevo.com';
+    private $host;
+    private $port;
+    private $username;
     private $password;
+    private $fromEmail;
+    private $fromName;
 
-    public function __construct() {
-        $this->password = getenv('MAILER_PASSWORD');
+    public function __construct()
+    {
+        $this->host = getenv('BREVO_SMTP_HOST') ?: 'smtp-relay.brevo.com';
+        $this->port = (int)(getenv('BREVO_SMTP_PORT') ?: 587);
+        $this->username = getenv('BREVO_SMTP_USER');
+        $this->password = getenv('BREVO_SMTP_PASS');
+        $this->fromEmail = getenv('BREVO_FROM_EMAIL');
+        $this->fromName = getenv('BREVO_FROM_NAME') ?: 'NutriLoop AI';
     }
-    private $fromEmail = 'mommatallah@gmail.com';
-    private $fromName = 'NutriLoop AI';
 
     public function sendEmail($to, $subject, $message)
     {

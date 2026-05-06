@@ -31,7 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 htmlspecialchars($_POST['type_transport'] ?? 'camion'),
                 htmlspecialchars($_POST['emballage'] ?? 'carton'),
                 htmlspecialchars($_POST['transformation'] ?? 'brut'),
-                htmlspecialchars($_POST['saison'] ?? '')
+                htmlspecialchars($_POST['saison'] ?? ''),
+                floatval($_POST['prix'] ?? 0),
+                intval($_POST['stock'] ?? 0)
             );
             
             $produitController->addProduit($produit);
@@ -193,6 +195,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <option value="toute l'année">Toute l'année</option>
                             </select>
                             <small class="error-text" id="saisonError"></small>
+                        </div>
+
+                        <!-- Prix -->
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-euro-sign"></i>
+                                Prix (DT) <span class="required">*</span>
+                            </label>
+                            <input type="number" step="0.01" name="prix" id="prix" placeholder="0.00">
+                        </div>
+
+                        <!-- Stock -->
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-cubes"></i>
+                                Stock <span class="required">*</span>
+                            </label>
+                            <input type="number" name="stock" id="stock" placeholder="0">
                         </div>
                     </div>
 

@@ -15,6 +15,14 @@ $categories = $categorieController->advancedSearch($search, $sortBy, $sortOrder)
 
 // Get stats
 $stats = $categorieController->getStats($categories);
+
+// Prepare simple data for dual charts
+$db = Config::getConnexion();
+$sql = "SELECT c.nom_categorie, COUNT(p.id_produit) as count FROM categorie c LEFT JOIN produit p ON c.id_categorie = p.id_categorie GROUP BY c.id_categorie";
+$catChartData = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+// For Type Chart
+$types = ['Aliment' => $stats['distribution']['aliment'], 'Boisson' => $stats['distribution']['boisson'], 'Autre' => $stats['distribution']['autre']];
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -169,21 +177,18 @@ $stats = $categorieController->getStats($categories);
                     </div>
                 </div>
 
-                <div class="charts-section">
+                <div class="charts-section" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div class="chart-box">
-                        <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fas fa-chart-pie"></i> Répartition par Type</h3>
-                        <canvas id="typeChart"></canvas>
+                        <h3 style="margin-bottom: 15px; font-size: 1rem; color: var(--primary-blue);"><i class="fas fa-chart-bar"></i> Produits par Catégorie</h3>
+                        <div style="height: 300px;">
+                            <canvas id="categoryVolumeChart"></canvas>
+                        </div>
                     </div>
                     <div class="chart-box">
-                        <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fas fa-history"></i> Dernières Ajouts</h3>
-                        <ul style="list-style: none;">
-                            <?php foreach ($stats['recent'] as $rc): ?>
-                                <li style="padding: 10px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between;">
-                                    <span><?= htmlspecialchars($rc->getNomCategorie()) ?></span>
-                                    <span style="color: #999; font-size: 0.8rem;"><?= date('d/m/Y', strtotime($rc->getDateCreation())) ?></span>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
+                        <h3 style="margin-bottom: 15px; font-size: 1rem; color: var(--primary-blue);"><i class="fas fa-chart-pie"></i> Mix de Types</h3>
+                        <div style="height: 300px; display: flex; justify-content: center;">
+                            <canvas id="typeDoughnutChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -284,15 +289,31 @@ $stats = $categorieController->getStats($categories);
         window.onclick = (e) => { if (e.target == modal) { modal.classList.remove('show'); setTimeout(() => modal.style.display = "none", 300); } }
 
         function renderChart() {
-            const ctx = document.getElementById('typeChart').getContext('2d');
-            if (window.myChart) window.myChart.destroy();
-            window.myChart = new Chart(ctx, {
+            // 1. Volume Bar Chart
+            const data = <?= json_encode($catChartData) ?>;
+            const ctxVol = document.getElementById('categoryVolumeChart').getContext('2d');
+            new Chart(ctxVol, {
+                type: 'bar',
+                data: {
+                    labels: data.map(i => i.nom_categorie),
+                    datasets: [{
+                        data: data.map(i => i.count),
+                        backgroundColor: '#4CAF50',
+                        borderRadius: 8
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            // 2. Type Doughnut Chart
+            const ctxType = document.getElementById('typeDoughnutChart').getContext('2d');
+            new Chart(ctxType, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Aliments', 'Boissons', 'Autres'],
+                    labels: <?= json_encode(array_keys($types)) ?>,
                     datasets: [{
-                        data: [<?= $stats['distribution']['aliment'] ?>, <?= $stats['distribution']['boisson'] ?>, <?= $stats['distribution']['autre'] ?>],
-                        backgroundColor: ['#4CAF50', '#2196F3', '#9E9E9E'],
+                        data: <?= json_encode(array_values($types)) ?>,
+                        backgroundColor: ['#4CAF50', '#2196F3', '#FF9800'],
                         borderWidth: 0
                     }]
                 },
