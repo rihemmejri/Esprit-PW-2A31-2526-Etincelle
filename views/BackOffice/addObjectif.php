@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../models/objectif.php';
 
 $ObjectifController = new ObjectifController();
 
+$error = null;
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user_id = $_POST['user_id'] ?? '';
     $poids_cible = $_POST['poids_cible'] ?? '';
@@ -14,11 +15,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $date_fin = $_POST['date_fin'] ?? '';
 
     if ($user_id && $poids_cible && $calories_objectif && $eau_objectif && $date_debut && $date_fin) {
-        $objectif = new objectif($user_id, $poids_cible, $calories_objectif, $eau_objectif, $date_debut, $date_fin);
-        $ObjectifController->addObjectif($objectif);
-        $_SESSION['success_message'] = 'Objectif ajouté avec succès';
-        header('Location: objectifList.php');
-        exit();
+        try {
+            $objectif = new objectif($user_id, $poids_cible, $calories_objectif, $eau_objectif, $date_debut, $date_fin);
+            $ObjectifController->addObjectif($objectif);
+            $_SESSION['success_message'] = 'Objectif ajouté avec succès';
+            header('Location: objectifList.php');
+            exit();
+        } catch (Exception $e) {
+            $error = "L'ID utilisateur " . htmlspecialchars($user_id) . " n'existe pas.";
+        }
     }
 }
 ?>
@@ -29,101 +34,163 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ajouter un Objectif</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="../assets/css/nutrition-style.css">
     <style>
-        .form-container {
-            max-width: 700px;
-            margin: 40px auto;
-            padding: 30px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .form-header h1 {
-            color: #2c5f8d;
-            margin: 0 0 30px 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
+        * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
-            transition: border-color 0.3s;
         }
-        .form-group input:focus {
-            outline: none;
-            border-color: #2c5f8d;
-            box-shadow: 0 0 5px rgba(44, 95, 141, 0.3);
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #ffffff;
+            padding: 40px 20px;
+            color: #2c3e50;
         }
-        .form-group input.error {
-            border-color: #dc3545;
-            background-color: #fff5f5;
+
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+            background: #ffffff !important;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: 1px solid #eee;
         }
-        .form-group input.valid {
-            border-color: #27ab5f;
+
+        .form-header {
+            margin-bottom: 35px;
+            text-align: center;
         }
-        .field-error {
-            display: block;
-            color: #dc3545;
-            font-size: 12px;
-            margin-top: 5px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        .form-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 30px;
-        }
-        .btn-submit {
-            flex: 1;
-            padding: 12px;
-            background-color: #27ab5f;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .btn-submit:hover {
-            background-color: #1f8849;
-        }
-        .btn-cancel {
-            flex: 1;
-            padding: 12px;
-            background-color: #ccc;
-            color: #333;
-            border: none;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
+
+        .form-header h1 {
+            color: #1a1a2e;
+            font-size: 2rem;
+            margin: 0;
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 15px;
         }
-        .btn-cancel:hover {
-            background-color: #aaa;
+
+        .form-header h1 i {
+            color: #4CAF50;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        .form-group label i {
+            color: #4CAF50;
+            width: 20px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: 0.3s;
+            font-family: inherit;
+            background: #fdfdfd;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.1);
+            background: white;
+        }
+
+        .form-group input.error {
+            border-color: #dc3545;
+            background-color: #fff8f8;
+        }
+
+        .form-group input.valid {
+            border-color: #4CAF50;
+        }
+
+        .field-error {
+            color: #dc3545;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 40px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+            border: none;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.2);
+        }
+
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .form-container {
+                padding: 25px;
+            }
         }
     </style>
 </head>
@@ -136,41 +203,44 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <form method="POST">
             <div class="form-group">
                 <label for="user_id"><i class="fas fa-user"></i> User ID</label>
-                <input type="number" id="user_id" name="user_id" required min="1">
+                <input type="number" id="user_id" name="user_id" required min="1" value="<?= htmlspecialchars($user_id ?? '') ?>" class="<?= $error ? 'error' : '' ?>">
+                <?php if ($error): ?>
+                    <span class="field-error"><i class="fas fa-exclamation-circle"></i> <?= $error ?></span>
+                <?php endif; ?>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label for="poids_cible"><i class="fas fa-weight"></i> Poids Cible (kg)</label>
-                    <input type="number" id="poids_cible" name="poids_cible" required step="0.1" min="0">
+                    <input type="number" id="poids_cible" name="poids_cible" required step="0.1" min="0" value="<?= htmlspecialchars($poids_cible ?? '') ?>">
                 </div>
                 <div class="form-group">
                     <label for="calories_objectif"><i class="fas fa-fire"></i> Calories Objectif</label>
-                    <input type="number" id="calories_objectif" name="calories_objectif" required min="0">
+                    <input type="number" id="calories_objectif" name="calories_objectif" required min="0" value="<?= htmlspecialchars($calories_objectif ?? '') ?>">
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label for="eau_objectif"><i class="fas fa-water"></i> Eau Objectif (L)</label>
-                    <input type="number" id="eau_objectif" name="eau_objectif" required step="0.1" min="0">
+                    <input type="number" id="eau_objectif" name="eau_objectif" required step="0.1" min="0" value="<?= htmlspecialchars($eau_objectif ?? '') ?>">
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label for="date_debut"><i class="fas fa-calendar"></i> Date Début</label>
-                    <input type="date" id="date_debut" name="date_debut" required>
+                    <input type="date" id="date_debut" name="date_debut" required value="<?= htmlspecialchars($date_debut ?? '') ?>">
                 </div>
                 <div class="form-group">
                     <label for="date_fin"><i class="fas fa-calendar"></i> Date Fin</label>
-                    <input type="date" id="date_fin" name="date_fin" required>
+                    <input type="date" id="date_fin" name="date_fin" required value="<?= htmlspecialchars($date_fin ?? '') ?>">
                 </div>
             </div>
 
             <div class="form-buttons">
-                <button type="submit" class="btn-submit"><i class="fas fa-save"></i> Ajouter</button>
-                <a href="objectifList.php" class="btn-cancel"><i class="fas fa-times"></i> Annuler</a>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Ajouter</button>
+                <a href="objectifList.php" class="btn btn-secondary"><i class="fas fa-times"></i> Annuler</a>
             </div>
         </form>
     </div>

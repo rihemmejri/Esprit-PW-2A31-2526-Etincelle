@@ -7,6 +7,7 @@ class objectif {
     private $eau_objectif;
     private $date_debut;
     private $date_fin;
+    private $userName;
 
     public function __construct($user_id = null, $poids_cible = null, $calories_objectif = null, 
     $eau_objectif = null, $date_debut = null, $date_fin = null) {
@@ -47,6 +48,10 @@ class objectif {
         return $this->date_fin;
     }
 
+    public function getUserName() {
+        return $this->userName;
+    }
+
     // Setters
     public function setId($id) {
         $this->id = $id;
@@ -74,6 +79,10 @@ class objectif {
 
     public function setDateFin($date_fin) {
         $this->date_fin = $date_fin;
+    }
+
+    public function setUserName($userName) {
+        $this->userName = $userName;
     }
 }
 ?>
