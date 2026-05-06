@@ -2,1362 +2,605 @@
 include '../../controleurs/RecetteController.php';
 require_once __DIR__ . '/../../models/recette.php';
 
-// Charger Dompdf
-require_once __DIR__ . '/../../vendor/autoload.php';
-use Dompdf\Dompdf;
-use Dompdf\Options;
-
-session_start();
-
-// Initialiser les compteurs de vues et likes en session (simulation)
-if (!isset($_SESSION['vue_recettes'])) {
-    $_SESSION['vue_recettes'] = [];
-}
-if (!isset($_SESSION['likes_recettes'])) {
-    $_SESSION['likes_recettes'] = [];
-}
-if (!isset($_SESSION['compteur_likes'])) {
-    $_SESSION['compteur_likes'] = [];
-}
-
-// Incrémenter le compteur de vues pour la page actuelle
-$currentPage = basename($_SERVER['PHP_SELF']);
-if (!isset($_SESSION['vue_recettes'][$currentPage])) {
-    $_SESSION['vue_recettes'][$currentPage] = 0;
-}
-$_SESSION['vue_recettes'][$currentPage]++;
-
 $RecetteController = new RecetteController();
-
-// Récupérer toutes les recettes
-$allRecettes = $RecetteController->listRecettes();
-
-// Récupérer le terme de recherche
-$search = isset($_GET['search']) ? trim($_GET['search']) : '';
-
-// Filtrer par recherche
-if (!empty($search)) {
-    $recettes = array_filter($allRecettes, function($r) use ($search) {
-        return stripos($r->getNom(), $search) !== false;
-    });
-} else {
-    $recettes = $allRecettes;
-}
-
-// Calcul des statistiques par type de repas
-$statsByType = [
-    'PETIT_DEJEUNER' => 0,
-    'DEJEUNER' => 0,
-    'DINER' => 0,
-    'DESSERT' => 0
-];
-
-foreach ($recettes as $r) {
-    $type = $r->getTypeRepas();
-    if (isset($statsByType[$type])) {
-        $statsByType[$type]++;
-    }
-}
-
-// Calcul des totaux
-$totalTemps = 0;
-$totalPersonnes = 0;
-foreach ($recettes as $r) {
-    $totalTemps += $r->getTempsPreparation();
-    $totalPersonnes += $r->getNbPersonne();
-}
-
-// ========== EXPORT PDF ==========
-if (isset($_GET['export_pdf'])) {
-    // Générer le HTML du PDF
-    $html = '<!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>Liste des Recettes</title>
-        <style>
-            @page {
-                margin: 1.5cm;
-                size: landscape;
-            }
-            body {
-                font-family: DejaVu Sans, sans-serif;
-                margin: 0;
-                padding: 0;
-                font-size: 11px;
-            }
-            h1 {
-                color: #4CAF50;
-                text-align: center;
-                margin-bottom: 5px;
-                font-size: 24px;
-            }
-            .subtitle {
-                text-align: center;
-                color: #666;
-                margin-bottom: 15px;
-                font-size: 12px;
-            }
-            .header-pdf {
-                text-align: center;
-                margin-bottom: 20px;
-                border-bottom: 2px solid #4CAF50;
-                padding-bottom: 10px;
-            }
-            .stats-pdf {
-                margin: 15px 0;
-                padding: 10px;
-                background: #f5f5f5;
-                border-radius: 8px;
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: space-around;
-                gap: 15px;
-            }
-            .stat-item {
-                text-align: center;
-                font-size: 11px;
-            }
-            .stat-item strong {
-                color: #4CAF50;
-                font-size: 14px;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 15px;
-                font-size: 10px;
-            }
-            th {
-                background: #4CAF50;
-                color: white;
-                padding: 8px 6px;
-                text-align: left;
-                font-size: 10px;
-            }
-            td {
-                border: 1px solid #ddd;
-                padding: 6px;
-                vertical-align: top;
-            }
-            tr:nth-child(even) {
-                background: #f9f9f9;
-            }
-            .footer-pdf {
-                margin-top: 20px;
-                text-align: center;
-                font-size: 9px;
-                color: #999;
-                border-top: 1px solid #eee;
-                padding-top: 10px;
-            }
-            .badge-difficulte {
-                display: inline-block;
-                padding: 3px 10px;
-                border-radius: 20px;
-                font-size: 9px;
-                font-weight: bold;
-                white-space: nowrap;
-            }
-            .difficulte-FACILE { background: #e8f5e9; color: #2e7d32; }
-            .difficulte-MOYEN { background: #fff3e0; color: #e65100; }
-            .difficulte-DIFFICILE { background: #ffebee; color: #c62828; }
-            .badge-type {
-                display: inline-block;
-                padding: 3px 10px;
-                border-radius: 20px;
-                font-size: 9px;
-                font-weight: bold;
-                white-space: nowrap;
-            }
-            .type-PETIT_DEJEUNER { background: #e3f2fd; color: #1565c0; }
-            .type-DEJEUNER { background: #e8f5e9; color: #2e7d32; }
-            .type-DINER { background: #f3e5f5; color: #7b1fa2; }
-            .type-DESSERT { background: #fce4ec; color: #c2185b; }
-            .description-cell {
-                max-width: 200px;
-                word-wrap: break-word;
-                line-height: 1.3;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="header-pdf">
-            <h1>🍽️ Liste des Recettes</h1>
-            <div class="subtitle">📅 Exporté le ' . date('d/m/Y à H:i:s') . '</div>
-        </div>';
-    
-    if (!empty($search)) {
-        $html .= '<div style="margin-bottom: 15px; padding: 8px; background: #e8f5e9; border-radius: 8px; text-align: center;">
-            🔍 Résultats pour : <strong>' . htmlspecialchars($search) . '</strong> (' . count($recettes) . ' recette(s) trouvée(s))
-        </div>';
-    }
-    
-    $html .= '<div class="stats-pdf">
-        <div class="stat-item">📊 <strong>' . count($recettes) . '</strong> recettes</div>
-        <div class="stat-item">⏱️ <strong>' . $totalTemps . '</strong> min total</div>
-        <div class="stat-item">👥 <strong>' . $totalPersonnes . '</strong> personnes</div>
-        <div class="stat-item">☕ Petit déj: <strong>' . $statsByType['PETIT_DEJEUNER'] . '</strong></div>
-        <div class="stat-item">🍽️ Déjeuner: <strong>' . $statsByType['DEJEUNER'] . '</strong></div>
-        <div class="stat-item">🌙 Dîner: <strong>' . $statsByType['DINER'] . '</strong></div>
-        <div class="stat-item">🍰 Dessert: <strong>' . $statsByType['DESSERT'] . '</strong></div>
-    </div>';
-    
-    $html .= '<table>
-            <thead>
-                <tr>
-                    <th style="width:5%">ID</th>
-                    <th style="width:15%">Nom</th>
-                    <th style="width:25%">Description</th>
-                    <th style="width:8%">⏱️ Temps</th>
-                    <th style="width:10%">📊 Difficulté</th>
-                    <th style="width:12%">🍽️ Type</th>
-                    <th style="width:12%">📍 Origine</th>
-                    <th style="width:8%">👥 Personnes</th>
-                </tr>
-            </thead>
-            <tbody>';
-    
-    foreach ($recettes as $r) {
-        $description = strlen($r->getDescription()) > 120 ? substr($r->getDescription(), 0, 120) . '...' : $r->getDescription();
-        
-        switch($r->getTypeRepas()) {
-            case 'PETIT_DEJEUNER': $typeIcon = '☕'; $typeText = 'Petit déjeuner'; break;
-            case 'DEJEUNER': $typeIcon = '🍽️'; $typeText = 'Déjeuner'; break;
-            case 'DINER': $typeIcon = '🌙'; $typeText = 'Dîner'; break;
-            case 'DESSERT': $typeIcon = '🍰'; $typeText = 'Dessert'; break;
-            default: $typeIcon = ''; $typeText = $r->getTypeRepas();
-        }
-        
-        switch($r->getDifficulte()) {
-            case 'FACILE': $difficulteIcon = '😊'; $difficulteText = 'Facile'; break;
-            case 'MOYEN': $difficulteIcon = '😐'; $difficulteText = 'Moyen'; break;
-            case 'DIFFICILE': $difficulteIcon = '😣'; $difficulteText = 'Difficile'; break;
-            default: $difficulteIcon = ''; $difficulteText = $r->getDifficulte();
-        }
-        
-        $origineIcon = $r->getOrigine() ? '📍 ' : '';
-        
-        $html .= '<tr>
-                    <td style="text-align:center"><strong>#' . $r->getIdRecette() . '</strong></td>
-                    <td><strong>' . htmlspecialchars($r->getNom()) . '</strong></td>
-                    <td class="description-cell">' . htmlspecialchars($description) . '</td>
-                    <td>⏱️ ' . $r->getTempsPreparation() . ' min</div>
-                    <td><span class="badge-difficulte difficulte-' . $r->getDifficulte() . '">' . $difficulteIcon . ' ' . $difficulteText . '</span></div>
-                    <td><span class="badge-type type-' . $r->getTypeRepas() . '">' . $typeIcon . ' ' . $typeText . '</span></div>
-                    <td>' . ($r->getOrigine() ? $origineIcon . htmlspecialchars($r->getOrigine()) : '—') . '</div>
-                    <td>👥 ' . $r->getNbPersonne() . '</div>
-                 </tr>';
-    }
-    
-    $html .= '</tbody>
-        </table>';
-    
-    $html .= '<div class="footer-pdf">
-        <p>🍽️ NutriLoop - Application de gestion nutritionnelle</p>
-        <p>📋 Rapport généré le ' . date('d/m/Y') . ' | Toutes les recettes sont présentées à titre informatif</p>
-    </div>
-    </body>
-    </html>';
-    
-    $options = new Options();
-    $options->set('defaultFont', 'DejaVu Sans');
-    $options->set('isRemoteEnabled', true);
-    $options->set('isHtml5ParserEnabled', true);
-    
-    $dompdf = new Dompdf($options);
-    $dompdf->loadHtml($html);
-    $dompdf->setPaper('A4', 'landscape');
-    $dompdf->render();
-    
-    $dompdf->stream("recettes_" . date('Ymd_His') . ".pdf", array("Attachment" => true));
-    exit;
-}
+$recettes = $RecetteController->listRecettes();
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des Recettes - NutriLoop</title>
+    <title>Liste des Recettes - Nutrition</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../assets/css/nutrition-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* ========== VARIABLES MODE CLAIR (par défaut) ========== */
-        :root {
-            --bg-primary: #f0f2f5;
-            --bg-secondary: white;
-            --text-primary: #1a1a2e;
-            --text-secondary: #666;
-            --border-color: #eee;
-            --card-bg: white;
-            --header-bg: white;
-            --table-header-bg: #1a1a2e;
-            --table-header-text: white;
-            --table-row-hover: #f8f9fa;
-            --shadow-color: rgba(0,0,0,0.05);
-            --badge-light-bg: #f5f5f5;
-            --translated-bg: #f0f0f0;
-        }
-
-        /* ========== MODE SOMBRE ========== */
-        body.dark-mode {
-            --bg-primary: #121212;
-            --bg-secondary: #1e1e2e;
-            --text-primary: #ffffff;
-            --text-secondary: #aaa;
-            --border-color: #333;
-            --card-bg: #1e1e2e;
-            --header-bg: #1a1a2a;
-            --table-header-bg: #0d0d1a;
-            --table-header-text: #fff;
-            --table-row-hover: #2a2a3e;
-            --shadow-color: rgba(0,0,0,0.2);
-            --badge-light-bg: #2a2a3e;
-            --translated-bg: #2a2a3e;
-        }
-
-        body {
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            transition: all 0.3s ease;
-        }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
 
-        .container {
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        /* ========== HEADER AVEC MENU (COMME FRONT OFFICE) ========== */
+        .header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
             max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
         }
 
-        /* ========== MODE TOGGLE BUTTON ========== */
-        .theme-toggle {
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-color);
-            border-radius: 40px;
-            width: 60px;
-            height: 30px;
+        .logo {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 5px;
-            cursor: pointer;
-            position: relative;
-            transition: 0.3s;
-        }
-
-        .theme-toggle i {
-            font-size: 14px;
-            z-index: 1;
-            color: var(--text-primary);
-        }
-
-        .theme-toggle .fa-sun { color: #f39c12; }
-        .theme-toggle .fa-moon { color: #3498db; }
-
-        .theme-toggle::after {
-            content: '';
-            position: absolute;
-            width: 24px;
-            height: 24px;
-            background: #4CAF50;
-            border-radius: 50%;
-            left: 3px;
-            transition: 0.3s;
-        }
-
-        body.dark-mode .theme-toggle::after {
-            left: 31px;
-        }
-
-        /* Header */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .header h1 {
-            font-size: 1.8rem;
-            color: var(--text-primary);
-        }
-
-        .header h1 i {
-            color: #4CAF50;
-            margin-right: 10px;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            border: none;
-            cursor: pointer;
-        }
-
-        .btn-primary {
-            background: #4CAF50;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #45a049;
-            transform: translateY(-2px);
-        }
-
-        /* Sort Controls */
-        .sort-controls {
-            background: var(--bg-secondary);
-            padding: 15px 25px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-            box-shadow: 0 2px 8px var(--shadow-color);
-        }
-
-        .sort-controls label {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .sort-select {
-            padding: 8px 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            cursor: pointer;
-        }
-
-        .sort-btn {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        /* Stats Bar */
-        .stats-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--bg-secondary);
-            padding: 15px 25px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-            gap: 15px;
-            box-shadow: 0 2px 8px var(--shadow-color);
-        }
-
-        .stats {
-            display: flex;
-            gap: 25px;
-            flex-wrap: wrap;
-        }
-
-        .stat {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .stat i {
-            font-size: 1.2rem;
-            color: #4CAF50;
-        }
-
-        .search-box {
-            display: flex;
-            gap: 5px;
-        }
-
-        .search-box input {
-            padding: 8px 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            width: 250px;
-        }
-
-        .search-box button {
-            background: #4CAF50;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
-            color: white;
-            cursor: pointer;
-        }
-
-        /* Table */
-        .table-container {
-            background: var(--bg-secondary);
-            border-radius: 16px;
-            overflow: auto;
-            box-shadow: 0 2px 10px var(--shadow-color);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 1300px;
-        }
-
-        th {
-            background: var(--table-header-bg);
-            color: var(--table-header-text);
-            padding: 15px 12px;
-            text-align: left;
-            font-weight: 600;
-        }
-
-        th i {
-            margin-right: 8px;
-        }
-
-        th.sortable {
-            cursor: pointer;
-            user-select: none;
-        }
-
-        th.sortable:hover {
-            background: #2a2a4e;
-        }
-
-        td {
-            padding: 12px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        tr:hover {
-            background: var(--table-row-hover);
-        }
-
-        /* Badges */
-        .badge-difficulte {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .difficulte-FACILE { background: #e8f5e9; color: #2e7d32; }
-        .difficulte-MOYEN { background: #fff3e0; color: #e65100; }
-        .difficulte-DIFFICILE { background: #ffebee; color: #c62828; }
-
-        .badge-type {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .type-PETIT_DEJEUNER { background: #e3f2fd; color: #1565c0; }
-        .type-DEJEUNER { background: #e8f5e9; color: #2e7d32; }
-        .type-DINER { background: #f3e5f5; color: #7b1fa2; }
-        .type-DESSERT { background: #fce4ec; color: #c2185b; }
-
-        /* Statistiques vues/likes */
-        .stats-icons {
-            display: flex;
-            gap: 12px;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        .stats-icons i {
-            margin-right: 4px;
-        }
-
-        .stats-icons .fa-eye { color: #2196F3; }
-        .stats-icons .fa-heart { color: #e53935; }
-
-        /* Actions */
-        .actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .action-btn {
-            padding: 6px 12px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 0.75rem;
-            font-weight: 600;
-            transition: 0.2s;
-        }
-
-        .view-btn { background: #4CAF50; color: white; }
-        .edit-btn { background: #2196F3; color: white; }
-        .delete-btn { background: #dc3545; color: white; }
-
-        /* Traduction */
-        .translate-btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 5px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.7rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            transition: all 0.3s;
-            margin-top: 8px;
-        }
-
-        .translate-btn:hover {
-            transform: scale(1.05);
-            filter: brightness(1.05);
-        }
-
-        .translate-container {
-            margin-top: 8px;
-        }
-
-        .translated-text {
-            font-size: 0.75rem;
-            color: var(--text-primary);
-            background: var(--translated-bg);
-            padding: 8px 12px;
-            border-radius: 8px;
-            margin-top: 8px;
-            display: none;
-            border-left: 3px solid #667eea;
-            line-height: 1.4;
-        }
-
-        .translated-text.show {
-            display: block;
-            animation: fadeSlide 0.3s ease;
-        }
-
-        @keyframes fadeSlide {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .lang-select {
-            font-size: 0.7rem;
-            padding: 4px 8px;
-            border-radius: 15px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            margin-left: 8px;
-            cursor: pointer;
-        }
-
-        .empty-message {
-            text-align: center;
-            padding: 60px;
-            color: var(--text-secondary);
-        }
-
-        .tfoot {
-            background: var(--badge-light-bg);
-            font-weight: bold;
-        }
-
-        .tfoot td {
-            padding: 15px 12px;
-            border-top: 2px solid var(--border-color);
-        }
-
-        .description-cell {
-            max-width: 300px;
-            white-space: normal;
-            word-wrap: break-word;
-            line-height: 1.4;
-        }
-
-        /* Footer buttons */
-        .footer-buttons {
-            margin-top: 20px;
-            display: flex;
-            justify-content: flex-end;
-            gap: 15px;
-        }
-
-        .btn-footer {
-            padding: 12px 24px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            border: none;
-        }
-
-        .btn-stats {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-pdf {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-            color: white;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: var(--bg-secondary);
-            border-radius: 20px;
-            padding: 30px;
-            width: 500px;
-            max-width: 90%;
-            position: relative;
-            animation: modalSlide 0.3s ease;
-            color: var(--text-primary);
-        }
-
-        @keyframes modalSlide {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .close-modal {
-            background: none;
-            border: none;
-            font-size: 28px;
-            cursor: pointer;
-            color: var(--text-secondary);
-        }
-
-        canvas {
-            max-height: 300px;
-            margin: 20px 0;
-        }
-
-        .stats-details {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .stat-detail {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-        }
-
-        .search-active {
-            background: #e8f5e9;
-            padding: 10px 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
             gap: 10px;
-            color: #333;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2E7D32;
         }
 
-        .clear-search {
-            background: #f44336;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
+        .logo-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-menu li a {
             text-decoration: none;
-            font-size: 13px;
-            border: none;
+            color: #333;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .nav-menu li a:hover,
+        .nav-menu li a.active {
+            color: #4CAF50;
+        }
+
+        .btn-dashboard {
+            background: #2e7d32;
+            color: white !important;
+            padding: 8px 20px;
+            border-radius: 25px;
+        }
+
+        .btn-dashboard:hover {
+            background: #388e3c;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
             cursor: pointer;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: #333;
+            margin: 3px 0;
+            transition: 0.3s;
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                position: fixed;
+                left: -100%;
+                top: 70px;
+                flex-direction: column;
+                background: white;
+                width: 100%;
+                text-align: center;
+                transition: 0.3s;
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+                padding: 20px 0;
+                gap: 15px;
+            }
+            .nav-menu.active {
+                left: 0;
+            }
+            .hamburger {
+                display: flex;
+            }
+        }
+
+        /* ========== DASHBOARD CONTAINER ========== */
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ========== SIDEBAR (EXACT DASHBOARD STYLES) ========== */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #003366 0%, #001a33 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        .logo-text {
+            font-size: 1.2rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .logo-text small {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            font-weight: normal;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1.5rem 0;
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+        }
+
+        .sidebar-nav .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            cursor: pointer;
+            transition: 0.3s;
+            color: rgba(255,255,255,0.7);
+            position: relative;
+        }
+
+        .sidebar-nav .nav-item i {
+            width: 20px;
+            font-size: 1.1rem;
+        }
+
+        .sidebar-nav .nav-item:hover {
+            background: rgba(76,175,80,0.1);
+            color: #4CAF50;
+        }
+
+        .sidebar-nav .nav-item.active {
+            background: rgba(76,175,80,0.2);
+            color: #4CAF50;
+            border-left: 3px solid #4CAF50;
+        }
+
+        .sidebar-nav .nav-item .badge {
+            margin-left: auto;
+            background: rgba(255,255,255,0.1);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+        }
+
+        .sidebar-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .user-info img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #4CAF50;
+        }
+
+        .user-info h4 {
+            color: white;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+
+        .user-info p {
+            font-size: 0.7rem;
+            opacity: 0.7;
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 12px;
+            transition: 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .container-list {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                top: 70px;
+                z-index: 999;
+                transition: left 0.3s;
+            }
+            
+            .sidebar.active {
+                left: 0;
+            }
+            
+            .content-area {
+                padding: 1rem;
+            }
+        }
+    </style>
+    <style>
+        /* Style supplémentaire pour garantir l'affichage complet */
+        .description-full {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            line-height: 1.5 !important;
+        }
+        
+        /* Pour que le tableau soit large */
+        .table-container {
+            overflow-x: auto !important;
+        }
+        
+        table {
+            min-width: 1800px !important;
+        }
+        
+        td:nth-child(3) {
+            min-width: 450px !important;
+            max-width: none !important;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div class="header-left">
-                <h1>
-                    <i class="fas fa-utensils"></i>
-                    Gestion des Recettes
-                </h1>
-                <!-- Mode Toggle Button -->
-                <div class="theme-toggle" onclick="toggleTheme()">
-                    <i class="fas fa-sun"></i>
-                    <i class="fas fa-moon"></i>
+    <!-- ========== HEADER AVEC MENU (COMME FRONT OFFICE) ========== -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="logo">
+                <img src="image/logo.PNG" alt="NutriLoop Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/45x45?text=🌱'">
+                <span class="logo-text">NutriLoop</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="../FrontOffice/index.html">Accueil</a></li>
+                <li><a href="../FrontOffice/index.html#features">Fonctionnalités</a></li>
+                <li><a href="../FrontOffice/index.html#modules">Modules</a></li>
+                <li><a href="index.html" class="btn-dashboard active">Dashboard</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </nav>
+    </header>
+
+    <!-- ========== DASHBOARD CONTAINER ========== -->
+<div class="dashboard-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="../FrontOffice/image/logo.PNG" alt="Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/45x45?text=🌱'">
+                <span class="logo-text">NutriLoop<br><small>Admin</small></span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul>
+                <li class="nav-item">
+                    <a href="index.html" style="color: white; text-decoration: none; display: flex; align-items: center; gap: 12px;">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item" data-module="users">
+                    <i class="fas fa-users"></i>
+                    <span>Utilisateurs</span>
+                    <span class="badge">Module 1</span>
+                </li>
+                <li class="nav-item">
+                    <a href="repasList.php" style="color: white; text-decoration: none; display: flex; align-items: center; gap: 12px;">
+                        <i class="fas fa-apple-alt"></i>
+                        <span>Nutrition Smart</span>
+                    </a>
+                    <span class="badge">Module 2</span>
+                </li>
+                <li class="nav-item" data-module="products">
+                    <i class="fas fa-boxes"></i>
+                    <span>Gestion Produits</span>
+                    <span class="badge">Module 3</span>
+                </li>
+                <li class="nav-item active">
+                    <a href="recetteList.php" style="color: white; text-decoration: none; display: flex; align-items: center; gap: 12px;">
+                        <i class="fas fa-utensils"></i>
+                        <span>Recettes Anti-Gaspi</span>
+                    </a>
+                    <span class="badge">Module 4</span>
+                </li>
+                <li class="nav-item" data-module="tracking">
+                    <i class="fas fa-chart-simple"></i>
+                    <span>Suivi & Objectifs</span>
+                    <span class="badge">Module 5</span>
+                </li>
+                <li class="nav-item" data-module="events">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Gestion Événements</span>
+                    <span class="badge">Module 6</span>
+                </li>
+            </ul>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <img src="../FrontOffice/image/ryhem.PNG" alt="Ryhem Mejri" onerror="this.src='https://randomuser.me/api/portraits/women/68.jpg'">
+                <div>
+                    <h4>Ryhem Mejri</h4>
+                    <p>Administrateur Principal</p>
                 </div>
             </div>
-            <a href="addRecette.php" class="btn btn-primary">
-                <i class="fas fa-plus-circle"></i> Ajouter une recette
+            <a href="../FrontOffice/index.html" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Déconnexion</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <div class="container-list">
+        <div class="header">
+            <h1>
+                <i class="fas fa-utensils"></i>
+                Gestion des Recettes
+            </h1>
+            <a href="addRecette.php" class="add-btn">
+                <i class="fas fa-plus-circle"></i>
+                Ajouter une recette
             </a>
         </div>
 
-        <!-- Search Active Display -->
-        <div id="searchActiveDiv" style="display: none;" class="search-active">
-            <div class="search-info">
-                <i class="fas fa-search" style="color: #4CAF50;"></i>
-                <span>Résultats pour : <strong id="searchTerm"></strong></span>
-                <span style="color: #666;" id="resultCount"></span>
-            </div>
-            <button class="clear-search" onclick="clearSearch()">
-                <i class="fas fa-times"></i> Effacer la recherche
-            </button>
-        </div>
-
-        <!-- Sort Controls -->
-        <div class="sort-controls">
-            <label><i class="fas fa-sort"></i> Trier par :</label>
-            <select id="sortField" class="sort-select">
-                <option value="id">ID</option>
-                <option value="nom">Nom</option>
-                <option value="vues">Vues</option>
-                <option value="likes">Likes</option>
-            </select>
-            <select id="sortOrder" class="sort-select">
-                <option value="asc">Croissant ↑</option>
-                <option value="desc">Décroissant ↓</option>
-            </select>
-            <button class="sort-btn" onclick="applySort()">
-                <i class="fas fa-sort"></i> Appliquer le tri
-            </button>
-        </div>
-
-        <!-- Stats Bar -->
         <div class="stats-bar">
-            <div class="stats">
-                <div class="stat">
+            <div class="stats-info">
+                <div class="stat-item">
                     <i class="fas fa-utensils"></i>
-                    <span><strong id="totalRecettes"><?= count($recettes) ?></strong> recettes</span>
+                    <span>Total: <strong><?= count($recettes) ?></strong> recettes</span>
                 </div>
-                <div class="stat">
+                <div class="stat-item">
                     <i class="fas fa-clock"></i>
-                    <span><strong><?= $totalTemps ?></strong> min (total)</span>
-                </div>
-                <div class="stat">
-                    <i class="fas fa-users"></i>
-                    <span><strong><?= $totalPersonnes ?></strong> personnes</span>
-                </div>
-                <div class="stat">
-                    <i class="fas fa-eye"></i>
-                    <span><strong><?= array_sum($_SESSION['vue_recettes']) ?></strong> vues totales</span>
+                    <span>Temps moyen: <strong>
+                        <?php 
+                        if (count($recettes) > 0) {
+                            $totalTemps = 0;
+                            foreach ($recettes as $r) {
+                                $totalTemps += $r->getTempsPreparation();
+                            }
+                            echo round($totalTemps / count($recettes)) . ' min';
+                        } else {
+                            echo '0 min';
+                        }
+                        ?>
+                    </strong></span>
                 </div>
             </div>
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Rechercher par nom..." onkeyup="searchTable()">
+                <input type="text" id="searchInput" placeholder="Rechercher une recette..." onkeyup="searchTable()">
                 <button onclick="searchTable()"><i class="fas fa-search"></i></button>
             </div>
         </div>
 
-        <!-- Table -->
-        <div class="table-container">
-            <table id="recettesTable">
-                <thead>
-                    <tr>
-                        <th class="sortable" onclick="sortTable(0)">
-                            <i class="fas fa-hashtag"></i> ID
-                            <i class="fas fa-sort sort-icon" id="sort-icon-0"></i>
-                        </th>
-                        <th class="sortable" onclick="sortTable(1)">
-                            <i class="fas fa-utensils"></i> Nom
-                            <i class="fas fa-sort sort-icon" id="sort-icon-1"></i>
-                        </th>
-                        <th><i class="fas fa-align-left"></i> Description</th>
-                        <th><i class="fas fa-clock"></i> Temps (min)</th>
-                        <th><i class="fas fa-chart-line"></i> Difficulté</th>
-                        <th><i class="fas fa-mug-hot"></i> Type de repas</th>
-                        <th><i class="fas fa-globe"></i> Origine</th>
-                        <th><i class="fas fa-users"></i> Personnes</th>
-                        <th><i class="fas fa-chart-simple"></i> Stats</th>
-                        <th><i class="fas fa-cog"></i> Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <?php if (count($recettes) > 0): ?>
-                        <?php foreach ($recettes as $item): 
-                            $recetteId = $item->getIdRecette();
-                            $vues = isset($_SESSION['vue_recettes'][$recetteId]) ? $_SESSION['vue_recettes'][$recetteId] : rand(100, 5000);
-                            $likes = isset($_SESSION['compteur_likes'][$recetteId]) ? $_SESSION['compteur_likes'][$recetteId] : rand(10, 500);
-                        ?>
-                            <tr data-id="<?= $recetteId ?>" data-vues="<?= $vues ?>" data-likes="<?= $likes ?>">
-                                <td><strong>#<?= $recetteId ?></strong></td>
-                                <td><strong><?= htmlspecialchars($item->getNom()) ?></strong></td>
-                                <td class="description-cell">
-                                    <div class="original-text">
-                                        <?= nl2br(htmlspecialchars(substr($item->getDescription(), 0, 120))) ?><?= strlen($item->getDescription()) > 120 ? '...' : '' ?>
-                                    </div>
-                                    <div class="translate-container">
-                                        <button class="translate-btn" onclick="translateDescription(this, <?= $recetteId ?>, '<?= addslashes($item->getDescription()) ?>')">
-                                            <i class="fas fa-language"></i> Traduire
-                                        </button>
-                                        <select class="lang-select" id="lang-<?= $recetteId ?>" onchange="changeLanguage(this, <?= $recetteId ?>, '<?= addslashes($item->getDescription()) ?>')">
-                                            <option value="fr">🇫🇷 Français</option>
-                                            <option value="en">🇬🇧 English</option>
-                                            <option value="ar">🇸🇦 العربية</option>
-                                            <option value="es">🇪🇸 Español</option>
-                                            <option value="it">🇮🇹 Italiano</option>
-                                            <option value="de">🇩🇪 Deutsch</option>
-                                            <option value="pt">🇵🇹 Português</option>
-                                            <option value="ru">🇷🇺 Русский</option>
-                                            <option value="zh">🇨🇳 中文</option>
-                                        </select>
-                                        <div class="translated-text" id="translated-<?= $recetteId ?>"></div>
-                                    </div>
-                                 </div>
-                                <td><i class="fas fa-hourglass-half"></i> <?= $item->getTempsPreparation() ?> min</div>
-                                <td>
-                                    <span class="badge-difficulte difficulte-<?= $item->getDifficulte() ?>">
-                                        <?php
-                                        switch($item->getDifficulte()) {
-                                            case 'FACILE': echo '😊 Facile'; break;
-                                            case 'MOYEN': echo '😐 Moyen'; break;
-                                            case 'DIFFICILE': echo '😣 Difficile'; break;
-                                            default: echo $item->getDifficulte();
-                                        }
-                                        ?>
-                                    </span>
-                                 </div>
-                                <td>
-                                    <span class="badge-type type-<?= $item->getTypeRepas() ?>">
-                                        <?php
-                                        switch($item->getTypeRepas()) {
-                                            case 'PETIT_DEJEUNER': echo '☕ Petit déjeuner'; break;
-                                            case 'DEJEUNER': echo '🍽️ Déjeuner'; break;
-                                            case 'DINER': echo '🌙 Dîner'; break;
-                                            case 'DESSERT': echo '🍰 Dessert'; break;
-                                            default: echo $item->getTypeRepas();
-                                        }
-                                        ?>
-                                    </span>
-                                 </div>
-                                <td>
-                                    <?php if ($item->getOrigine()): ?>
-                                        <i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($item->getOrigine()) ?>
-                                    <?php else: ?>
-                                        <span style="color: var(--text-secondary);">Non spécifiée</span>
-                                    <?php endif; ?>
-                                 </div>
-                                <td><i class="fas fa-users"></i> <?= $item->getNbPersonne() ?></div>
-                                <td class="stats-icons">
-                                    <div><i class="fas fa-eye"></i> <?= $vues ?> vues</div>
-                                    <div><i class="fas fa-heart"></i> <?= $likes ?> likes</div>
-                                 </div>
-                                <td class="actions">
-                                    <a href="viewRecette.php?id=<?= $recetteId ?>" class="action-btn view-btn">
-                                        <i class="fas fa-eye"></i> Voir
-                                    </a>
-                                    <a href="editRecette.php?id=<?= $recetteId ?>" class="action-btn edit-btn">
-                                        <i class="fas fa-edit"></i> Modifier
-                                    </a>
-                                    <a href="#" class="action-btn delete-btn" onclick="confirmDelete(<?= $recetteId ?>); return false;">
-                                        <i class="fas fa-trash"></i> Suppr
-                                    </a>
-                                 </div>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr class="empty-row">
-                            <td colspan="10" class="empty-message">
-                                <i class="fas fa-empty-folder" style="font-size: 3rem;"></i>
-                                <p>Aucune recette trouvée</p>
-                                <a href="addRecette.php" class="btn btn-primary" style="margin-top: 10px;">Ajouter une recette</a>
-                             </div>
+        <div class="content">
+            <div class="table-container">
+                <table id="recettesTable">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-hashtag"></i> ID</th>
+                            <th><i class="fas fa-utensils"></i> Nom</th>
+                            <th><i class="fas fa-align-left"></i> Description</th>
+                            <th><i class="fas fa-clock"></i> Temps (min)</th>
+                            <th><i class="fas fa-chart-line"></i> Difficulté</th>
+                            <th><i class="fas fa-mug-hot"></i> Type de repas</th>
+                            <th><i class="fas fa-globe"></i> Origine</th>
+                            <th><i class="fas fa-users"></i> Personnes</th>
+                            <th><i class="fas fa-cog"></i> Actions</th>
                         </tr>
-                    <?php endif; ?>
-                </tbody>
-                <tfoot class="tfoot">
-                    <tr>
-                        <td colspan="3"><strong>Totaux / Moyennes :</strong></td>
-                        <td><strong id="avgTime"><?= count($recettes) > 0 ? round($totalTemps / count($recettes)) : 0 ?> min (moy.)</strong></td>
-                        <td colspan="2"></td>
-                        <td colspan="2"><strong id="avgPers"><?= count($recettes) > 0 ? round($totalPersonnes / count($recettes)) : 0 ?> pers. (moy.)</strong></td>
-                        <td colspan="2"></td>
-                    </tr>
-                </tfoot>
-            </table>
+                    </thead>
+                    <tbody>
+                        <?php if (count($recettes) > 0): ?> 
+                            <?php foreach ($recettes as $recette): ?>
+                                <tr>
+                                    <td>#<?= htmlspecialchars($recette->getIdRecette()) ?></td>
+                                    <td class="recette-title"><?= htmlspecialchars($recette->getNom()) ?></td>
+                                    <td class="description-full"><?= nl2br(htmlspecialchars($recette->getDescription())) ?> <!-- DESCRIPTION COMPLÈTE -->
+                                    <td class="text-center"><i class="fas fa-hourglass-half"></i> <?= htmlspecialchars($recette->getTempsPreparation()) ?> min</td>
+                                    <td>
+                                        <?php 
+                                        $difficulte = $recette->getDifficulte();
+                                        $difficulteClass = '';
+                                        $difficulteIcon = '';
+                                        
+                                        switch($difficulte) {
+                                            case 'FACILE':
+                                                $difficulteClass = 'difficulte-FACILE';
+                                                $difficulteIcon = 'fa-smile';
+                                                break;
+                                            case 'MOYEN':
+                                                $difficulteClass = 'difficulte-MOYEN';
+                                                $difficulteIcon = 'fa-meh';
+                                                break;
+                                            case 'DIFFICILE':
+                                                $difficulteClass = 'difficulte-DIFFICILE';
+                                                $difficulteIcon = 'fa-frown';
+                                                break;
+                                        }
+                                        ?>
+                                        <span class="difficulte-badge <?= $difficulteClass ?>">
+                                            <i class="fas <?= $difficulteIcon ?>"></i>
+                                            <?= $difficulte ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <?php 
+                                        $typeRepas = $recette->getTypeRepas();
+                                        $typeIcon = '';
+                                        $typeText = '';
+                                        
+                                        switch($typeRepas) {
+                                            case 'PETIT_DEJEUNER':
+                                                $typeIcon = 'fa-coffee';
+                                                $typeText = 'Petit déjeuner';
+                                                break;
+                                            case 'DEJEUNER':
+                                                $typeIcon = 'fa-utensils';
+                                                $typeText = 'Déjeuner';
+                                                break;
+                                            case 'DINER':
+                                                $typeIcon = 'fa-moon';
+                                                $typeText = 'Dîner';
+                                                break;
+                                            case 'DESSERT':
+                                                $typeIcon = 'fa-cake-candles';
+                                                $typeText = 'Dessert';
+                                                break;
+                                        }
+                                        ?>
+                                        <span class="type-repas-badge">
+                                            <i class="fas <?= $typeIcon ?>"></i>
+                                            <?= $typeText ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <?php if ($recette->getOrigine()): ?>
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <?= htmlspecialchars($recette->getOrigine()) ?>
+                                        <?php else: ?>
+                                            <span style="color: #999;">N/A</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><i class="fas fa-users"></i> <?= htmlspecialchars($recette->getNbPersonne()) ?></td>
+                                    <td>
+                                        <div class="actions">
+                                            <a href="recetteList.php?id=<?= $recette->getIdRecette() ?>" class="action-btn view">
+                                                <i class="fas fa-eye"></i> Voir
+                                            </a>
+                                            <a href="editRecette.php?id=<?= $recette->getIdRecette() ?>" class="action-btn edit">
+                                                <i class="fas fa-edit"></i> Modifier
+                                            </a>
+<a href="#" class="action-btn delete" onclick="confirmDelete(<?= $recette->getIdRecette() ?>); return false;">
+    <i class="fas fa-trash"></i> Suppr
+</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?> 
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="9" class="empty-message">
+                                    <i class="fas fa-empty-folder"></i>
+                                    <h3>Aucune recette trouvée</h3>
+                                    <p>Commencez par ajouter votre première recette !</p>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-        <!-- Footer Buttons -->
-        <div class="footer-buttons">
-            <button class="btn-footer btn-stats" onclick="openStatsModal()">
-                <i class="fas fa-chart-pie"></i> Voir les statistiques
+        <div class="footer">
+            <div class="pagination">
+                <button class="page-btn" onclick="previousPage()"><i class="fas fa-chevron-left"></i></button>
+                <button class="page-btn active" id="page1">1</button>
+                <button class="page-btn" id="page2" style="display:none;">2</button>
+                <button class="page-btn" id="page3" style="display:none;">3</button>
+                <button class="page-btn" onclick="nextPage()"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <button class="export-btn" onclick="exportTable()">
+                <i class="fas fa-download"></i> Exporter
             </button>
-            <a href="?export_pdf=1<?= !empty($search) ? '&search=' . urlencode($search) : '' ?>" class="btn-footer btn-pdf" style="text-decoration: none;">
-                <i class="fas fa-file-pdf"></i> Exporter PDF
-            </a>
         </div>
     </div>
 
-    <!-- Modal Statistiques -->
-    <div id="statsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-chart-pie"></i> Statistiques par type de repas</h2>
-                <button class="close-modal" onclick="closeStatsModal()">&times;</button>
             </div>
-            <canvas id="statsChart"></canvas>
-            <div class="stats-details">
-                <div class="stat-detail">
-                    <span><i class="fas fa-coffee" style="color: #1565c0;"></i> Petit déjeuner</span>
-                    <span><strong id="statPetitDej"><?= $statsByType['PETIT_DEJEUNER'] ?></strong> recette(s)</span>
-                </div>
-                <div class="stat-detail">
-                    <span><i class="fas fa-utensils" style="color: #2e7d32;"></i> Déjeuner</span>
-                    <span><strong id="statDejeuner"><?= $statsByType['DEJEUNER'] ?></strong> recette(s)</span>
-                </div>
-                <div class="stat-detail">
-                    <span><i class="fas fa-moon" style="color: #7b1fa2;"></i> Dîner</span>
-                    <span><strong id="statDiner"><?= $statsByType['DINER'] ?></strong> recette(s)</span>
-                </div>
-                <div class="stat-detail">
-                    <span><i class="fas fa-cake-candles" style="color: #c2185b;"></i> Dessert</span>
-                    <span><strong id="statDessert"><?= $statsByType['DESSERT'] ?></strong> recette(s)</span>
-                </div>
-                <hr>
-                <div class="stat-detail" style="font-weight: bold;">
-                    <span>Total</span>
-                    <span><strong id="statTotal"><?= array_sum($statsByType) ?></strong> recette(s)</span>
-                </div>
-            </div>
-        </div>
+        </main>
     </div>
 
-    <script>
-        let currentSortColumn = -1;
-        let currentSortOrder = 'asc';
-        let chart = null;
+    </main>
+</div>
 
-        // ========== MODE SOMBRE / CLAIR ==========
-        function toggleTheme() {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-        }
-
-        // Charger le thème sauvegardé
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-mode');
-        }
-
-        // ========== TRADUCTION ==========
-        async function translateText(text, targetLang) {
-            try {
-                const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=fr|${targetLang}`);
-                const data = await response.json();
-                return data.responseData.translatedText;
-            } catch (error) {
-                console.error('Erreur de traduction:', error);
-                return text + " (Traduction non disponible)";
-            }
-        }
-
-        async function translateDescription(btn, recetteId, description) {
-            const langSelect = document.getElementById(`lang-${recetteId}`);
-            const targetLang = langSelect.value;
-            const translatedDiv = document.getElementById(`translated-${recetteId}`);
-            
-            btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Traduction...';
-            btn.disabled = true;
-            
-            const translatedText = await translateText(description, targetLang);
-            
-            translatedDiv.innerHTML = `
-                <i class="fas fa-language" style="margin-right: 5px; color: #667eea;"></i>
-                <strong>Traduction :</strong><br>
-                ${translatedText}
-            `;
-            translatedDiv.classList.add('show');
-            
-            btn.innerHTML = '<i class="fas fa-language"></i> Traduire';
-            btn.disabled = false;
-        }
-
-        async function changeLanguage(select, recetteId, description) {
-            const btn = select.parentElement.querySelector('.translate-btn');
-            const translatedDiv = document.getElementById(`translated-${recetteId}`);
-            
-            if (translatedDiv.classList.contains('show')) {
-                const targetLang = select.value;
-                
-                btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Traduction...';
-                btn.disabled = true;
-                
-                const translatedText = await translateText(description, targetLang);
-                
-                translatedDiv.innerHTML = `
-                    <i class="fas fa-language" style="margin-right: 5px; color: #667eea;"></i>
-                    <strong>Traduction :</strong><br>
-                    ${translatedText}
-                `;
-                
-                btn.innerHTML = '<i class="fas fa-language"></i> Traduire';
-                btn.disabled = false;
-            }
-        }
-
-        function confirmDelete(id) {
-            if (confirm('Supprimer cette recette ? Cette action est irréversible.')) {
-                window.location.href = 'deleteRecette.php?id=' + id;
-            }
-        }
-
-        function applySort() {
-            const sortField = document.getElementById('sortField').value;
-            const sortOrder = document.getElementById('sortOrder').value;
-            const rows = Array.from(document.querySelectorAll('#tableBody tr:not(.empty-row)'));
-            
-            rows.sort((a, b) => {
-                let aValue, bValue;
-                if (sortField === 'id') {
-                    aValue = parseInt(a.cells[0].textContent.replace('#', ''));
-                    bValue = parseInt(b.cells[0].textContent.replace('#', ''));
-                } else if (sortField === 'nom') {
-                    aValue = a.cells[1].textContent.toLowerCase();
-                    bValue = b.cells[1].textContent.toLowerCase();
-                } else if (sortField === 'vues') {
-                    aValue = parseInt(a.getAttribute('data-vues') || 0);
-                    bValue = parseInt(b.getAttribute('data-vues') || 0);
-                } else {
-                    aValue = parseInt(a.getAttribute('data-likes') || 0);
-                    bValue = parseInt(b.getAttribute('data-likes') || 0);
-                }
-                
-                if (sortOrder === 'asc') {
-                    return aValue > bValue ? 1 : -1;
-                } else {
-                    return aValue < bValue ? 1 : -1;
-                }
-            });
-            
-            const tbody = document.getElementById('tableBody');
-            rows.forEach(row => tbody.appendChild(row));
-        }
-
-        function searchTable() {
-            const input = document.getElementById('searchInput');
-            const filter = input.value.toLowerCase();
-            const rows = document.querySelectorAll('#tableBody tr');
-            let visibleCount = 0;
-            
-            rows.forEach(row => {
-                if (row.classList.contains('empty-row')) return;
-                const nomCell = row.cells[1];
-                if (nomCell) {
-                    const nomValue = nomCell.textContent.toLowerCase();
-                    if (filter === "" || nomValue.indexOf(filter) > -1) {
-                        row.style.display = '';
-                        visibleCount++;
-                    } else {
-                        row.style.display = 'none';
-                    }
-                }
-            });
-            
-            const searchActiveDiv = document.getElementById('searchActiveDiv');
-            if (filter !== "") {
-                searchActiveDiv.style.display = 'flex';
-                document.getElementById('searchTerm').textContent = filter;
-                document.getElementById('resultCount').textContent = `(${visibleCount} recette(s) trouvée(s))`;
-            } else {
-                searchActiveDiv.style.display = 'none';
-            }
-            
-            updateTotals();
-        }
-
-        function clearSearch() {
-            document.getElementById('searchInput').value = '';
-            searchTable();
-        }
-
-        function updateTotals() {
-            const rows = document.querySelectorAll('#tableBody tr');
-            let totalTemps = 0;
-            let totalPersonnes = 0;
-            let count = 0;
-            
-            rows.forEach(row => {
-                if (row.style.display === 'none') return;
-                if (row.classList.contains('empty-row')) return;
-                
-                const tempsCell = row.cells[3];
-                const personnesCell = row.cells[7];
-                
-                if (tempsCell) {
-                    const tempsText = tempsCell.textContent;
-                    const tempsMatch = tempsText.match(/(\d+)/);
-                    if (tempsMatch) totalTemps += parseInt(tempsMatch[0]);
-                }
-                if (personnesCell) {
-                    const personnesText = personnesCell.textContent;
-                    const personnesMatch = personnesText.match(/(\d+)/);
-                    if (personnesMatch) totalPersonnes += parseInt(personnesMatch[0]);
-                }
-                count++;
-            });
-            
-            const avgTime = count > 0 ? Math.round(totalTemps / count) : 0;
-            const avgPers = count > 0 ? Math.round(totalPersonnes / count) : 0;
-            
-            document.getElementById('avgTime').textContent = avgTime + ' min (moy.)';
-            document.getElementById('avgPers').textContent = avgPers + ' pers. (moy.)';
-            document.getElementById('totalRecettes').textContent = count;
-        }
-
-        function sortTable(columnIndex) {
-            const tbody = document.getElementById('tableBody');
-            const rows = Array.from(tbody.querySelectorAll('tr:not(.empty-row)'));
-            const visibleRows = rows.filter(row => row.style.display !== 'none');
-            
-            if (visibleRows.length === 0) return;
-            
-            if (currentSortColumn === columnIndex) {
-                currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
-            } else {
-                currentSortColumn = columnIndex;
-                currentSortOrder = 'asc';
-            }
-            
-            const icons = document.querySelectorAll('.sort-icon');
-            icons.forEach(icon => icon.className = 'fas fa-sort sort-icon');
-            const currentIcon = document.getElementById('sort-icon-' + columnIndex);
-            if (currentIcon) {
-                currentIcon.className = currentSortOrder === 'asc' ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
-            }
-            
-            visibleRows.sort((a, b) => {
-                let aValue, bValue;
-                if (columnIndex === 0) {
-                    aValue = parseInt(a.cells[0].textContent.replace('#', ''));
-                    bValue = parseInt(b.cells[0].textContent.replace('#', ''));
-                } else {
-                    aValue = a.cells[1].textContent.toLowerCase();
-                    bValue = b.cells[1].textContent.toLowerCase();
-                }
-                
-                if (currentSortOrder === 'asc') {
-                    return aValue > bValue ? 1 : -1;
-                } else {
-                    return aValue < bValue ? 1 : -1;
-                }
-            });
-            
-            const hiddenRows = rows.filter(row => row.style.display === 'none');
-            while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
-            visibleRows.forEach(row => tbody.appendChild(row));
-            hiddenRows.forEach(row => tbody.appendChild(row));
-        }
-
-        function openStatsModal() {
-            const modal = document.getElementById('statsModal');
-            modal.style.display = 'flex';
-            
-            const rows = document.querySelectorAll('#tableBody tr');
-            let stats = { 'PETIT_DEJEUNER': 0, 'DEJEUNER': 0, 'DINER': 0, 'DESSERT': 0 };
-            
-            rows.forEach(row => {
-                if (row.style.display === 'none') return;
-                if (row.classList.contains('empty-row')) return;
-                const typeCell = row.cells[5];
-                if (typeCell) {
-                    const typeText = typeCell.textContent;
-                    if (typeText.includes('Petit déjeuner')) stats['PETIT_DEJEUNER']++;
-                    else if (typeText.includes('Déjeuner')) stats['DEJEUNER']++;
-                    else if (typeText.includes('Dîner')) stats['DINER']++;
-                    else if (typeText.includes('Dessert')) stats['DESSERT']++;
-                }
-            });
-            
-            document.getElementById('statPetitDej').textContent = stats['PETIT_DEJEUNER'];
-            document.getElementById('statDejeuner').textContent = stats['DEJEUNER'];
-            document.getElementById('statDiner').textContent = stats['DINER'];
-            document.getElementById('statDessert').textContent = stats['DESSERT'];
-            document.getElementById('statTotal').textContent = Object.values(stats).reduce((a,b) => a+b, 0);
-            
-            const ctx = document.getElementById('statsChart').getContext('2d');
-            if (chart) chart.destroy();
-            
-            chart = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: ['Petit déjeuner', 'Déjeuner', 'Dîner', 'Dessert'],
-                    datasets: [{
-                        data: [stats['PETIT_DEJEUNER'], stats['DEJEUNER'], stats['DINER'], stats['DESSERT']],
-                        backgroundColor: ['#1565c0', '#2e7d32', '#7b1fa2', '#c2185b'],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: document.body.classList.contains('dark-mode') ? '#fff' : '#333' } },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const total = Object.values(stats).reduce((a,b) => a+b, 0);
-                                    const percentage = total > 0 ? ((context.raw / total) * 100).toFixed(1) : 0;
-                                    return `${context.label}: ${context.raw} recette(s) (${percentage}%)`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function closeStatsModal() {
-            document.getElementById('statsModal').style.display = 'none';
-            if (chart) { chart.destroy(); chart = null; }
-        }
-
-        window.onclick = function(event) {
-            if (event.target === document.getElementById('statsModal')) closeStatsModal();
-        }
-    </script>
+    <script src="../assets/js/recette.js"></script>
 </body>
 </html>

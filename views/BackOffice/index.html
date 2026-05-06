@@ -412,7 +412,8 @@
     const searchItems = [
         { name: 'Recettes Anti-Gaspi', icon: 'fa-utensils', link: 'recetteList.php' },
         { name: 'Gestion Utilisateurs', icon: 'fa-users', link: '#' },
-        { name: 'Nutrition Smart', icon: 'fa-apple-alt', link: '#' },
+        { name: 'Nutrition Smart', icon: 'fa-apple-alt', link: 'repasList.php' },
+        { name: 'Gestion Repas', icon: 'fa-utensil-spoon', link: 'repasList.php' },
         { name: 'Gestion Produits', icon: 'fa-boxes', link: '#' },
         { name: 'Salade Quinoa', icon: 'fa-leaf', link: 'recetteList.php' },
         { name: 'Buddha Bowl', icon: 'fa-leaf', link: 'recetteList.php' },
@@ -491,6 +492,10 @@
             }
             else if (module === 'recette') {
                 loadModule('recetteList.php');
+            }
+            else if (module === 'nutrition') {
+                // Charger repasList.php pour le module Nutrition Smart
+                loadModule('repasList.php');
             }
             else {
                 defaultContent.style.display = 'block';
