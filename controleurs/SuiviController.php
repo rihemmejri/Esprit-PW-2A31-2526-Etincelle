@@ -81,19 +81,29 @@ class SuiviController
         }
     }
 
-    // Lister tous les suivis
-    public function listSuivis()
+    // Lister tous les suivis (avec option de filtrage par utilisateur)
+    public function listSuivis($userId = null)
     {
         $sql = "SELECT s.*, u.nom, u.prenom, o.poids_cible 
                 FROM suivi s 
                 INNER JOIN user u ON s.user_id = u.id_user 
-                LEFT JOIN objectif o ON s.id_objectif = o.id 
-                ORDER BY s.date DESC";
+                LEFT JOIN objectif o ON s.id_objectif = o.id";
+        
+        if ($userId) {
+            $sql .= " WHERE s.user_id = :user_id";
+        }
+        
+        $sql .= " ORDER BY s.date DESC";
+        
         $db = Config::getConnexion();
         
         try {
             $query = $db->prepare($sql);
-            $query->execute();
+            if ($userId) {
+                $query->execute(['user_id' => $userId]);
+            } else {
+                $query->execute();
+            }
             $suivisData = $query->fetchAll();
 
             $suivis = [];
@@ -354,10 +364,12 @@ class SuiviController
                 
         $params = [];
         
-        // Filtrage par recherche textuelle (nom, prenom, poids cible, ou valeurs du suivi)
         if (!empty($searchTerm)) {
-            $sql .= " AND (u.nom LIKE :search OR u.prenom LIKE :search OR s.poids LIKE :search OR s.calories_consommees LIKE :search)";
-            $params['search'] = "%$searchTerm%";
+            $sql .= " AND (u.nom LIKE :search1 OR u.prenom LIKE :search2 OR s.poids LIKE :search3 OR s.calories_consommees LIKE :search4)";
+            $params['search1'] = "%$searchTerm%";
+            $params['search2'] = "%$searchTerm%";
+            $params['search3'] = "%$searchTerm%";
+            $params['search4'] = "%$searchTerm%";
         }
         
         // Filtrage par date

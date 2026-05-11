@@ -1,7 +1,22 @@
 <?php
-include '../../controleurs/ObjectifController.php';
-include '../../controleurs/SuiviController.php';
-include '../../controleurs/AIPredictionController.php';
+if (session_status() === PHP_SESSION_NONE) session_start();
+
+if (!isset($_SESSION['user']['id_user'])) {
+    // If it's an AJAX request, return error, otherwise redirect
+    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Session expirée']);
+        exit;
+    }
+    header('Location: login.php');
+    exit();
+}
+
+$current_user_id = $_SESSION['user']['id_user'];
+
+include_once '../../controleurs/SuiviController.php';
+include_once '../../controleurs/ObjectifController.php';
+include_once '../../controleurs/AIPredictionController.php';
 require_once __DIR__ . '/../../models/objectif.php';
 
 $objectifController = new ObjectifController();
@@ -14,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
     
     if ($action === 'create' || $action === 'update') {
-        $user_id = $_POST['user_id'] ?? 1;
+        $user_id = $current_user_id;
         $poids_cible = $_POST['poids_cible'] ?? null;
         $calories_objectif = $_POST['calories_objectif'] ?? null;
         $eau_objectif = $_POST['eau_objectif'] ?? null;
@@ -47,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     } elseif ($action === 'ai_analyze') {
         $id = $_POST['id'] ?? null;
         $predictionController = new AIPredictionController();
-        $result = $predictionController->generatePredictionByObjectif(1, $id);
+        $result = $predictionController->generatePredictionByObjectif($current_user_id, $id);
         echo json_encode($result);
     }
     exit;
@@ -81,7 +96,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 'details') {
 }
 
 // Display page
-$objectifs = $objectifController->listObjectifs();
+$objectifs = $objectifController->listObjectifs($current_user_id);
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -569,7 +584,7 @@ $objectifs = $objectifController->listObjectifs();
             <div class="form-content">
                 <form id="addObjectifForm">
                     <input type="hidden" name="id_objectif" value="">
-                    <input type="hidden" name="user_id" value="1">
+                    <input type="hidden" name="user_id" value="<?= $current_user_id ?>">
 
                     <div class="form-row">
                         <div class="form-group">

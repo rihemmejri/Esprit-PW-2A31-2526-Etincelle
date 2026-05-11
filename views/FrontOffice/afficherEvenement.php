@@ -12,18 +12,14 @@ $evenementController = new EvenementController();
 $evenements = $evenementController->listEvenements();
 
 function genererQREvenement($ev) {
-    if (!class_exists('QRcode')) return null;
-    $dir = __DIR__ . '/../../assets/qrcodes/events/';
-    if (!is_dir($dir)) mkdir($dir, 0755, true);
-    $fichier = $dir . 'event_' . $ev->getIdEvenement() . '.png';
-    $data = "BEGIN:VEVENT\r\n"
-          . "SUMMARY:" . $ev->getTitre() . "\r\n"
-          . "DTSTART:" . date('Ymd', strtotime($ev->getDateEvenement())) . "\r\n"
-          . "LOCATION:" . $ev->getLieu() . "\r\n"
-          . "DESCRIPTION:Tarif: " . ($ev->isPayant() ? number_format($ev->getPrix(),2).' TND' : 'Gratuit') . " | Places: " . $ev->getNbPlacesMax() . " | " . $ev->getDescription() . "\r\n"
-          . "END:VEVENT";
-    QRcode::png($data, $fichier, QR_ECLEVEL_M, 8, 2);
-    return 'http://localhost:8000/assets/qrcodes/events/event_' . $ev->getIdEvenement() . '.png';
+    // On utilise l'API externe pour plus de fiabilité (pas besoin de GD ou de lib locale)
+    $qrData = json_encode([
+        'id' => $ev->getIdEvenement(),
+        'titre' => $ev->getTitre(),
+        'url' => "http://" . $_SERVER['HTTP_HOST'] . "/views/FrontOffice/detailEvenement.php?id=" . $ev->getIdEvenement()
+    ]);
+    
+    return "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . urlencode($qrData);
 }
 
 $images = [
@@ -169,22 +165,7 @@ $images = [
 </head>
 <body>
 
-<header class="header">
-    <nav class="navbar">
-        <div class="logo">
-            <img src="image/logo.PNG" alt="NutriLoop" class="logo-img" onerror="this.src='https://via.placeholder.com/45x45?text=🌱'">
-            <span class="logo-text">NutriLoop</span>
-        </div>
-        <ul class="nav-menu">
-            <li><a href="index.html">Accueil</a></li>
-            <li><a href="afficherRecette.php">Recettes</a></li>
-            <li><a href="afficherEvenement.php" class="active">Événements</a></li>
-            <li><a href="about.html">À propos</a></li>
-            <li><a href="../backoffice/index.html" class="btn-dashboard">Dashboard</a></li>
-        </ul>
-        <div class="hamburger"><span></span><span></span><span></span></div>
-    </nav>
-</header>
+
 
 <div class="hero-section">
     <h1><i class="fas fa-calendar-star"></i> Nos Événements Nutritionnels</h1>

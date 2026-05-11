@@ -172,8 +172,9 @@ function handleEcoImprovement($pdo, $user_id) {
 
 // AJAX Handler
 if (isset($_POST['chat_message'])) {
+    if (session_status() === PHP_SESSION_NONE) session_start();
     require_once '../config.php';
     $pdo = Config::getConnexion();
-    $user_id = 1; // Simulation
+    $user_id = $_SESSION['user']['id_user'] ?? 1; // Use session or default to 1 for demo
     echo handleChatbot($pdo, $user_id, $_POST['chat_message']);
 }

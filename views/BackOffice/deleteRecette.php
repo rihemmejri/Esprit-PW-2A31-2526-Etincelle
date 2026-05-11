@@ -1,5 +1,4 @@
 <?php
-session_start();
 include '../../controleurs/RecetteController.php';
 require_once __DIR__ . '/../../models/recette.php';
 
@@ -10,7 +9,6 @@ if ($id) {
     // Vérifier si la confirmation est donnée
     if (isset($_GET['confirm']) && $_GET['confirm'] == 'yes') {
         $recetteController->deleteRecette($id);
-        $_SESSION['success_message'] = 'Recette supprimée avec succès';
         header('Location: recetteList.php');
         exit;
     }

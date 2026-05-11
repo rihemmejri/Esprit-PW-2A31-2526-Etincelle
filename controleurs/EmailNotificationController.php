@@ -20,12 +20,12 @@ class EmailService
 
     public function __construct()
     {
-        $this->host = $_ENV['SMTP_HOST'] ?? 'smtp-relay.brevo.com';
-        $this->port = $_ENV['SMTP_PORT'] ?? 587;
-        $this->username = $_ENV['SMTP_USER'] ?? '';
-        $this->password = $_ENV['SMTP_PASS'] ?? '';
-        $this->fromEmail = $_ENV['SMTP_FROM_EMAIL'] ?? 'noreply@nutriloop.com';
-        $this->fromName = $_ENV['SMTP_FROM_NAME'] ?? 'NutriLoop AI';
+        $this->host = getenv('BREVO_SMTP_HOST') ?: getenv('SMTP_HOST') ?: 'smtp.gmail.com';
+        $this->port = (int)(getenv('BREVO_SMTP_PORT') ?: getenv('SMTP_PORT') ?: 587);
+        $this->username = getenv('BREVO_SMTP_USER') ?: getenv('SMTP_USER') ?: 'moemen.kochbati222@gmail.com';
+        $this->password = getenv('BREVO_SMTP_PASS') ?: getenv('SMTP_PASS') ?: 'wfdm xyth atwv qxbs';
+        $this->fromEmail = getenv('BREVO_FROM_EMAIL') ?: getenv('SMTP_FROM_EMAIL') ?: 'moemen.kochbati222@gmail.com';
+        $this->fromName = getenv('BREVO_FROM_NAME') ?: getenv('SMTP_FROM_NAME') ?: 'NutriLoop AI';
     }
 
     public function sendEmail($to, $subject, $message)
@@ -101,7 +101,11 @@ class EmailNotificationController
      */
     private function markEmailAsSent($userId, $subject, $message)
     {
-        $alert = new Alert($userId, 'INFO', 'EMAIL_SENT', "Email envoyé: $subject", date('Y-m-d H:i:s'));
+        // Strip emojis (4-byte chars) to prevent '????' in DB if utf8mb4 is not enabled
+        $cleanSubject = preg_replace('/[\x{10000}-\x{10FFFF}]/u', '', $subject);
+        $cleanSubject = trim($cleanSubject);
+        
+        $alert = new Alert($userId, 'INFO', 'EMAIL_SENT', "Email envoyé: $cleanSubject", date('Y-m-d H:i:s'));
         $this->alertController->addAlert($alert);
     }
 

@@ -1,5 +1,4 @@
 <?php
-session_start();
 include '../../controleurs/RecetteController.php';
 require_once __DIR__ . '/../../models/recette.php';
 
@@ -22,7 +21,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
             
             $recetteController->addRecette($recette);
-            $_SESSION['success_message'] = 'Recette ajoutée avec succès';
             header('Location: recetteList.php');
             exit;
         } else {

@@ -92,7 +92,7 @@
             <h1>Bienvenue sur <span class="highlight">NutriLoop AI</span></h1>
             <p>L'intelligence artificielle au service de votre alimentation pour une santé optimale et un avenir durable.</p>
             <div class="hero-buttons">
-                <a href="/NutriLoop_PWW/views/BackOffice/index.html" class="btn-primary">Accéder au Dashboard</a>
+                                <a href="../BackOffice/index.html" class="btn-primary">Accéder au Dashboard</a>
                 <a href="#modules" class="btn-outline">Découvrir les modules</a>
             </div>
         </div>

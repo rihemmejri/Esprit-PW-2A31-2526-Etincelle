@@ -606,6 +606,11 @@ $allUsers = $ObjectifController->getUsers();
                 <!-- Notification Bell -->
                 <form method="GET" style="display: flex; align-items: center; gap: 10px;">
                     <label style="font-weight: 600; font-size: 0.9rem;">Utilisateur:</label>
+                    <input type="hidden" name="search" value="<?= htmlspecialchars($search) ?>">
+                    <input type="hidden" name="sort_by" value="<?= htmlspecialchars($sortBy) ?>">
+                    <input type="hidden" name="sort_order" value="<?= htmlspecialchars($sortOrder) ?>">
+                    <input type="hidden" name="date_min" value="<?= htmlspecialchars($dateMin) ?>">
+                    <input type="hidden" name="date_max" value="<?= htmlspecialchars($dateMax) ?>">
                     <select name="user_id" onchange="this.form.submit()" style="padding: 8px; border-radius: 8px; border: 1px solid #ddd;">
                         <option value="">Tous les utilisateurs</option>
                         <?php foreach ($allUsers as $u): ?>
@@ -729,6 +734,7 @@ $allUsers = $ObjectifController->getUsers();
         </div>
 
         <form class="filters-form" method="GET">
+            <input type="hidden" name="user_id" value="<?= htmlspecialchars($selectedUserId) ?>">
             <div class="filter-group">
                 <label for="search">Recherche</label>
                 <input type="text" name="search" id="search" value="<?= htmlspecialchars($search) ?>" placeholder="Nom, Poids...">

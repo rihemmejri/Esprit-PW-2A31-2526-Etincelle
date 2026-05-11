@@ -28,18 +28,28 @@ class ObjectifController
         }
     }
 
-    // Lister tous les objectifs
-    public function listObjectifs()
+    // Lister tous les objectifs (avec option de filtrage par utilisateur)
+    public function listObjectifs($userId = null)
     {
         $sql = "SELECT o.*, u.nom, u.prenom 
                 FROM objectif o 
-                INNER JOIN user u ON o.user_id = u.id_user 
-                ORDER BY o.date_debut DESC";
+                INNER JOIN user u ON o.user_id = u.id_user";
+        
+        if ($userId) {
+            $sql .= " WHERE o.user_id = :user_id";
+        }
+        
+        $sql .= " ORDER BY o.date_debut DESC";
+        
         $db = Config::getConnexion();
         
         try {
             $query = $db->prepare($sql);
-            $query->execute();
+            if ($userId) {
+                $query->execute(['user_id' => $userId]);
+            } else {
+                $query->execute();
+            }
             $objectifsData = $query->fetchAll();
 
             $objectifs = [];
@@ -252,10 +262,12 @@ class ObjectifController
                 
         $params = [];
         
-        // Filtrage par recherche textuelle
         if (!empty($searchTerm)) {
-            $sql .= " AND (u.nom LIKE :search OR u.prenom LIKE :search OR o.poids_cible LIKE :search OR o.calories_objectif LIKE :search)";
-            $params['search'] = "%$searchTerm%";
+            $sql .= " AND (u.nom LIKE :search1 OR u.prenom LIKE :search2 OR o.poids_cible LIKE :search3 OR o.calories_objectif LIKE :search4)";
+            $params['search1'] = "%$searchTerm%";
+            $params['search2'] = "%$searchTerm%";
+            $params['search3'] = "%$searchTerm%";
+            $params['search4'] = "%$searchTerm%";
         }
         
         // Filtrage par date

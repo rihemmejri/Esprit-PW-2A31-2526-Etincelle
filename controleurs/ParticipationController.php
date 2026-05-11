@@ -11,11 +11,6 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
-// ── QR Code ──
-if (file_exists(__DIR__ . '/../lib/phpqrcode/qrlib.php')) {
-    require_once __DIR__ . '/../lib/phpqrcode/qrlib.php';
-}
-
 class ParticipationController
 {
     private function rowToParticipation($row)
@@ -73,7 +68,7 @@ class ParticipationController
             $newId = $db->lastInsertId();
             $participation->setIdParticipation($newId);
 
-            // Générer QR Code
+            // Générer QR Code avec API externe
             $this->genererQRCode($participation);
 
             // Envoyer email de confirmation
@@ -91,36 +86,129 @@ class ParticipationController
         }
     }
 
-    // ===== GÉNÉRER QR CODE avec texte simple =====
+    // ===== GÉNÉRER QR CODE avec API externe (pas besoin de GD) =====
     public function genererQRCode(Participation $p)
     {
-        if (!class_exists('QRcode')) return false;
-
         $dir = __DIR__ . '/../assets/qrcodes/';
         if (!is_dir($dir)) mkdir($dir, 0755, true);
 
-        // ── Texte simple affiché quand on scanne ──
-        $data = "=== NutriLoop ===" . "\n"
-              . "Participation #" . $p->getIdParticipation() . "\n"
-              . "-------------------" . "\n"
-              . "Nom      : " . $p->getNom() . "\n"
-              . "Email    : " . $p->getEmail() . "\n"
-              . "Tel      : " . ($p->getTelephone() ?? '-') . "\n"
-              . "-------------------" . "\n"
-              . "Places   : " . $p->getNbPlacesReservees() . "\n"
-              . "Paiement : " . $p->getStatutPaiement() . "\n"
-              . "Ref      : " . ($p->getReferencePaiement() ?? '-') . "\n"
-              . "===================";
+        // Données à encoder dans le QR code
+        $qrData = json_encode([
+            'type' => 'participation',
+            'id' => $p->getIdParticipation(),
+            'nom' => $p->getNom(),
+            'email' => $p->getEmail(),
+            'telephone' => $p->getTelephone(),
+            'evenement_id' => $p->getIdEvenement(),
+            'places' => $p->getNbPlacesReservees(),
+            'paiement' => $p->getStatutPaiement(),
+            'reference' => $p->getReferencePaiement(),
+            'date' => date('Y-m-d H:i:s')
+        ]);
 
+        // Utiliser l'API gratuite de QR Server
+        $qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=10&data=" . urlencode($qrData);
+        
+        // Télécharger et sauvegarder l'image
         $fichier = $dir . 'participation_' . $p->getIdParticipation() . '.png';
-        QRcode::png($data, $fichier, QR_ECLEVEL_M, 6, 2);
+        
+        try {
+            $ch = curl_init($qrCodeUrl);
+            $fp = fopen($fichier, 'wb');
+            curl_setopt($ch, CURLOPT_FILE, $fp);
+            curl_setopt($ch, CURLOPT_HEADER, 0);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+            curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            fclose($fp);
+            
+            if ($httpCode == 200 && file_exists($fichier) && filesize($fichier) > 0) {
+                return $fichier;
+            } else {
+                // Fallback: créer un QR code texte simple si l'API échoue
+                return $this->genererQRCodeFallback($p, $fichier);
+            }
+        } catch (\Exception $e) {
+            error_log('QR Code API error: ' . $e->getMessage());
+            return $this->genererQRCodeFallback($p, $fichier);
+        }
+    }
+
+    // Fallback: créer un fichier texte avec les informations
+    private function genererQRCodeFallback(Participation $p, $fichier)
+    {
+        $content = "=== NUTRILOOP ===\n";
+        $content .= "Participation #" . $p->getIdParticipation() . "\n";
+        $content .= "Nom: " . $p->getNom() . "\n";
+        $content .= "Email: " . $p->getEmail() . "\n";
+        $content .= "Tél: " . ($p->getTelephone() ?? '-') . "\n";
+        $content .= "Événement ID: " . $p->getIdEvenement() . "\n";
+        $content .= "Places: " . $p->getNbPlacesReservees() . "\n";
+        $content .= "Paiement: " . $p->getStatutPaiement() . "\n";
+        $content .= "Réf: " . ($p->getReferencePaiement() ?? '-') . "\n";
+        $content .= "Date: " . date('Y-m-d H:i:s') . "\n";
+        
+        // Sauvegarder en fichier texte
+        $txtFile = str_replace('.png', '.txt', $fichier);
+        file_put_contents($txtFile, $content);
+        
+        // Créer une image simple avec du texte si GD est disponible
+        if (extension_loaded('gd')) {
+            return $this->genererQRCodeLocal($p, $fichier);
+        }
+        
+        return $txtFile;
+    }
+
+    // Génération locale si GD est disponible
+    private function genererQRCodeLocal(Participation $p, $fichier)
+    {
+        $data = "=== NutriLoop ===\n"
+              . "Participation #" . $p->getIdParticipation() . "\n"
+              . "Nom: " . $p->getNom() . "\n"
+              . "Email: " . $p->getEmail();
+        
+        // Créer une image simple
+        $size = 300;
+        $img = imagecreate($size, $size);
+        $bg = imagecolorallocate($img, 255, 255, 255);
+        $black = imagecolorallocate($img, 0, 0, 0);
+        
+        // Dessiner des carrés pour simuler un QR code simplifié
+        for ($i = 0; $i < min(100, strlen($data)); $i++) {
+            $x = ($i % 20) * 15;
+            $y = floor($i / 20) * 15;
+            imagefilledrectangle($img, $x, $y, $x + 12, $y + 12, $black);
+        }
+        
+        // Ajouter du texte
+        $text = "ID: " . $p->getIdParticipation();
+        imagestring($img, 5, 10, $size - 30, $text, $black);
+        
+        imagepng($img, $fichier);
+        imagedestroy($img);
+        
         return $fichier;
     }
 
     public function getQRCodeUrl($id_participation)
     {
         $rel = 'assets/qrcodes/participation_' . $id_participation . '.png';
-        return file_exists(__DIR__ . '/../' . $rel) ? $rel : null;
+        $fullPath = __DIR__ . '/../' . $rel;
+        
+        if (file_exists($fullPath)) {
+            return $rel;
+        }
+        
+        // Vérifier si le fichier texte existe
+        $txtRel = 'assets/qrcodes/participation_' . $id_participation . '.txt';
+        if (file_exists(__DIR__ . '/../' . $txtRel)) {
+            return $txtRel;
+        }
+        
+        return null;
     }
 
     // ===== ENVOYER EMAIL AVEC PHPMAILER =====
@@ -132,7 +220,7 @@ class ParticipationController
             $mail->Host       = 'smtp.gmail.com';
             $mail->SMTPAuth   = true;
             $mail->Username   = 'chaima123melki@gmail.com';
-            $mail->Password   = 'bpgptrbintpknmvq';
+            $mail->Password   = '';
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = 587;
             $mail->CharSet    = 'UTF-8';
@@ -146,11 +234,25 @@ class ParticipationController
                 : 'Gratuit';
 
             $paiement = match($p->getStatutPaiement()) {
-                'PAYE'       => 'Paye - Ref : ' . $p->getReferencePaiement(),
+                'PAYE'       => 'Payé - Ref : ' . $p->getReferencePaiement(),
                 'GRATUIT'    => 'Gratuit',
                 'EN_ATTENTE' => 'En attente de paiement',
                 default      => $p->getStatutPaiement(),
             };
+
+            $qrCodeUrl = $this->getQRCodeUrl($p->getIdParticipation());
+            $qrCodeTag = '';
+            if ($qrCodeUrl) {
+                $fullUrl = 'http://' . $_SERVER['HTTP_HOST'] . '/NutriLoop/' . $qrCodeUrl;
+                $qrCodeTag = '<div class="qrs">
+                                <img src="' . $fullUrl . '" width="150" height="150" alt="QR Code">
+                                <p>Scannez ce QR Code pour voir vos informations de participation</p>
+                              </div>';
+            } else {
+                $qrCodeTag = '<div class="qrs">
+                                <p>📱 Votre code QR sera disponible dans votre espace personnel</p>
+                              </div>';
+            }
 
             $html = '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><style>
 body{font-family:Segoe UI,Arial,sans-serif;background:#f0f2f5;margin:0;padding:20px;}
@@ -172,43 +274,31 @@ body{font-family:Segoe UI,Arial,sans-serif;background:#f0f2f5;margin:0;padding:2
 .ftr p{color:rgba(255,255,255,.4);font-size:11px;margin:0;}
 </style></head><body>
 <div class="card">
-  <div class="hdr"><h1>Inscription confirmee</h1><p>Votre participation a NutriLoop a bien ete enregistree</p></div>
+  <div class="hdr"><h1>Inscription confirmée</h1><p>Votre participation à NutriLoop a bien été enregistrée</p></div>
   <div class="bdy">
     <div class="kpis">
-      <div class="kpi"><strong>#' . $p->getIdParticipation() . '</strong><small>Reference</small></div>
+      <div class="kpi"><strong>#' . $p->getIdParticipation() . '</strong><small>Référence</small></div>
       <div class="kpi"><strong>' . $p->getNbPlacesReservees() . '</strong><small>Place(s)</small></div>
       <div class="kpi" style="border-color:#4CAF50"><strong>' . $prix . '</strong><small>Tarif</small></div>
     </div>
-    <div class="row"><span class="lbl">Evenement</span><span class="val">' . htmlspecialchars($evenement->getTitre()) . '</span></div>
+    <div class="row"><span class="lbl">Événement</span><span class="val">' . htmlspecialchars($evenement->getTitre()) . '</span></div>
     <div class="row"><span class="lbl">Date</span><span class="val">' . date('d/m/Y', strtotime($evenement->getDateEvenement())) . '</span></div>
     <div class="row"><span class="lbl">Lieu</span><span class="val">' . htmlspecialchars($evenement->getLieu()) . '</span></div>
     <div class="row"><span class="lbl">Participant</span><span class="val">' . htmlspecialchars($p->getNom()) . '</span></div>
     <div class="row"><span class="lbl">Paiement</span><span class="val">' . $paiement . '</span></div>
-    <div class="qrs">
-      <img src="cid:qrcode" width="150" height="150" alt="QR Code">
-      <p>Scannez ce QR Code pour voir vos informations de participation</p>
-    </div>
+    ' . $qrCodeTag . '
   </div>
   <div class="ftr"><p>NutriLoop - Plateforme intelligente pour une alimentation durable</p></div>
 </div></body></html>';
 
             $mail->isHTML(true);
             $mail->Body    = $html;
-            $mail->AltBody = "Inscription confirmee — " . $evenement->getTitre() . " — " . $p->getNom();
-
-            // QR Code en pièce jointe
-            $qrUrl = $this->getQRCodeUrl($p->getIdParticipation());
-            if ($qrUrl) {
-                $qrPath = __DIR__ . '/../' . $qrUrl;
-                if (file_exists($qrPath)) {
-                    $mail->addEmbeddedImage($qrPath, 'qrcode', 'qrcode.png');
-                }
-            }
+            $mail->AltBody = "Inscription confirmée — " . $evenement->getTitre() . " — " . $p->getNom();
 
             $mail->send();
             return true;
         } catch (\Exception $e) {
-            error_log('Erreur email: ' . $mail->ErrorInfo);
+            error_log('Erreur email: ' . $e->getMessage());
             return false;
         }
     }
@@ -273,6 +363,9 @@ body{font-family:Segoe UI,Arial,sans-serif;background:#f0f2f5;margin:0;padding:2
     {
         $qrPath = __DIR__ . '/../assets/qrcodes/participation_' . $id . '.png';
         if (file_exists($qrPath)) unlink($qrPath);
+        $txtPath = __DIR__ . '/../assets/qrcodes/participation_' . $id . '.txt';
+        if (file_exists($txtPath)) unlink($txtPath);
+        
         $sql = "DELETE FROM participation WHERE id_participation = :id";
         $db = Config::getConnexion();
         try { $q = $db->prepare($sql); $q->execute(['id' => $id]); return true; }

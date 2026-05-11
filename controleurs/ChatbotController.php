@@ -9,7 +9,7 @@ class ChatbotController
 
     public function __construct()
     {
-        $this->apiKey = $_ENV['GROQ_API_KEY_CHATBOT'] ?? '';
+        $this->apiKey = getenv('GROQ_API_KEY_CHATBOT') ?: '';
     }
 
     public function handleRequest()

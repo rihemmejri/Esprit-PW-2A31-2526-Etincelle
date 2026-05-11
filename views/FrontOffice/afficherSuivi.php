@@ -11,7 +11,19 @@ $objectifController = new ObjectifController();
 $alertController = new AlertController();
 $predictionController = new AIPredictionController();
 
-$current_user_id = 1; // Assuming user 1 for demo
+if (!isset($_SESSION['user']['id_user'])) {
+    // If it's an AJAX request, return error, otherwise redirect
+    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Session expirée']);
+        exit;
+    }
+    header('Location: login.php');
+    exit();
+}
+
+$current_user_id = $_SESSION['user']['id_user'];
+
 $alerts = $alertController->getAlertsByUser($current_user_id);
 $latestPrediction = $predictionController->getLatestPrediction($current_user_id);
 
@@ -27,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
     
     if ($action === 'create' || $action === 'update') {
-        $user_id = $_POST['user_id'] ?? 1;
+        $user_id = $current_user_id;
         $id_objectif = $_POST['id_objectif'] ?? null;
         $date = $_POST['date'] ?? null;
         $poids = $_POST['poids'] ?? null;
@@ -99,13 +111,8 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 'details') {
 }
 
 // Display page
-$suiviController = new SuiviController();
-$objectifController = new ObjectifController();
-$alertController = new AlertController();
-
-$current_user_id = 1; // Assuming user 1 for now
-$suivis = $suiviController->listSuivis();
-$objectifs = $objectifController->listObjectifs();
+$suivis = $suiviController->listSuivis($current_user_id);
+$objectifs = $objectifController->listObjectifs($current_user_id);
 $alerts = $alertController->getAlertsByUser($current_user_id);
 ?>
 <!DOCTYPE html>
@@ -660,7 +667,7 @@ $alerts = $alertController->getAlertsByUser($current_user_id);
         </div>
 
         <!-- AI Insight Section -->
-        <?php if ($latestPrediction && !empty($_SESSION['new_ai_action'])): ?>
+        <?php if ($latestPrediction): ?>
         <?php 
             $risk = strtoupper($latestPrediction['risk_level'] ?? 'MOYEN');
             $riskColor = '#10b981'; // Green (BAS)
@@ -772,16 +779,7 @@ $alerts = $alertController->getAlertsByUser($current_user_id);
                         }, 20000);
                     }
 
-                    // Auto-dismiss AI Insight Panel
-                    const aiPanel = document.querySelector('.ai-insight-panel');
-                    if (aiPanel) {
-                        setTimeout(() => {
-                            aiPanel.style.transition = 'opacity 1s ease, transform 1s ease';
-                            aiPanel.style.opacity = '0';
-                            aiPanel.style.transform = 'translateY(-20px)';
-                            setTimeout(() => aiPanel.remove(), 1000);
-                        }, 20000);
-                    }
+
                 });
             })();
         </script>
@@ -811,7 +809,7 @@ $alerts = $alertController->getAlertsByUser($current_user_id);
             <div class="form-content">
                 <form id="addSuiviForm">
                     <input type="hidden" name="id_suivi" value="">
-                    <input type="hidden" name="user_id" id="suivi_user_id" value="1">
+                    <input type="hidden" name="user_id" id="suivi_user_id" value="<?= $current_user_id ?>">
 
                     <div class="form-row">
                         <div class="form-group">

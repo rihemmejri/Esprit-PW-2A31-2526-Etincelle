@@ -6,7 +6,7 @@ require_once 'ecommerce_functions.php';
 header('Content-Type: application/json');
 
 $pdo = Config::getConnexion();
-$user_id = $_SESSION['user_id'] ?? 1; // Default to 1 for demo
+$user_id = $_SESSION['user']['id_user'] ?? 1; // Use logged-in user or default to 1 for demo
 
 $action = $_GET['action'] ?? '';
 

@@ -11,7 +11,7 @@ if (!class_exists('AIPredictionController')) {
 
         public function __construct()
         {
-            $this->apiKey = $_ENV['GROQ_API_KEY_PREDICTION'] ?? '';
+            $this->apiKey = getenv('GROQ_API_KEY_PREDICTION') ?: '';
         }
 
         /**
@@ -92,7 +92,8 @@ if (!class_exists('AIPredictionController')) {
                 return "AI prediction is currently unavailable.";
             }
 
-            $result = json_decode($aiResponse, true);
+            $cleanJson = $this->extractJson($aiResponse);
+            $result = json_decode($cleanJson, true);
             
             // Extract prediction text
             $predictionText = $result['prediction'] ?? (is_array($result) ? ($result['message'] ?? $aiResponse) : $aiResponse);
@@ -115,6 +116,11 @@ if (!class_exists('AIPredictionController')) {
             // Uniformize "ELEVE" to "ÉLEVÉ"
             if ($riskLevel === 'ELEVE') $riskLevel = 'ÉLEVÉ';
 
+            // Map to Database ENUM values (LOW, MEDIUM, HIGH)
+            $dbRiskLevel = 'MEDIUM';
+            if ($riskLevel === 'BAS') $dbRiskLevel = 'LOW';
+            elseif ($riskLevel === 'ÉLEVÉ') $dbRiskLevel = 'HIGH';
+
             // 5. Store in Database
             $sqlInsert = "INSERT INTO ai_prediction (user_id, date, input_data, prediction, risk_level) 
                           VALUES (:user_id, :date, :input_data, :prediction, :risk_level)";
@@ -125,10 +131,11 @@ if (!class_exists('AIPredictionController')) {
                     'date' => $today,
                     'input_data' => json_encode($inputData),
                     'prediction' => $predictionText,
-                    'risk_level' => $riskLevel
+                    'risk_level' => $dbRiskLevel
                 ]);
                 return true;
             } catch (Exception $e) {
+
                 return "Error storing prediction: " . $e->getMessage();
             }
         }
@@ -265,7 +272,7 @@ if (!class_exists('AIPredictionController')) {
             }";
 
             $aiResponse = $this->callGroqAPI($prompt);
-            $cleanJson = preg_replace('/```json\n?|\n?```/', '', $aiResponse);
+            $cleanJson = $this->extractJson($aiResponse);
             return json_decode(trim($cleanJson), true);
         }
 
@@ -285,7 +292,7 @@ if (!class_exists('AIPredictionController')) {
                 'messages' => [
                     [
                         'role' => 'system',
-                        'content' => 'You are a nutrition AI assistant. Analyze eating behavior and predict risks. Respond ONLY with valid JSON.'
+                        'content' => 'You are a nutrition AI assistant. Analyze eating behavior and predict risks. Respond ONLY with valid JSON. Do not include any text, explanations or markdown outside the JSON object.'
                     ],
                     [
                         'role' => 'user',
@@ -315,6 +322,16 @@ if (!class_exists('AIPredictionController')) {
             }
 
             return false;
+        }
+
+        private function extractJson($text)
+        {
+            $start = strpos($text, '{');
+            $end = strrpos($text, '}');
+            if ($start !== false && $end !== false) {
+                return substr($text, $start, $end - $start + 1);
+            }
+            return $text;
         }
     }
 }

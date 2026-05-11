@@ -110,8 +110,10 @@ class CategorieController {
         $params = [];
 
         if (!empty($searchTerm)) {
-            $sql .= " AND (nom_categorie LIKE :search OR description LIKE :search OR type_categorie LIKE :search)";
-            $params['search'] = "%$searchTerm%";
+            $sql .= " AND (nom_categorie LIKE :search1 OR description LIKE :search2 OR type_categorie LIKE :search3)";
+            $params['search1'] = "%$searchTerm%";
+            $params['search2'] = "%$searchTerm%";
+            $params['search3'] = "%$searchTerm%";
         }
 
         $allowedSortColumns = ['nom_categorie', 'type_categorie', 'date_creation'];

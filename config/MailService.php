@@ -11,11 +11,11 @@ require_once __DIR__ . '/../vendor/phpmailer/src/Exception.php';
 
 class MailService {
     
-    // Configuration SMTP (à modifier selon tes infos)
-    private static $smtpHost = 'smtp.gmail.com';
-    private static $smtpPort = 587;
-    private static $smtpUser = 'moemen.kochbati222@gmail.com';      // 🔴 Ton email
-    private static $smtpPassword = 'wfdm xyth atwv qxbs';            // 🔴 Mot de passe d'application
+    // Configuration SMTP
+    private static function getHost() { return getenv('SMTP_HOST') ?: 'smtp.gmail.com'; }
+    private static function getPort() { return (int)(getenv('SMTP_PORT') ?: 587); }
+    private static function getUser() { return getenv('SMTP_USER') ?: 'moemen.kochbati222@gmail.com'; }
+    private static function getPass() { return getenv('SMTP_PASS') ?: 'wfdm xyth atwv qxbs'; }
     
     /**
      * Envoyer un code de vérification à 4 chiffres
@@ -26,12 +26,12 @@ class MailService {
         try {
             // Configuration SMTP
             $mail->isSMTP();
-            $mail->Host       = self::$smtpHost;
+            $mail->Host       = self::getHost();
             $mail->SMTPAuth   = true;
-            $mail->Username   = self::$smtpUser;
-            $mail->Password   = self::$smtpPassword;
+            $mail->Username   = self::getUser();
+            $mail->Password   = self::getPass();
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = self::$smtpPort;
+            $mail->Port       = self::getPort();
             
             // Désactiver SSL verify (pour localhost)
             $mail->SMTPOptions = [
@@ -43,7 +43,7 @@ class MailService {
             ];
             
             // Expéditeur et destinataire
-            $mail->setFrom(self::$smtpUser, 'NutriLoop AI');
+            $mail->setFrom(self::getUser(), 'NutriLoop AI');
             $mail->addAddress($toEmail, $toName);
             
             // Contenu email

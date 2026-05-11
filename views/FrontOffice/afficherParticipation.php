@@ -1,4 +1,5 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
 require_once '../../controleurs/EvenementController.php';
 require_once '../../controleurs/ParticipationController.php';
 
@@ -318,22 +319,7 @@ $lieuEncode = urlencode($evenement->getLieu());
 </head>
 <body>
 
-<header class="header">
-    <nav class="navbar">
-        <div class="logo">
-            <img src="image/logo.PNG" alt="NutriLoop" class="logo-img" onerror="this.src='https://via.placeholder.com/45x45?text=🌱'">
-            <span class="logo-text">NutriLoop</span>
-        </div>
-        <ul class="nav-menu">
-            <li><a href="index.html">Accueil</a></li>
-            <li><a href="afficherRecette.php">Recettes</a></li>
-            <li><a href="afficherEvenement.php" class="active">Événements</a></li>
-            <li><a href="about.html">À propos</a></li>
-            <li><a href="../backoffice/index.html" class="btn-dashboard">Dashboard</a></li>
-        </ul>
-        <div class="hamburger"><span></span><span></span><span></span></div>
-    </nav>
-</header>
+
 
 <!-- HERO IMAGE ÉVÉNEMENT -->
 <div class="ev-hero">
@@ -466,20 +452,20 @@ $lieuEncode = urlencode($evenement->getLieu());
                     <div class="form-row">
                         <div class="form-group">
                             <label><i class="fas fa-id-card"></i> ID Utilisateur <span class="required">*</span></label>
-                            <input type="number" id="id_user" name="id_user" placeholder="Ex: 1" min="1" value="<?= htmlspecialchars($_POST['id_user'] ?? '') ?>">
+                            <input type="number" id="id_user" name="id_user" placeholder="Ex: 1" min="1" value="<?= htmlspecialchars($_POST['id_user'] ?? ($_SESSION['user']['id_user'] ?? '')) ?>">
                             <span class="input-hint">Votre ID profil NutriLoop</span>
                             <span class="field-error" id="err-id">Obligatoire (min 1).</span>
                         </div>
                         <div class="form-group">
                             <label><i class="fas fa-user"></i> Nom complet <span class="required">*</span></label>
-                            <input type="text" id="nom" name="nom" placeholder="Votre nom et prénom" value="<?= htmlspecialchars($_POST['nom'] ?? '') ?>">
+                            <input type="text" id="nom" name="nom" placeholder="Votre nom et prénom" value="<?= htmlspecialchars($_POST['nom'] ?? (isset($_SESSION['user']) ? $_SESSION['user']['prenom'].' '.$_SESSION['user']['nom'] : '')) ?>">
                             <span class="field-error" id="err-nom">Minimum 3 caractères.</span>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label><i class="fas fa-envelope"></i> Email <span class="required">*</span></label>
-                            <input type="email" id="email" name="email" placeholder="votre@email.com" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
+                            <input type="email" id="email" name="email" placeholder="votre@email.com" value="<?= htmlspecialchars($_POST['email'] ?? ($_SESSION['user']['email'] ?? '')) ?>">
                             <span class="field-error" id="err-email">Email invalide.</span>
                         </div>
                         <div class="form-group">
@@ -643,36 +629,7 @@ $lieuEncode = urlencode($evenement->getLieu());
     <?php endif; ?>
 </div>
 
-<footer class="footer">
-    <div class="footer-content">
-        <div class="footer-section">
-            <h3>NutriLoop</h3>
-            <p>L'intelligence artificielle au service de votre assiette.</p>
-            <div class="social-links">
-                <a href="#"><i class="fab fa-facebook-f"></i></a>
-                <a href="#"><i class="fab fa-twitter"></i></a>
-                <a href="#"><i class="fab fa-instagram"></i></a>
-            </div>
-        </div>
-        <div class="footer-section">
-            <h4>Liens rapides</h4>
-            <ul>
-                <li><a href="index.html">Accueil</a></li>
-                <li><a href="afficherRecette.php">Recettes</a></li>
-                <li><a href="afficherEvenement.php">Événements</a></li>
-            </ul>
-        </div>
-        <div class="footer-section">
-            <h4>Contact</h4>
-            <ul>
-                <li><i class="fas fa-map-marker-alt"></i> Tunis, Tunisie</li>
-                <li><i class="fas fa-envelope"></i> contact@nutriloop.ai</li>
-                <li><i class="fas fa-phone"></i> +216 70 000 000</li>
-            </ul>
-        </div>
-    </div>
-    <div class="footer-bottom"><p>&copy; 2024 NutriLoop - Tous droits réservés</p></div>
-</footer>
+
 
 <script>
 const prixUnitaire = <?= $evenement->getPrix() ?>;

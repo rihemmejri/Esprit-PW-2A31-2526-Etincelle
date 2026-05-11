@@ -17,6 +17,19 @@ $images = [
 $imgUrl     = $images[$ev->getTypeEvenement()] ?? $images['AUTRE'];
 $lieuEncode = urlencode($ev->getLieu());
 $isPayant   = $ev->isPayant();
+
+// Créer les données pour le QR code
+$qrData = json_encode([
+    'id_event' => $ev->getIdEvenement(),
+    'titre' => $ev->getTitre(),
+    'date' => $ev->getDateEvenement(),
+    'lieu' => $ev->getLieu(),
+    'inscription_url' => "http://" . $_SERVER['HTTP_HOST'] . "/views/FrontOffice/afficherParticipation.php?id=" . $ev->getIdEvenement()
+]);
+
+// Utiliser une API gratuite pour générer le QR code
+$qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . urlencode($qrData);
+
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -74,6 +87,37 @@ body{font-family:'Poppins',sans-serif;background:#f0f2f5;color:#333;max-width:48
 .maps-header span{color:rgba(255,255,255,.5);font-size:.72em;}
 .maps-iframe{width:100%;height:220px;border:none;display:block;}
 .maps-open-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:#2196F3;color:white;padding:13px;text-decoration:none;font-size:.86em;font-weight:600;}
+
+/* Style pour le QR code */
+.qr-section {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 20px;
+    text-align: center;
+    border: 2px solid #e5e7eb;
+}
+.qr-title {
+    font-size: .8em;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.qr-code-img {
+    max-width: 150px;
+    height: auto;
+    margin: 10px auto;
+    border-radius: 12px;
+}
+.qr-note {
+    font-size: .7em;
+    color: #888;
+    margin-top: 12px;
+}
 
 .sticky-btn{position:sticky;bottom:0;background:white;padding:14px 18px;border-top:1px solid #f0f0f0;box-shadow:0 -4px 20px rgba(0,0,0,.08);}
 .btn-inscr{display:flex;align-items:center;justify-content:center;gap:10px;padding:15px;border-radius:16px;text-decoration:none;font-size:1em;font-weight:700;width:100%;border:none;cursor:pointer;font-family:'Poppins',sans-serif;}
@@ -142,6 +186,18 @@ body{font-family:'Poppins',sans-serif;background:#f0f2f5;color:#333;max-width:48
         <div class="px-val px-val-<?= $px ?>">
             <?= $isPayant ? number_format($ev->getPrix(), 2) . ' TND' : 'Gratuit' ?>
         </div>
+    </div>
+    
+    <!-- Section QR Code avec API externe -->
+    <div class="qr-section">
+        <div class="qr-title">
+            <i class="fas fa-qrcode" style="color: #4CAF50;"></i>
+            <span>QR Code Événement</span>
+        </div>
+        <img src="<?= $qrCodeUrl ?>" alt="QR Code pour <?= htmlspecialchars($ev->getTitre()) ?>" class="qr-code-img">
+        <p class="qr-note">
+            <i class="fas fa-camera"></i> Scannez ce code pour accéder rapidement à l'événement
+        </p>
     </div>
 
     <div class="maps-wrap">

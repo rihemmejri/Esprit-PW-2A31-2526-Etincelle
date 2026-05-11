@@ -179,8 +179,10 @@ class ProduitController
         $params = [];
 
         if (!empty($searchTerm)) {
-            $sql .= " AND (p.nom LIKE :search OR p.origine LIKE :search OR p.saison LIKE :search)";
-            $params['search'] = "%$searchTerm%";
+            $sql .= " AND (p.nom LIKE :search1 OR p.origine LIKE :search2 OR p.saison LIKE :search3)";
+            $params['search1'] = "%$searchTerm%";
+            $params['search2'] = "%$searchTerm%";
+            $params['search3'] = "%$searchTerm%";
         }
 
         if (!empty($idCategorie)) {

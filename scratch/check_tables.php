@@ -1,19 +1,9 @@
 <?php
-require_once __DIR__ . '/../config.php';
+require 'config.php';
 try {
     $db = Config::getConnexion();
-    $stmt = $db->query("SHOW TABLES LIKE 'etape'");
-    if ($stmt->fetch()) {
-        echo "TABLE_ETAPE_EXISTS";
-    } else {
-        $stmt = $db->query("SHOW TABLES LIKE 'preperation'");
-        if ($stmt->fetch()) {
-            echo "TABLE_PREPERATION_EXISTS";
-        } else {
-            echo "NONE_FOUND";
-        }
-    }
+    $stmt = $db->query('SHOW TABLES');
+    print_r($stmt->fetchAll(PDO::FETCH_COLUMN));
 } catch (Exception $e) {
-    echo "ERROR: " . $e->getMessage();
+    echo $e->getMessage();
 }
-?>

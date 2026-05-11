@@ -337,26 +337,7 @@ $imageUrl = getImageUrl($recette->getNom());
 </head>
 <body>
 
-    <header class="header">
-        <nav class="navbar">
-            <div class="logo">
-                <img src="image/logo.PNG" alt="NutriLoop Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/45x45?text=🌱'">
-                <span class="logo-text">NutriLoop</span>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="index.html">Accueil</a></li>
-                <li><a href="afficherRecette.php">Recettes</a></li>
-                <li><a href="about.html">À propos</a></li>
-                <li><a href="contact.html">Contact</a></li>
-                <li><a href="../backoffice/index.html" class="btn-dashboard">Dashboard</a></li>
-            </ul>
-            <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </nav>
-    </header>
+    
 
     <div class="container-recette">
         <a href="afficherRecette.php" class="btn-back">
