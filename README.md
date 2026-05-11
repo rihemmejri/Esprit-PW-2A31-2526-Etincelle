@@ -61,10 +61,10 @@ Créer un écosystème où l'IA guide chaque utilisateur vers une alimentation o
 *   **Ateliers & Conférences** : Inscription aux événements communautaires.
 *   **Billetterie QR Code** : Accès simplifié grâce à la génération automatique de billets digitaux.
 
-###🧠 Nutrition Smart (AI Core)
-*   **NutriBot AI : Conseils nutritionnels intelligents.
-*   **Plans IA : Programmes alimentaires personnalisés.
-*   **Analyse & Eco-Score : Prédiction santé + optimisation écologique.
+### 🧠 Nutrition Smart (AI Core)
+*   **NutriBot AI** : Conseils nutritionnels intelligents.
+*   **Plans IA** : Programmes alimentaires personnalisés.
+*   **Analyse & Eco-Score** : Prédiction santé + optimisation écologique.
 
 ---
 
