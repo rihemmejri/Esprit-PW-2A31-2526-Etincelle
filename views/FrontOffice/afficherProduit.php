@@ -441,7 +441,8 @@ $categoriesCount = count(array_unique(array_map(fn($p) => $p->getIdCategorie(), 
             padding: 15px 0;
             border-bottom: 1px solid #eee;
         }
-        .cart-item-img { width: 50px; height: 50px; background: #f0f0f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .cart-item-img { width: 50px; height: 50px; background: #f0f0f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; overflow: hidden; }
+        .cart-item-img img { width: 100%; height: 100%; object-fit: cover; }
         .cart-item-info { flex-grow: 1; }
         .cart-item-name { font-weight: 700; font-size: 0.95rem; }
         .cart-item-price { font-size: 0.85rem; color: var(--text-gray); }
@@ -1107,7 +1108,9 @@ $categoriesCount = count(array_unique(array_map(fn($p) => $p->getIdCategorie(), 
                     const div = document.createElement('div');
                     div.className = 'cart-item';
                     div.innerHTML = `
-                        <div class="cart-item-img">🥘</div>
+                        <div class="cart-item-img">
+                            ${item.image ? `<img src="../assets/images/${item.image}" alt="${item.nom}">` : '🥘'}
+                        </div>
                         <div class="cart-item-info">
                             <div class="cart-item-name">${item.nom}</div>
                             <div class="cart-item-price">${item.quantite} x ${item.prix_unitaire} DT</div>
