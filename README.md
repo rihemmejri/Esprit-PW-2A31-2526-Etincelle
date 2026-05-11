@@ -78,17 +78,17 @@ NutriLoop AI intègre des algorithmes métier sophistiqués pour offrir une vale
 
 ## 📸 Captures d'Écran
 
-### 🖥️ Dashboard Utilisateur
-*(Placeholder: Image du dashboard moderne avec graphes de santé)*
-
 ### 🛒 Marketplace & Eco-Score
-*(Placeholder: Interface de la boutique avec les badges Eco-Score)*
+<img width="1868" height="855" alt="marketplace" src="https://github.com/user-attachments/assets/f3e6ad81-45fe-46a8-afa0-29891401a6ff" />
+
 
 ### 🤖 NutriBot AI en Action
-*(Placeholder: Capture de la fenêtre de chat IA)*
+<img width="380" height="500" alt="Bot" src="https://github.com/user-attachments/assets/abbfeb04-5c63-4230-a213-35ee9c7f2895" />
+
 
 ### ⚙️ Admin Panel (BackOffice)
-*(Placeholder: Interface de gestion centralisée)*
+<img width="1892" height="958" alt="backoffice" src="https://github.com/user-attachments/assets/01b371bf-4271-471e-aca9-b0ee472eeb07" />
+
 
 ---
 
